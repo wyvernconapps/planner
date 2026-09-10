@@ -106,7 +106,7 @@ body.hdrhid .timehead{top:0}
 .gcell.past{opacity:.34}
 
 /* ---- track filter ---- */
-#trackPanel,#tripPanel,#kindPanel{display:none;padding:10px 12px 4px;border-top:1px solid var(--line);
+#trackPanel,#tripPanel,#kindPanel,#tagPanel{display:none;padding:10px 12px 4px;border-top:1px solid var(--line);
   margin-top:9px;max-height:52vh;overflow-y:auto}
 .trow{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:12.5px;color:var(--dim)}
 .trow>span{flex:0 0 118px}
@@ -140,7 +140,11 @@ body.hdrhid .timehead{top:0}
 .tp-head button{font-size:12.5px;font-weight:600;color:var(--gold);padding:4px 0}
 .tp-head button+button{color:var(--dim)}
 .tgrid{display:flex;flex-wrap:wrap;gap:6px}
-.tchip{padding:5px 10px;border-radius:7px;font-size:12.5px;background:var(--surface2);
+/* Include and exclude are marked with a glyph, not only colour, so the state
+   survives night mode, greyscale, and colour blindness. */
+.tchip::before{content:'\2713';margin-right:5px;font-weight:700;opacity:.9}
+.tchip[data-state="hidden"]::before{content:'\2715'}
+.tchip{padding:5px 9px;border-radius:7px;font-size:12.5px;background:var(--surface2);
   border:1px solid var(--line);color:var(--faint)}
 .tchip[aria-pressed="true"]{background:#2C3D53;border-color:#48607E;color:var(--text)}
 
@@ -164,7 +168,6 @@ main{padding:0 12px}
 .ev.lv2{border-color:var(--gold)}
 .star.lv1{color:#8FB4D6}
 .star.lv2{color:var(--gold)}
-.tchip[data-state="follow"]{background:#3A2F14;border-color:var(--gold);color:var(--gold)}
 .tchip[data-state="hidden"]{opacity:.45;text-decoration:line-through}
 .tphint{font-size:11px;color:var(--faint);align-self:center}
 .slevel{margin-top:16px}
@@ -415,7 +418,8 @@ nav button[aria-current="page"]{color:var(--gold)}
   <div class="herehint" id="hereHint"></div>
   <div class="tools" id="tools">
     <input id="q" type="search" placeholder="Search titles, guests, rooms" autocomplete="off">
-    <button class="tbtn" id="kindBtn">Kind</button>
+    <button class="tbtn" id="kindBtn">Featuring</button>
+    <button class="tbtn" id="tagBtn">Other tags</button>
     <button class="tbtn" id="trackBtn">Tracks</button>
     <button class="tbtn" id="tripBtn">Trips</button>
   </div>
@@ -452,12 +456,20 @@ nav button[aria-current="page"]{color:var(--gold)}
     <div class="tp-head">
       <button id="kpAll">Show all</button>
       <button id="kpNone">Hide all</button>
-      <span class="tphint">Hide all, then tap the few you want</span>
+      <span class="tphint">Who is on the panel</span>
     </div>
     <div class="tgrid" id="kgrid"></div>
     <div class="tnote">Roles come from each guest's own bio in the 2026 Program
       Book. Attending Professionals are named in the detail but carry no badge.
-      A panel with no badge is a fan panel.</div>
+      A panel with nobody billed is a fan panel.</div>
+  </div>
+  <div id="tagPanel" data-open="0">
+    <div class="tp-head">
+      <button id="gpAll">Show all</button>
+      <button id="gpNone">Hide all</button>
+      <span class="tphint">Everything that is not about who is on it</span>
+    </div>
+    <div class="tgrid" id="ggrid"></div>
   </div>
   <div id="trackPanel" data-open="0">
     <div class="tp-head">
@@ -1564,7 +1576,7 @@ function viewBrowse(){
   const bits=[idxs.length.toLocaleString()+' events'];
   if(hotels.size) bits.push(hotelLabel());
   if(offTracks.size) bits.push(offTracks.size+' tracks hidden');
-  if(offKinds.size) bits.push(offKinds.size+' kinds hidden');
+  if(offKinds.size) bits.push(offKinds.size+' tags hidden');
   if(hidePast&&total>idxs.length) bits.push((total-idxs.length)+' already over');
   document.getElementById('count').textContent=bits.join(' \u00b7 ');
   if(!idxs.length){
@@ -2085,9 +2097,12 @@ function render(){
   document.getElementById('trackBtn').style.display=(view==='mine')?'none':'block';
   const tp=document.getElementById('trackPanel');
   tp.style.display=(view!=='mine'&&tp.dataset.open==='1')?'block':'none';
-  const kp=document.getElementById('kindPanel');
-  kp.style.display=(view!=='mine'&&kp.dataset.open==='1')?'block':'none';
-  document.getElementById('kindBtn').style.display=(view==='mine')?'none':'block';
+  ['kindPanel','tagPanel'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.style.display=(view!=='mine'&&el.dataset.open==='1')?'block':'none';
+  });
+  ['kindBtn','tagBtn'].forEach(id=>
+    document.getElementById(id).style.display=(view==='mine')?'none':'block');
   const rp=document.getElementById('tripPanel');
   rp.style.display=(rp.dataset.open==='1')?'block':'none';
   document.getElementById('tripBtn').style.display=(view==='mine')?'block':'none';
@@ -2203,17 +2218,21 @@ function buildChrome(){
     hh.appendChild(b);
   });
   const kg=document.getElementById('kgrid');
-  [['actor','Actors'],['author','Authors'],['artist','Artists'],
+  const FEATURING=[['actor','Actors'],['author','Authors'],['artist','Artists'],
    ['creator','Creators'],['musician','Musicians'],['costumer','Costumers'],
    ['scientist','Scientists'],['performer','Performers'],['writer','Writers'],
-   ['expert','Expert-led'],['party','Parties & music'],['paid','Extra fee'],
-   ['fan','Fan panels']].forEach(([k,label])=>{
+   ['expert','Expert-led'],['fan','Nobody billed']];
+  const OTHERTAGS=[['party','Parties & music'],['paid','Extra fee']];
+  const gg=document.getElementById('ggrid');
+  const mkChip=(k,label,into)=>{
     const b=document.createElement('button');
     b.className='tchip'; b.textContent=label; b.dataset.kind=k;
     b.onclick=()=>{ offKinds.has(k)?offKinds.delete(k):offKinds.add(k);
       syncKinds(); shown=50; render(); };
-    kg.appendChild(b);
-  });
+    into.appendChild(b);
+  };
+  FEATURING.forEach(([k,l])=>mkChip(k,l,kg));
+  OTHERTAGS.forEach(([k,l])=>mkChip(k,l,gg));
   syncKinds();
 
   const tg=document.getElementById('tgrid');
@@ -2229,9 +2248,15 @@ function buildChrome(){
   syncTracks();
 }
 function syncKinds(){
-  document.querySelectorAll('#kgrid .tchip').forEach(b=>
-    b.setAttribute('aria-pressed',String(!offKinds.has(b.dataset.kind))));
-  document.getElementById('kindBtn').classList.toggle('on',offKinds.size>0);
+  document.querySelectorAll('#kgrid .tchip, #ggrid .tchip').forEach(b=>{
+    const off=offKinds.has(b.dataset.kind);
+    b.dataset.state = off?'hidden':'neutral';   /* same states as the tracks */
+    b.setAttribute('aria-pressed',String(!off));
+  });
+  const anyOff=sel=>[...document.querySelectorAll(sel+' .tchip')]
+    .some(b=>offKinds.has(b.dataset.kind));
+  document.getElementById('kindBtn').classList.toggle('on',anyOff('#kgrid'));
+  document.getElementById('tagBtn').classList.toggle('on',anyOff('#ggrid'));
 }
 function syncHere(){
   const at=whereAmI();
@@ -2294,24 +2319,37 @@ document.getElementById('sortBtn').onclick=()=>{
   listSort=order[(order.indexOf(listSort)+1)%order.length];
   shown=50; render(); };
 document.getElementById('kpAll').onclick=()=>{
-  offKinds.clear(); savePicks(); syncKinds(); shown=50; render(); };
-document.getElementById('kpNone').onclick=()=>{
-  ['actor','author','artist','musician','costumer','creator','scientist',
-   'writer','performer','expert','party','paid','fan'].forEach(k=>offKinds.add(k));
+  [...document.querySelectorAll('#kgrid .tchip')]
+    .forEach(b=>offKinds.delete(b.dataset.kind));
   savePicks(); syncKinds(); shown=50; render(); };
-document.getElementById('kindBtn').onclick=()=>{
-  const p=document.getElementById('kindPanel'), open=p.dataset.open==='1';
+const groupKeys=sel=>[...document.querySelectorAll(sel+' .tchip')].map(b=>b.dataset.kind);
+document.getElementById('kpNone').onclick=()=>{
+  groupKeys('#kgrid').forEach(k=>offKinds.add(k));
+  savePicks(); syncKinds(); shown=50; render(); };
+document.getElementById('gpAll').onclick=()=>{
+  groupKeys('#ggrid').forEach(k=>offKinds.delete(k));
+  savePicks(); syncKinds(); shown=50; render(); };
+document.getElementById('gpNone').onclick=()=>{
+  groupKeys('#ggrid').forEach(k=>offKinds.add(k));
+  savePicks(); syncKinds(); shown=50; render(); };
+/* One function for every panel button. Each used to close its siblings by
+   hand, and each forgot a different one. */
+function togglePanel(id){
+  ['trackPanel','kindPanel','tagPanel','tripPanel'].forEach(x=>{
+    if(x===id) return;
+    const o=document.getElementById(x);
+    o.dataset.open='0'; o.style.display='none';
+  });
+  const p=document.getElementById(id), open=p.dataset.open==='1';
   p.dataset.open=open?'0':'1'; p.style.display=open?'none':'block';
+  /* the button highlights mean "this category has something hidden", not
+     "this panel is open", so recompute rather than toggle */
+  syncTracks(); syncKinds();
   measureHeader();
-};
-document.getElementById('trackBtn').onclick=()=>{
-  const p=document.getElementById('trackPanel');
-  const open=p.dataset.open==='1';
-  p.dataset.open=open?'0':'1';
-  p.style.display=open?'none':'block';
-  document.getElementById('trackBtn').classList.toggle('on',!open);
-  measureHeader();
-};
+}
+document.getElementById('kindBtn').onclick=()=>togglePanel('kindPanel');
+document.getElementById('tagBtn').onclick=()=>togglePanel('tagPanel');
+document.getElementById('trackBtn').onclick=()=>togglePanel('trackPanel');
 function hhmmOf(mins){ const h=Math.floor(mins/60), m=mins%60;
   const ap=h<12?'am':'pm', hh=h%12||12;
   return hh+(m?':'+pad(m):'')+ap; }
@@ -2360,14 +2398,7 @@ function bindTrip(){
     trip=JSON.parse(JSON.stringify(TRIP_DEFAULTS));
     trip.on=on; save();
   };
-  g('tripBtn').onclick=()=>{
-    const p=g('tripPanel'), open=p.dataset.open==='1';
-    p.dataset.open=open?'0':'1'; p.style.display=open?'none':'block';
-    document.getElementById('trackPanel').dataset.open='0';
-    document.getElementById('trackPanel').style.display='none';
-    document.getElementById('trackBtn').classList.remove('on');
-    measureHeader();
-  };
+  g('tripBtn').onclick=()=>togglePanel('tripPanel');
   syncTrip();
 }
 
