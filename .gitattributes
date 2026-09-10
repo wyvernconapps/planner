@@ -1,0 +1,5 @@
+# Keep LF line endings everywhere. index.html is byte-reproducible from
+# pipeline/assemble.py (which writes LF); without this, core.autocrlf=true on
+# Windows would rewrite the working copy to CRLF and churn against every build.
+* text=auto eol=lf
+*.png binary

@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E1621">
+<meta name="robots" content="noindex, nofollow">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Schedule">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E1621'/%3E%3Cpath d='M32 13l5.6 11.4 12.6 1.8-9.1 8.9 2.1 12.5L32 41.7l-11.2 5.9 2.1-12.5-9.1-8.9 12.6-1.8z' fill='%23F0A830'/%3E%3C/svg%3E">
+<title>WyvernCon Schedule</title>
+<style>
+:root{
+  --bg:#0E1621; --surface:#16202E; --surface2:#1D2939; --line:#27364A;
+  --text:#E9EEF4; --dim:#94A5B8; --faint:#64768C;
+  --gold:#F0A830; --red:#FF6F5E; --green:#5FCF8A;
+  --MAR:#F0A830; --HYA:#4FB3D9; --HIL:#E2685A; --WES:#9B8CFF;
+  --CG:#5FCF8A; --AMART:#E77FC4; --ONLINE:#7E8B9E; --PARK:#A8C24F; --OFF:#AEB7C2;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px; line-height:1.45;
+  padding-bottom:calc(64px + env(safe-area-inset-bottom));
+}
+button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---- top bar ---- */
+header{
+  position:sticky;top:0;z-index:20;background:rgba(14,22,33,.96);
+  transition:transform .22s ease;
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  padding:10px 12px 8px;padding-top:calc(10px + env(safe-area-inset-top));
+}
+/* the header is five stacked rows on a phone and it is sticky, so it costs
+   that space permanently. Give it back while scrolling down; a flick up or
+   the jump button brings it straight back. */
+body.hdrhid header{transform:translateY(-100%)}
+body.hdrhid .timehead{top:0}
+#toTop{
+  position:fixed;right:14px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:40;
+  width:44px;height:44px;border-radius:50%;font-size:19px;line-height:1;
+  background:var(--surface2);border:1px solid var(--line);color:var(--gold);
+  box-shadow:0 3px 12px rgba(0,0,0,.45)}
+#toTop[hidden]{display:none}
+.hrow{display:flex;align-items:center;gap:10px}
+.brand{font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--dim)}
+.brand b{color:var(--gold);font-weight:700}
+.clock{margin-left:auto;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+
+/* Days wrap: seven short chips, and the hidden ones would be Saturday and
+   Sunday - the days you most want. Nothing important should be off-screen. */
+#days{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+
+/* Hotels wrap too. Dropping the colour dot saves ~13px a chip, which is the
+   difference between three lines and two - the colour moves to the border,
+   which costs no width at all. */
+#hotels{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+#hotels .chip{border-color:color-mix(in srgb,var(--hc) 55%,var(--line))}
+
+/* the "I'm at" row still scrolls: it is only shown in Distance sort and the
+   order there does not matter much */
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chip{
+  flex:0 0 auto;padding:6px 13px;border-radius:999px;font-size:13.5px;font-weight:600;
+  background:var(--surface);border:1px solid var(--line);color:var(--dim);white-space:nowrap;
+}
+.chip[aria-pressed="true"]{background:var(--gold);color:#16202E;border-color:var(--gold)}
+.herehint{display:none;padding:7px 2px 0;font-size:11px;color:var(--faint)}
+.pin{display:none}
+#hotels.pinning .pin{display:inline-block;margin-right:5px;font-size:12px;
+  filter:grayscale(1);opacity:.4;padding:2px 3px;margin-left:-3px}
+#hotels.pinning .pin.on{filter:none;opacity:1}
+#hotels.pinning .pin.guess{filter:none;opacity:.7}
+.chip.all{border-style:dashed}
+.chip.all[aria-pressed="true"]{background:transparent;color:var(--gold);
+  border-color:var(--gold);border-style:solid}
+#clearBtn[aria-pressed="true"]{color:var(--red);border-color:var(--red)}
+.chip.hotel[aria-pressed="true"]{background:var(--hc);border-color:var(--hc);color:#121A24}
+.chip .dot{display:none}
+  background:var(--hc);margin-right:6px;vertical-align:1px}
+
+.tools{display:flex;gap:8px;margin-top:9px}
+.tools input{
+  flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);
+  border-radius:9px;padding:9px 11px;color:var(--text);font-size:14.5px;
+}
+.tools input::placeholder{color:var(--faint)}
+.tbtn{
+  flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:9px;
+  padding:9px 12px;font-size:13.5px;font-weight:600;color:var(--dim)
+}
+.tbtn.on{border-color:var(--gold);color:var(--gold)}
+.countrow{display:flex;align-items:center;gap:10px;padding-top:8px}
+.count{flex:1;min-width:0;padding:0 2px;font-size:12px;color:var(--faint)}
+.pastbtn{flex:0 0 auto;font-size:11.5px;font-weight:600;color:var(--faint);
+  padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:var(--surface);
+  white-space:nowrap}
+.pastbtn[aria-pressed="true"]{color:var(--gold);border-color:var(--gold)}
+.gcell.past{opacity:.34}
+
+/* ---- track filter ---- */
+#trackPanel,#tripPanel,#kindPanel,#tagPanel{display:none;padding:10px 12px 4px;border-top:1px solid var(--line);
+  margin-top:9px;max-height:52vh;overflow-y:auto}
+.trow{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:12.5px;color:var(--dim)}
+.trow>span{flex:0 0 118px}
+.tsub{padding:12px 0 2px;font-size:11px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--gold)}
+.tsub+.trow>span{flex:0 0 46px}
+.trow>span+input[type=range]{min-width:130px}
+.trow input[type=range]{flex:1;min-width:60px;accent-color:var(--gold)}
+.trow input[type=checkbox]{margin-left:auto;width:20px;height:20px;accent-color:var(--gold)}
+.trow b{flex:0 0 54px;text-align:right;font-size:11.5px;color:var(--gold);
+  font-variant-numeric:tabular-nums}
+.tpark{display:flex;flex-wrap:wrap;gap:5px;flex:1}
+.tpark button{padding:4px 9px;border-radius:6px;font-size:11.5px;background:var(--surface2);
+  border:1px solid var(--line);color:var(--faint)}
+.tpark button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+.treset{margin-top:10px;font-size:11.5px;font-weight:600;color:var(--faint);
+  padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:var(--surface)}
+.tnote{padding:8px 0 4px;font-size:11px;color:var(--faint);line-height:1.5}
+.trip{margin:14px 0 8px;padding:12px 13px;border-radius:10px;
+  background:#1B2416;border:1px solid #3E5426}
+.trip.clear{padding:8px 13px;opacity:.72}
+.trip.clear .triph{font-size:12.5px;font-weight:600}
+.triph{display:flex;align-items:baseline;gap:9px;font-size:13.5px;font-weight:700;
+  color:var(--PARK)}
+.triph span{margin-left:auto;font-size:11.5px;font-weight:600;color:var(--faint)}
+.tripb{margin-top:6px;font-size:12px;line-height:1.5;color:#B9CE93}
+.trip.costly{background:#2A2418;border-color:#5A4A22}
+.trip.costly .triph{color:var(--gold)}
+.trip.costly .tripb{color:#E8CF9A}
+.tp-head{display:flex;gap:14px;margin-bottom:9px}
+.tp-head button{font-size:12.5px;font-weight:600;color:var(--gold);padding:4px 0}
+.tp-head button+button{color:var(--dim)}
+.tgrid{display:flex;flex-wrap:wrap;gap:6px}
+/* Include and exclude are marked with a glyph, not only colour, so the state
+   survives night mode, greyscale, and colour blindness. */
+.tchip::before{content:'\2713';margin-right:5px;font-weight:700;opacity:.9}
+.tchip[data-state="hidden"]::before{content:'\2715'}
+.tchip{padding:5px 9px;border-radius:7px;font-size:12.5px;background:var(--surface2);
+  border:1px solid var(--line);color:var(--faint)}
+.tchip[aria-pressed="true"]{background:#2C3D53;border-color:#48607E;color:var(--text)}
+
+/* ---- list ---- */
+main{padding:0 12px}
+.timehead{position:sticky;top:calc(var(--headh,190px) - 1px);z-index:6;
+  display:flex;align-items:baseline;gap:8px;
+  margin:20px -12px 8px;padding:7px 12px 7px 14px;
+  font-size:13px;font-weight:700;letter-spacing:.05em;color:var(--gold);
+  background:var(--bg);border-bottom:1px solid var(--line)}
+.timehead span{font-weight:500;letter-spacing:0;color:var(--faint);font-size:11.5px}
+.timehead:first-child{margin-top:12px}
+/* the bracket: a rail down the left of everything under a heading, so a card
+   scrolled away from its heading still reads as belonging to it */
+.grouped{border-left:2px solid var(--line);margin-left:3px;padding-left:9px}
+
+.ev{display:flex;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;margin-bottom:7px;overflow:hidden}
+.ev.picked{background:#1A2739}
+.ev.lv1{border-color:#5A7392}
+.ev.lv2{border-color:var(--gold)}
+.star.lv1{color:#8FB4D6}
+.star.lv2{color:var(--gold)}
+.tchip[data-state="hidden"]{opacity:.45;text-decoration:line-through}
+.tphint{font-size:11px;color:var(--faint);align-self:center}
+.slevel{margin-top:16px}
+.lvcycle{display:flex;align-items:center;gap:11px;width:100%;padding:13px 14px;
+  border-radius:10px;background:var(--surface2);border:1px solid var(--line);text-align:left}
+.lvcycle .mark{font-size:19px;color:var(--faint);min-width:30px;text-align:center}
+.lvcycle.lv2 .mark{font-size:17px}
+.lvcycle .lbl{font-size:14.5px;font-weight:600;color:var(--dim)}
+.lvcycle .hint{margin-left:auto;font-size:11.5px;color:var(--faint)}
+.lvcycle.lv1{border-color:#5A7392;background:#1A2739}
+.lvcycle.lv1 .mark,.lvcycle.lv1 .lbl{color:#8FB4D6}
+.lvcycle.lv2{border-color:var(--gold);background:#2A2418}
+.lvcycle.lv2 .mark,.lvcycle.lv2 .lbl{color:var(--gold)}
+
+.legacy{margin:12px 0 4px;padding:11px 13px;border-radius:9px;font-size:12.5px;
+  line-height:1.5;background:#2A2418;border:1px solid #5A4A22;color:#E8CF9A}
+.stripe{flex:0 0 4px;align-self:stretch}
+.evbody{flex:1;min-width:0;padding:10px 2px 10px 11px}
+.evtitle{font-size:15px;font-weight:600;line-height:1.3}
+.evmeta{margin-top:4px;font-size:12.5px;color:var(--dim);line-height:1.4}
+.hb{font-weight:700;font-size:11px;letter-spacing:.04em}
+.evtrack{color:var(--faint)}
+.flr{color:var(--faint)}
+.away{color:var(--PARK);font-weight:600}
+.remain{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  background:rgba(240,168,48,.15);color:var(--gold)}
+.remain.part{background:rgba(148,165,184,.14);color:var(--faint)}
+.timehead.fold{width:calc(100% + 24px);text-align:left;cursor:pointer}
+.timehead.fold span{margin-left:auto}
+.evdesc{margin-top:7px;font-size:13px;color:var(--dim);line-height:1.5;display:none;
+  white-space:pre-line}
+.ev.open .evdesc{display:block}
+.star{flex:0 0 46px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:var(--faint);align-self:stretch;line-height:1}
+.star.lv2{font-size:17px}
+.star.on{color:var(--gold)}
+
+.more{display:block;width:100%;margin:14px 0 8px;padding:12px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--line);color:var(--dim);
+  font-size:14px;font-weight:600}
+.empty{padding:44px 16px;text-align:center;color:var(--dim);font-size:14.5px;line-height:1.6}
+.empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600}
+
+/* ---- My Con ---- */
+.gap{display:flex;align-items:center;margin:0 0 7px 14px;padding:5px 0 5px 14px;
+  font-size:12.5px;color:var(--faint);border-left:2px dashed var(--line)}
+.gap.tight{color:var(--red);border-left-color:var(--red)}
+.gap.warn{color:var(--gold);border-left-color:var(--gold)}
+.clash{margin:0 0 7px;padding:8px 11px;border-radius:8px;font-size:12.5px;line-height:1.45;
+  background:#331C1C;border:1px solid #5E2E2A;color:#FFA79B}
+.daybreak{margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);
+  font-size:16px;font-weight:700}
+.slot{display:flex;align-items:baseline;gap:9px;margin:16px 0 7px}
+.slot b{font-size:14px;font-weight:700;letter-spacing:.03em;color:var(--gold)}
+.slot span{font-size:11.5px;color:var(--faint)}
+.slot.choose span{color:var(--dim)}
+.slot.clash b,.slot.clash span{color:var(--red)}
+.slotbody{border-left:2px solid var(--line);padding-left:10px;margin-left:3px}
+.slot.clash+.slotbody{border-left-color:var(--red)}
+.slot.choose+.slotbody{border-left-color:#3E5470}
+.running{margin:0 0 7px;font-size:11.5px;color:var(--faint);padding-left:13px;
+  border-left:2px dashed var(--line)}
+.decide{margin:12px 0 6px;padding:12px 13px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--line)}
+.decideh{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:9px}
+.deciderow{display:flex;gap:10px;align-items:baseline;padding:4px 0;font-size:12.5px}
+.deciderow b{flex:0 0 84px;font-weight:700;color:var(--dim);font-variant-numeric:tabular-nums}
+.deciderow span{color:var(--faint);line-height:1.4}
+.deciderow.hard b{color:var(--red)}
+.deciderow.hard span{color:#E5A79E}
+.deciderow.soft{margin-top:6px;padding-top:8px;border-top:1px solid var(--line)}
+.deciderow.soft span{color:var(--faint)}
+.friendrow{margin:12px 0 4px;padding:12px 13px;border-radius:10px;
+  background:#1D1B2E;border:1px solid #3D3663}
+.friendh{font-size:12.5px;line-height:1.5;color:#C3BCF0;margin-bottom:9px}
+.sharedbtn{width:100%;padding:10px;border-radius:9px;font-size:12.5px;font-weight:600;
+  background:var(--surface2);border:1px solid #3D3663;color:var(--WES)}
+.sharedbtn.on{background:#2B2547;color:#CFC8FF}
+.dropfriend{margin-top:8px;font-size:11px;color:var(--faint);padding:4px 8px;
+  border:1px solid var(--line);border-radius:6px;background:transparent}
+.nameIn{width:100%;margin-bottom:8px;background:var(--surface);border:1px solid var(--line);
+  border-radius:9px;padding:9px 11px;color:var(--text);font-size:13px}
+.syncrow{margin:12px 0 4px}
+.syncrow button{width:100%;padding:11px;border-radius:9px;font-size:13px;font-weight:600;
+  background:var(--surface);border:1px solid var(--line);color:var(--dim)}
+.syncurl{margin-top:8px;font-size:11px;color:var(--faint);word-break:break-all;line-height:1.5}
+.imported{margin:12px 0 4px;padding:11px 13px;border-radius:9px;font-size:12.5px;
+  line-height:1.5;background:#142A1E;border:1px solid #2E5A3E;color:#9FD8B4}
+.daybreak em{font-style:normal;font-weight:500;color:var(--faint);font-size:12.5px;margin-left:8px}
+.note{padding:16px 2px 8px;font-size:12px;color:var(--faint);line-height:1.6}
+#legal{margin:26px 12px 8px;padding:12px 13px;border-top:1px solid var(--line);
+  font-size:11px;line-height:1.6;color:var(--faint)}
+#legal strong{color:var(--dim);font-weight:600}
+#legal b{color:var(--dim);font-weight:600}
+#legal a{color:var(--HYA)}
+#legal span{display:block;margin-top:7px}
+
+/* ---- grid ---- */
+#gridwrap{
+  overflow:auto;-webkit-overflow-scrolling:touch;
+  height:calc(100vh - var(--headh,190px) - 116px);
+  border:1px solid var(--line);border-radius:10px;margin-top:10px;background:var(--surface)
+}
+.ginner{position:relative}
+.ghead{position:sticky;top:0;z-index:3;display:flex;height:30px;
+  background:var(--surface2);border-bottom:1px solid var(--line)}
+.gcorner{position:sticky;left:0;z-index:4;flex:0 0 86px;background:var(--surface2);
+  border-right:1px solid var(--line);font-size:10.5px;font-weight:700;color:var(--faint);
+  display:flex;align-items:center;padding-left:9px;letter-spacing:.04em}
+.gtick{flex:0 0 88px;font-size:11px;color:var(--faint);padding:8px 0 0 7px;
+  border-left:1px solid var(--line);font-variant-numeric:tabular-nums}
+.gtick.hour{color:var(--text);font-weight:700}
+
+.grow{position:relative;border-bottom:1px solid var(--line)}
+.glabel{position:sticky;left:0;z-index:2;width:86px;height:100%;
+  background:var(--surface);border-right:1px solid var(--line);
+  padding:5px 7px 5px 9px;font-size:11.5px;line-height:1.25;color:var(--text);
+  display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.glabel small{color:var(--faint);font-size:10px;margin-top:2px}
+.glabel.tier1{border-left:3px solid var(--gold);padding-left:6px}
+.glabel.tier2{border-left:3px solid #47607E;padding-left:6px}
+.big{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  background:rgba(240,168,48,.16);color:var(--gold)}
+.dctv{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  background:rgba(79,179,217,.16);color:var(--HYA)}
+.dctv.live{background:rgba(95,207,138,.18);color:var(--green)}
+.rpt{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  background:rgba(168,194,79,.16);color:var(--PARK)}
+.rptbox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
+  line-height:1.5;background:#1C2416;border:1px solid #3E4F26;color:#C3D69A}
+.catchlater{margin:-2px 0 8px;padding:5px 2px 5px 0;font-size:11.5px;
+  line-height:1.45;color:var(--PARK)}
+.catchlater button{font-size:11.5px;font-weight:700;color:var(--PARK);
+  border:1px solid #3E5426;border-radius:6px;padding:3px 8px;background:#1B2416}
+.catchlater span{color:var(--faint)}
+.seg{flex:0 0 96px;display:flex;align-self:stretch;border-left:1px solid var(--line)}
+.seg button{flex:1;font-size:13px;color:#4E5F73;line-height:1}
+.seg button+button{border-left:1px solid var(--line)}
+.seg .s1.on{color:#8FB4D6;background:#1A2739}
+.seg .s2.on{background:#2A2418}
+.seg .sx.on{color:var(--red);background:#2A1A1A}
+.seg .s2{filter:grayscale(1);opacity:.55}
+.seg .s2.on{filter:none;opacity:1}
+#sDrop{color:var(--red);border-color:#5E2E2A}
+.ev.ruled{opacity:.5}
+.ev.ruled .evtitle{text-decoration:line-through}
+.ev.wasruled .evtitle{text-decoration:line-through;opacity:.7}
+.kind{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px}
+.k-guest{background:rgba(226,104,90,.18);color:var(--HIL)}
+.r-a{background:rgba(226,104,90,.18);color:var(--HIL)}      /* actor */
+.r-b{background:rgba(240,168,48,.16);color:var(--gold)}     /* author, writer */
+.r-c{background:rgba(155,140,255,.18);color:var(--WES)}     /* artist */
+.r-d{background:rgba(168,194,79,.18);color:var(--PARK)}     /* musician */
+.r-e{background:rgba(231,127,196,.16);color:var(--AMART)}   /* costumer, performer */
+.r-f{background:rgba(95,207,138,.16);color:var(--green)}    /* creator */
+.r-g{background:rgba(79,179,217,.16);color:var(--HYA)}      /* scientist, expert */
+.r-p{background:rgba(231,127,196,.22);color:var(--AMART)}   /* party */
+.r-f2{background:rgba(255,111,94,.16);color:var(--red)}     /* extra fee */
+.r-h{background:rgba(148,165,184,.16);color:var(--dim)}     /* billed, role unclear */
+.whobox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
+  line-height:1.7;background:var(--surface2);border:1px solid var(--line);color:var(--dim)}
+.whobox b{color:var(--text)}
+.whobox span{color:var(--faint);font-size:11px}
+.mate{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
+  background:rgba(155,140,255,.18);color:var(--WES)}
+.ruledtag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  background:rgba(255,111,94,.14);color:var(--red)}
+.watchrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;display:none}
+.ev.open .watchrow{display:flex}
+.watchbtn{font-size:11px;font-weight:700;padding:4px 9px;border-radius:6px;
+  background:#132430;border:1px solid #24485C;color:#9CC9DD}
+.watchbtn.on{background:#142A1E;border-color:#2E5A3E;color:#9FD8B4}
+.ev.iswatch{border-color:#2E5A3E;background:#141F1A}
+.dctvbox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
+  line-height:1.5;background:#132430;border:1px solid #24485C;color:#9CC9DD}
+.qbox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
+  line-height:1.5;background:#2A2418;border:1px solid #5A4A22;color:#E8CF9A}
+.gcell{
+  position:absolute;border-radius:5px;padding:3px 6px;overflow:hidden;text-align:left;
+  font-size:11.5px;line-height:1.2;color:#0E1621;font-weight:600;
+  border-left:3px solid rgba(0,0,0,.28)
+}
+.gcell.lv1{outline:2px solid #8FB4D6;outline-offset:-2px}
+.gcell.lv2{outline:2px solid var(--gold);outline-offset:-2px}
+.gcell time{display:block;font-weight:700;font-size:9.5px;opacity:.7;letter-spacing:.02em}
+.gfloor{position:relative;height:25px;background:var(--surface2);
+  border-bottom:1px solid var(--line);border-top:1px solid var(--line)}
+.gflabel{position:sticky;left:0;display:inline-flex;align-items:center;height:100%;
+  padding:0 12px 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.06em;
+  color:var(--gold);background:var(--surface2);white-space:nowrap}
+.gsort{display:flex;align-items:center;gap:10px;margin-top:10px;
+  font-size:11.5px;color:var(--faint)}
+.gsort button{font-size:11.5px;font-weight:600;color:var(--dim);
+  padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:var(--surface)}
+.gsort button[aria-pressed="true"]{color:var(--gold);border-color:var(--gold)}
+.nowline{position:absolute;top:30px;bottom:0;width:2px;background:var(--red);z-index:1}
+.nowline::before{content:'';position:absolute;top:0;left:-4px;width:10px;height:10px;
+  border-radius:50%;background:var(--red)}
+.ghint{padding:10px 2px 0;font-size:11.5px;color:var(--faint);line-height:1.5}
+
+/* ---- detail sheet ---- */
+#sheet{position:fixed;inset:0;z-index:50;display:none}
+#sheet.open{display:block}
+#sheet .scrim{position:absolute;inset:0;background:rgba(6,10,16,.66)}
+#sheet .card{
+  position:absolute;left:0;right:0;bottom:0;max-height:80vh;overflow-y:auto;
+  background:var(--surface);border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))
+}
+#sheet h2{margin:0 0 6px;font-size:18px;line-height:1.3;font-weight:700}
+#sheet .smeta{font-size:13px;color:var(--dim);line-height:1.5}
+#sheet .sdesc{margin-top:12px;font-size:14px;color:var(--dim);line-height:1.55}
+#sheet .sbtns{display:flex;gap:9px;margin-top:16px}
+#sheet .sbtns button{
+  flex:1;padding:12px;border-radius:10px;font-size:14.5px;font-weight:600;
+  background:var(--surface2);border:1px solid var(--line);color:var(--text)
+}
+
+/* ---- nav ---- */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
+  background:rgba(22,32,46,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;padding:11px 4px 12px;font-size:11px;font-weight:600;color:var(--faint);
+  display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button b{font-size:17px;font-weight:600;line-height:1}
+nav button[aria-current="page"]{color:var(--gold)}
+.badge{position:absolute;transform:translate(15px,-4px);background:var(--gold);color:#16202E;
+  font-size:10px;font-weight:700;border-radius:999px;padding:1px 5px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="hrow">
+    <div class="brand">WyvernCon <b>Schedule</b></div>
+    <div class="clock" id="clock"></div>
+  </div>
+  <div class="chiprow" id="days"></div>
+  <div class="chiprow" id="hotels"></div>
+  <div class="herehint" id="hereHint"></div>
+  <div class="tools" id="tools">
+    <input id="q" type="search" placeholder="Search titles, guests, rooms" autocomplete="off">
+    <button class="tbtn" id="kindBtn">Featuring</button>
+    <button class="tbtn" id="tagBtn">Other tags</button>
+    <button class="tbtn" id="trackBtn">Tracks</button>
+    <button class="tbtn" id="tripBtn">Trips</button>
+  </div>
+  <div id="tripPanel" data-open="0">
+    <label class="trow"><span>Go home to feed the dog</span>
+      <input type="checkbox" id="tOn"></label>
+    <label class="trow"><span>Travel each way</span>
+      <input type="range" id="tTravel" min="5" max="90" step="5">
+      <b id="tTravelV"></b></label>
+    <label class="trow"><span>Time at home</span>
+      <input type="range" id="tHome" min="15" max="180" step="15">
+      <b id="tHomeV"></b></label>
+    <label class="trow"><span>Buffer before next panel</span>
+      <input type="range" id="tBuf" min="0" max="45" step="5">
+      <b id="tBufV"></b></label>
+    <div class="trow"><span>Car parked at</span><div class="tpark" id="tPark"></div></div>
+    <div class="tsub">Breakfast window</div>
+    <label class="trow"><span>from</span>
+      <input type="range" id="tB1" min="300" max="720" step="15"><b id="tB1V"></b></label>
+    <label class="trow"><span>until</span>
+      <input type="range" id="tB2" min="360" max="780" step="15"><b id="tB2V"></b></label>
+    <div class="tsub">Dinner window</div>
+    <label class="trow"><span>from</span>
+      <input type="range" id="tD1" min="900" max="1290" step="15"><b id="tD1V"></b></label>
+    <label class="trow"><span>until</span>
+      <input type="range" id="tD2" min="960" max="1380" step="15"><b id="tD2V"></b></label>
+    <label class="trow"><span>I have a DCTV streaming pass</span>
+      <input type="checkbox" id="tDctv"></label>
+    <button class="treset" id="tReset">Reset trip settings</button>
+    <div class="tnote">Trips only appear in My Con. Walk time to the car is added
+      from wherever your previous pick is.</div>
+  </div>
+  <div id="kindPanel" data-open="0">
+    <div class="tp-head">
+      <button id="kpAll">Show all</button>
+      <button id="kpNone">Hide all</button>
+      <span class="tphint">Who is on the panel</span>
+    </div>
+    <div class="tgrid" id="kgrid"></div>
+    <div class="tnote">Roles come from each guest's own bio in the 2026 Program
+      Book. Attending Professionals are named in the detail but carry no badge.
+      A panel with nobody billed is a fan panel.</div>
+  </div>
+  <div id="tagPanel" data-open="0">
+    <div class="tp-head">
+      <button id="gpAll">Show all</button>
+      <button id="gpNone">Hide all</button>
+      <span class="tphint">Everything that is not about who is on it</span>
+    </div>
+    <div class="tgrid" id="ggrid"></div>
+  </div>
+  <div id="trackPanel" data-open="0">
+    <div class="tp-head">
+      <button id="tpAll">Show all</button>
+      <button id="tpNone">Hide all</button>
+      <span class="tphint">Hide all, then tap the few you want</span>
+    </div>
+    <div class="tgrid" id="tgrid"></div>
+  </div>
+  <div class="countrow">
+    <div class="count" id="count"></div>
+    <button class="pastbtn" id="clearBtn"></button>
+    <button class="pastbtn" id="sortBtn"></button>
+    <button class="pastbtn" id="pastBtn"></button>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<button id="toTop" aria-label="Back to the top" hidden>&#8593;</button>
+
+<footer id="legal">
+  <strong>Unofficial fan-made project.</strong> Not affiliated with, endorsed by, or
+  associated with Dragon Con. Schedule data is Dragon Con's own, reproduced here for
+  personal planning only.
+  <span>Schedule export <b id="build">&mdash;</b> &middot; rooms and times change during
+  the convention. Dragon Con publishes the live grid at
+  <a href="https://app.core-apps.com/dragoncon26">app.core-apps.com/dragoncon26</a>
+  &mdash; check there for anything that matters.</span>
+</footer>
+
+<div id="sheet"><div class="scrim"></div><div class="card" id="sheetCard"></div></div>
+
+<nav>
+  <button data-view="now" aria-current="page"><b>&#9679;</b>Now</button>
+  <button data-view="browse"><b>&#9636;</b>Browse</button>
+  <button data-view="grid"><b>&#9707;</b>Grid</button>
+  <button data-view="mine"><b>&#9733;</b>My Con<span class="badge" id="mineCount" hidden></span></button>
+</nav>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+/* The schedule ships gzipped and base64'd - full descriptions, no truncation,
+   at roughly half the bytes of raw JSON. Unpacked once at startup. */
+const PAYLOAD="__DATA__";
+let DATA, EPOCH, EV, HOTEL_ORDER, dayList;
+const T=0, START=1, DUR=2, HOT=3, LOC=4, TRK=5, PRES=6, DESC=7, ID=8;
+
+async function loadData(){
+  if(typeof DecompressionStream!=='function')
+    throw new Error('This browser cannot unpack the schedule. Try Chrome, '+
+      'Safari 16.4+, or Firefox 113+.');
+  const bin=Uint8Array.from(atob(PAYLOAD),c=>c.charCodeAt(0));
+  const stream=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return JSON.parse(await new Response(stream).text());
+}
+
+const HOTEL_NAME = {MAR:'Marriott',HYA:'Hyatt',HIL:'Hilton',WES:'Westin',
+  CG:'Courtland',AMART:'AmericasMart',ONLINE:'Online',PARK:'Hardy Ivy Park',OFF:'Offsite'};
+
+/* The filter row groups the rare venues. Rows still name the real place -
+   an event in the park should say Hardy Ivy Park - but nobody needs two
+   separate chips for a park and a handful of offsite bars. */
+const OTHER_VENUES=['PARK','OFF'];
+const HOTEL_CHIPS=[
+  {code:'CG'},{code:'HIL'},{code:'MAR'},{code:'HYA'},{code:'WES'},
+  {code:'AMART'},{code:'ONLINE'},
+  {code:'OTHER',label:'Other',members:OTHER_VENUES,tint:'OFF'}
+];
+/* Hotel chips ordered the way the con is laid out, not alphabetically. */
+/* Ordered the way you would walk it, not alphabetically and not by size:
+   Courtland, Hilton, Marriott, Hyatt, Westin, then AmericasMart. Place sort
+   and the Grid read the same order, so both follow the same walk. */
+const HOTEL_SEQ = ['CG','HIL','MAR','HYA','WES','AMART','PARK','ONLINE','OFF'];
+
+/* Walk times in minutes, con-crowd adjusted. ESTIMATES - edit freely.
+   Same-hotel is not zero: these buildings are enormous. */
+const WALK = {
+  'MAR|MAR':5,'HYA|HYA':5,'HIL|HIL':6,'WES|WES':5,'CG|CG':5,'AMART|AMART':8,
+  'MAR|HYA':5,'MAR|HIL':10,'MAR|WES':15,'MAR|CG':12,'MAR|AMART':12,'MAR|PARK':8,
+  'HYA|HIL':8,'HYA|WES':12,'HYA|CG':10,'HYA|AMART':10,'HYA|PARK':8,
+  'HIL|WES':15,'HIL|CG':7,'HIL|AMART':15,'HIL|PARK':5,
+  'WES|CG':20,'WES|AMART':7,'WES|PARK':15,
+  'CG|AMART':18,'CG|PARK':5,'AMART|PARK':15,'PARK|PARK':3,'OFF|OFF':10
+};
+function walk(a,b){
+  if(a==='ONLINE'||b==='ONLINE') return 0;
+  if(a==='OFF'||b==='OFF') return 25;
+  return WALK[a+'|'+b] ?? WALK[b+'|'+a] ?? 12;
+}
+
+/* DCTV air times, matched by title against the published streaming schedule.
+   DCTV is a single channel, so only about twenty panels all weekend go out
+   live - the rest of its listings are replays or its own programming. */
+const dctvOf=i=>DATA.dctv[EV[i][ID]]||null;
+
+/* Who is on it, from the Program Book's own lists. GUEST means a Spotlight
+   Badges name what the people on a panel actually do, taken from their own
+   bios in the Program Book. Attending Professionals carry no badge - that
+   list covers most regular panellists - but they are still named in the
+   detail. No badge means a fan panel. */
+const KIND_NAME={actor:'ACTOR',author:'AUTHOR',artist:'ARTIST',musician:'MUSICIAN',
+  costumer:'COSTUMER',creator:'CREATOR',scientist:'SCIENTIST',writer:'WRITER',
+  performer:'PERFORMER',expert:'EXPERT',party:'PARTY',guest:'GUEST',
+  paid:'EXTRA FEE'};
+const ROLE_CLASS={actor:'r-a',author:'r-b',artist:'r-c',musician:'r-d',
+  costumer:'r-e',creator:'r-f',scientist:'r-g',writer:'r-b',performer:'r-e',
+  expert:'r-g',party:'r-p',guest:'r-h',paid:'r-f2'};
+const peopleOn=i=>DATA.people[EV[i][ID]]||[];
+const kindsOf=i=>DATA.kinds[EV[i][ID]]||[];
+function kindBadges(i){
+  return kindsOf(i).map(k=>'<span class="kind '+(ROLE_CLASS[k]||'r-h')+'">'+
+    (KIND_NAME[k]||k.toUpperCase())+'</span>').join('');
+}
+
+/* other times the same panel runs. The point of showing it: a clash you can
+   catch later is not really a clash. */
+const repeatsOf=i=>DATA.repeats[EV[i][ID]]||null;
+const laterRepeats=i=>(repeatsOf(i)||[]).filter(m=>m>EV[i][START]);
+function repeatBadge(i){
+  const r=repeatsOf(i); if(!r) return '';
+  return '<span class="rpt">'+esc(repeatBadgeText(i))+'</span>';
+}
+/* Quick Start Guide: large ballrooms are cleared between panels, and lines
+   cannot form more than an hour before an event (two hours before the day's
+   first). So a headline room costs queue time on top of walking time. */
+const QUEUE_NOTE='Ballroom rules: the room is cleared between panels and the '+
+  'line can start forming up to an hour before. Budget queue time on top of the walk.';
+
+function shortWhen(m){
+  const d=dt(m); let h=d.getHours()%12||12;
+  const mi=d.getMinutes();
+  return DAYS[d.getDay()].toUpperCase()+' '+h+(mi?':'+pad(mi):'')+(d.getHours()<12?'AM':'PM');
+}
+function dctvBadge(i){
+  const t=dctvOf(i); if(!t) return '';
+  if(t.live) return '<span class="dctv live">DCTV LIVE</span>';
+  return '<span class="dctv">DCTV '+esc(shortWhen(t.airs[0]))+'</span>';
+}
+function repeatBadgeText(i){
+  const later=laterRepeats(i);
+  return later.length?'AGAIN '+shortWhen(later[0]):'RUNS AGAIN';
+}
+
+/* Anything over 4 hours is a drop-in: an open game room, a repair table,
+   a vendor hall. It does not "conflict" with a panel. */
+const OPEN_HOURS=240;
+const isOpen=i=>EV[i][DUR]>OPEN_HOURS;
+
+/* Tracks that are queues, signups, vendor halls and photo ops rather than
+   panel programming. Off by default - this app is for the panels. */
+const BULK=new Set(['Epic Photos','Group Cosplay Photoshoot','Collectible Card Games',
+  'Role-Playing Games (Non-Campaign)','Role-Playing Games (Campaign)','Miniatures Games',
+  'Table Top Gaming','Board Games','Video Gaming','Vendor Workshops/Events','Werewolf Games',
+  'Live-Action Roleplaying Games','Artemis Spaceship Bridge Simulator',
+  'Author Signings','Art Show Programming','Video Room']);
+
+/* ============================================================
+   ROOMS - normalise names, work out floors, build a location sort
+   ------------------------------------------------------------
+   The schedule has no floor field. Room names encode it inconsistently:
+   Hilton uses bare numbers (313 = floor 3), the Marriott uses a tower
+   letter plus floor (A706 = Atrium, floor 7), AmericasMart spells it out.
+   The Hyatt, Westin and Courtland Grand use pure names with no floor at
+   all, so those fall back to grouping rooms by name family, which is how
+   they are physically clustered anyway.
+   ============================================================ */
+const ROOM=new Map();          /* hotIdx|locIdx -> {name, floor, key} */
+const roomKey=(h,l)=>h+'|'+l;
+
+/* Floors read off the official venue maps. Ground truth, so these win over
+   any guess made from the room name. Rules are tried in order, so put the
+   specific ones first. Each rule is [pattern, sortOrder, label?] - the
+   Hyatt stacks by named level rather than number, hence the labels and the
+   fractional orders for two towers sharing a level. */
+const FLOOR_MAP={
+  WES:[                                   /* Westin Peachtree Plaza */
+    [/^Chastain\b/i,        6],
+    [/^Overlook\b/i,        6],
+    [/^Augusta\b/i,         7],
+    [/^Peachtree\s*(Ballroom|\d)/i, 8],   /* not "Peachtree Plaza", the hotel itself */
+    [/^Piedmont\b/i,       12],
+    [/^Ansley\b/i,         14]
+  ],
+  HYA:[                                   /* Hyatt Regency - level guide, low to high */
+    [/^(H-Piedmont|Piedmont|Inman|Kennesaw|Marietta|Roswell|Spring|Techwood|Vinings|Harris|Lenox|University|Williams|Auburn|Baker|Courtland|Dunwoody|Greenbriar|Fairlie|Edgewood)\b/i,
+                            1,   'Conference Level'],
+    [/^Embassy\b/i,         2,   'Exhibit Level \u00b7 Embassy Hall'],
+    [/^(Grand Hall|Hanover|Chicago|Concourse)\b/i,
+                            2.5, 'Exhibit Level \u00b7 Grand Hall'],
+    [/^International\b/i,   3,   'Ballroom Level \u00b7 International Tower'],
+    [/^(Centennial|Regency|The Learning Center)\b/i,
+                            3.5, 'Ballroom Level \u00b7 Atrium Tower'],
+    [/^Lobby\b/i,           4,   'Lobby Level \u00b7 skybridge to the Marriott']
+  ],
+  CG:[                                    /* Courtland Grand */
+    [/^(Georgia|North Capitol|South Capitol|Capitol|Atlanta)\b/i, 1],
+    [/^(Athens|Augusta|Macon)\b/i,   2],
+    [/^(CG-)?Grand Ballroom\b/i,     3],
+    [/^Piedmont\b/i,                 3]
+  ],
+  HIL:[                                   /* Hilton Atlanta Downtown */
+    [/^Galleria\b/i,                 0, 'Galleria level'],
+    [/^(Crystal Ballroom|Patio|Main Lobby)\b/i, 1],
+    [/^(Grand (East|West)|Salon)\b/i,           2]
+  ],
+  MAR:[                                   /* Marriott Marquis - the letter is the
+                                             LEVEL, not a floor number */
+    [/^International\b/i,   1, 'International Level'],
+    [/^(M\d|Imperial Ballroom|Marquis|Walk of Fame)/i,
+                            2, 'Marquis Level \u00b7 skybridge to the Hilton'],
+    [/^L\d/i,               3, 'Lobby Level'],
+    [/^(A\d|Atrium Ballroom)/i,
+                            4, 'Atrium Level \u00b7 skybridge to the Hyatt'],
+    [/^(10th|Skyline)/i,    5, 'Tower, 10th floor']
+  ],
+  AMART:[                                 /* AmericasMart - two separate buildings.
+                                             Room 203x is on floor 3, 204J on floor 4:
+                                             the third digit is the floor, not the first. */
+    [/^Vendor Hall Floor 1/i, 1,  'Building 2 \u00b7 Floor 1, exhibit hall'],
+    [/^Vendor Hall Floor 2/i, 2,  'Building 2 \u00b7 Floor 2, exhibit hall'],
+    [/^Vendor Hall Floor 3/i, 3,  'Building 2 \u00b7 Floor 3, dealer hall'],
+    [/^203/,                  3,  'Building 2 \u00b7 Floor 3, dealer hall'],
+    [/^204/,                  4,  'Building 2 \u00b7 Floor 4, artist alley'],
+    [/^Bldg 3,\s*Floor 1/i,  11,  'Building 3 \u00b7 Floor 1, gaming'],
+    [/^Bldg 3,\s*Floor 2/i,  12,  'Building 3 \u00b7 Floor 2, gaming']
+  ]
+};
+function floorOverride(h,n){
+  const rules=FLOOR_MAP[h];
+  if(!rules) return null;
+  for(const [re,order,label] of rules)
+    if(re.test(n)) return {order,label:label||('Floor '+order)};
+  return null;
+}
+
+function floorOf(n){
+  let m=n.match(/(\d+)\s*(?:st|nd|rd|th)\s+floor/i); if(m) return +m[1];
+  m=n.match(/\bfloor\s+(\d+)/i);                     if(m) return +m[1];
+  m=n.match(/^(\d+)\s*(?:st|nd|rd|th)\b/i);          if(m) return +m[1];
+  m=n.match(/^(\d)\d\d/);                            if(m) return +m[1];
+  if(/^Galleria\b/.test(n)) return 0;   /* Hilton's Galleria sits below the lobby */
+  return null;
+}
+/* leading words before the first number or short letter code */
+function familyOf(n){
+  const m=n.match(/^([A-Za-z][A-Za-z'&\-\s]*?)(?=\s+[\dIVX]|\s+[A-Z]{1,3}\b|$)/);
+  return (m?m[1]:n).trim();
+}
+/* natural compare: digits numerically, everything else as text */
+function natCmp(a,b){
+  const A=String(a).match(/\d+|\D+/g)||[], B=String(b).match(/\d+|\D+/g)||[];
+  for(let i=0;i<Math.max(A.length,B.length);i++){
+    const x=A[i],y=B[i];
+    if(x===undefined) return -1;
+    if(y===undefined) return 1;
+    const nx=/^\d/.test(x), ny=/^\d/.test(y);
+    if(nx&&ny){ if(+x!==+y) return +x-+y; }
+    else if(x!==y) return x<y?-1:1;
+  }
+  return 0;
+}
+function tidy(h,n){
+  n=n.replace(/^[^A-Za-z0-9]+/,'').trim();
+  if(h==='AMART'){
+    let m=n.match(/^(\d{3}[A-Z]*)\b/);          if(m) return m[1];
+    m=n.match(/^(Vendor Hall Floor \d+)/i);     if(m) return m[1];
+    m=n.match(/^(\d+),\s*Floor\s*(\d+)/i);      if(m) return 'Bldg '+m[1]+', Floor '+m[2];
+  }
+  return n;
+}
+/* Rooms the venue maps label Main Programming. Map-sourced, so these are
+   pinned as headline rooms regardless of what the scoring works out. */
+const MAIN_ROOMS=new Set([
+  'MAR|Imperial Ballroom','MAR|Atrium Ballroom','MAR|A601-A602','MAR|Marquis',
+  'HYA|Centennial I','HYA|Centennial II-IV','HYA|Regency V','HYA|Regency VI-VII',
+  'HYA|International North','HYA|International South','HYA|Hanover C-E',
+  'HIL|Crystal Ballroom','HIL|Grand West','HIL|Grand East','HIL|Salon',
+  'CG|Capitol Ballroom','CG|CG-Grand Ballroom A-F','WES|Peachtree Ballroom'
+]);
+const BIGNAME=/\b(Ballroom|Grand Hall|Grand (East|West)|Hall)\b/i;
+const TIER_NAME={1:'Headline room',2:'Panel room',3:'Small room'};
+
+/* Size tier, 1 = biggest. Built from how many distinct tracks share a room:
+   big rooms get shared because every track wants its headline panel in one,
+   while small rooms are a single track's home for the weekend. This is a
+   size *rank*, not a seat count - nothing here knows square footage. */
+function tierFor(trackCount,hostsMain,name,pinned){
+  if(pinned) return 1;
+  let s=0;
+  if(trackCount>=6) s+=2; else if(trackCount>=3) s+=1;
+  if(hostsMain) s+=1;
+  if(BIGNAME.test(name)) s+=1;
+  return s>=3?1:s>=1?2:3;
+}
+
+/* The room table is precomputed at build time by build_slim.js, which runs
+   the functions above against the FULL schedule. That matters: tiers depend
+   on how many tracks share a room, and this file ships only the panel
+   tracks, so counting at runtime would understate them. */
+function buildRooms(){
+  for(const k in DATA.roomMeta){
+    const [name,floor,label,fam,tier,tracks]=DATA.roomMeta[k];
+    ROOM.set(k,{name,floor,label,fam,tier,tracks});
+  }
+}
+const roomOf=i=>ROOM.get(roomKey(EV[i][HOT],EV[i][LOC]))||
+  {name:DATA.locs[EV[i][LOC]],floor:null,label:null,fam:'',tier:3,tracks:0};
+
+/* ============================================================
+   STORAGE - artifact storage, then localStorage, then memory
+   ============================================================ */
+/* v2 keys everything by the event's own id, so rebuilding the schedule can
+   never silently re-point a pick at a different panel. v1 stored array
+   positions, which it could - those are dropped rather than mis-mapped. */
+const KEY='dragoncon2026:v2', OLDKEY='dragoncon2026:picks';
+const MUST=2, MAYBE=1;
+const LEVEL_NAME={0:'Not picked',1:'Interested',2:'Must see'};
+const LEVEL_MARK={0:'\u2606',1:'\u2605',2:'\uD83C\uDFC6'};
+let picks=new Map();        /* event id  -> 1 | 2   */
+let ruled=new Set();        /* event ids ruled out of their slot */
+let watch=[];               /* [{src:eventId, at:minute}] - airings you plan to watch */
+/* trackLevel is gone: following a track is just leaving it visible. Kept as
+   a no-op read so links and saves made before 1.10 still load. */
+let legacyDropped=false;
+let imported=0;
+let importedFriend='';
+
+async function readKey(k){
+  try{ if(window.storage?.get){ const r=await window.storage.get(k); return r?.value||null; } }catch(e){}
+  try{ return localStorage.getItem(k); }catch(e){}
+  return null;
+}
+async function loadPicks(){
+  const v=await readKey(KEY);
+  if(v){
+    try{
+      const o=JSON.parse(v);
+      picks=new Map(Object.entries(o.picks||{}).map(([k,n])=>[k,+n]));
+      /* pre-1.10 saves stored followed tracks; those were all visible anyway */
+      ruled=new Set(o.ruled||[]);
+      watch=o.watch||[];
+      offTracks=new Set((o.hidden||[]).map(Number));
+      if(o.trip) trip=Object.assign(JSON.parse(JSON.stringify(TRIP_DEFAULTS)),o.trip);
+      here=o.here||null;
+      showStarted=!!o.showStarted;
+      showRunning=!!o.showRunning;
+      myName=o.name||'';
+      friends=o.friends||[];
+    }catch(e){}
+    return;
+  }
+  /* v1 data exists but was keyed by position - cannot be trusted */
+  if(await readKey(OLDKEY)) legacyDropped=true;
+}
+async function savePicks(){
+  const v=JSON.stringify({
+    picks:Object.fromEntries(picks),
+    hidden:[...offTracks],
+    ruled:[...ruled],
+    watch,
+    here,
+    showStarted,
+    showRunning,
+    name:myName,
+    friends,
+    trip
+  });
+  try{ if(window.storage?.set){ await window.storage.set(KEY,v); return; } }catch(e){}
+  try{ localStorage.setItem(KEY,v); }catch(e){}
+}
+
+/* Picks live in this browser only, so moving between laptop and phone needs
+   a carrier. Each pick is its 8-char id plus a level digit; followed tracks
+   ride along as indices. Short enough to paste into a text message. */
+function shareLink(){
+  const p=[...picks.entries()].map(([id,lv])=>id+lv).join('');
+  const t=[...offTracks].join('.');
+  const base=location.origin+location.pathname;
+  return base+'#p='+p+(t?'&t='+t:'')+
+    (myName?'&n='+encodeURIComponent(myName.slice(0,18)):'');
+}
+function importFromHash(){
+  const h=location.hash.slice(1);
+  if(!h.startsWith('p=')) return 0;
+  const parts=Object.fromEntries(h.split('&').map(x=>{
+    const i=x.indexOf('='); return [x.slice(0,i),x.slice(i+1)]; }));
+  const blob=parts.p||'';
+  /* "Eric " and "Eric" are the same person; compare on a squashed key so a
+     stray space cannot produce a second entry */
+  const tidyName=x=>x.replace(/\s+/g,' ').trim();
+  const nameKey=x=>x.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const who=parts.n?tidyName(decodeURIComponent(parts.n)):'';
+
+  /* A named link that is not your own name belongs to someone else. It is
+     kept beside your picks, never folded into them. */
+  if(who && nameKey(who)!==nameKey(myName)){
+    const theirs={};
+    for(let i=0;i+9<=blob.length;i+=9){
+      const lv=+blob[i+8];
+      if(lv===1||lv===2) theirs[blob.slice(i,i+8)]=lv;
+    }
+    const k=friends.findIndex(f=>nameKey(f.name)===nameKey(who));
+    if(k>=0) friends[k]={name:who,picks:theirs}; else friends.push({name:who,picks:theirs});
+    savePicks();
+    history.replaceState(null,'',location.pathname);
+    importedFriend=who;
+    return 0;
+  }
+  let added=0;
+  for(let i=0;i+9<=blob.length;i+=9){
+    const id=blob.slice(i,i+8), lv=+blob[i+8];
+    if(lv===1||lv===2){ if(picks.get(id)!==lv) added++; picks.set(id,lv); }
+  }
+  if(parts.t) offTracks=new Set(parts.t.split('.').filter(Boolean).map(Number));
+  if(added||parts.t) savePicks();
+  history.replaceState(null,'',location.pathname);
+  return added;
+}
+
+/* who else starred this, and how keenly */
+function alsoStarred(i){
+  const id=EV[i][ID];
+  return friends.filter(f=>f.picks[id]).map(f=>({name:f.name,lv:f.picks[id]}));
+}
+const sharedCount=()=>{
+  let n=0;
+  picks.forEach((lv,id)=>{ if(friends.some(f=>f.picks[id])) n++; });
+  return n;
+};
+
+/* ---- going home to feed the dog ----
+   A trip is travel out, an hour at home, travel back, plus the walk to and
+   from wherever the car is parked. The question is which two-hour holes cost
+   the least, measured against what you actually picked. */
+const TRIP_DEFAULTS={on:false,travel:30,home:60,buffer:10,park:'MAR',dctv:false,
+  meals:[{name:'Breakfast',from:7*60,to:10*60},{name:'Dinner',from:18*60,to:21*60}]};
+let trip=JSON.parse(JSON.stringify(TRIP_DEFAULTS));
+
+/* Saturday morning the parade closes Peachtree and downtown gridlocks. The
+   panel schedule says this is the cheapest window of the weekend; the street
+   says it is the worst. */
+const PARADE={day:'Sat',from:9*60,to:12*60+30};
+function paradeClash(dayOffset,dayName,a,b){
+  if(dayName!==PARADE.day) return false;
+  return a < dayOffset+PARADE.to && b > dayOffset+PARADE.from;
+}
+
+/* what missing a panel costs, after second chances are taken into account */
+function missCost(i){
+  let w=interest(i);
+  if(!w) return 0;
+  if(laterRepeats(i).length) w*=0.25;          /* catch it another time */
+  const tv=dctvOf(i);
+  if(tv&&tv.live&&trip.dctv) w*=0.15;          /* watch it from the sofa */
+  else if(tv&&tv.airs.length&&trip.dctv) w*=0.4;
+  return w;
+}
+
+/* how much a panel matters: explicit level first, then a followed track */
+function interest(i){
+  const e=EV[i];
+  if(ruled.has(e[ID])) return 0;   /* you already decided against this one */
+  const p=picks.get(e[ID]);
+  if(p) return p;
+  /* Once you have curated the track list, what you left visible is what you
+     care about. Before that, everything is visible and it says nothing. */
+  return (offTracks.size && !offTracks.has(e[TRK])) ? 0.5 : 0;
+}
+const isRuled=i=>ruled.has(EV[i][ID]);
+function toggleRuled(i){
+  const id=EV[i][ID];
+  ruled.has(id)?ruled.delete(id):ruled.add(id);
+  savePicks(); render();
+}
+/* move a pick to a later showing of the same panel */
+function moveToRepeat(i,at){
+  const target=EV.findIndex(e=>e[START]===at && e[T]===EV[i][T]);
+  if(target<0) return;
+  const lv=levelOf(i)||MAYBE;
+  picks.delete(EV[i][ID]); ruled.delete(EV[i][ID]);
+  picks.set(EV[target][ID],lv);
+  savePicks(); render();
+}
+const isPicked=i=>picks.has(EV[i][ID]);
+const levelOf=i=>picks.get(EV[i][ID])||0;
+
+/* Watching a broadcast occupies an hour just like sitting in a room does.
+   Rather than special-case it everywhere, each one becomes a genuine event
+   appended to EV - so conflicts, slots, trips and gaps all just work. */
+const WATCH_HOT=()=>DATA.hotels.indexOf('ONLINE');
+let WATCH_LOC=-1;
+function watchId(src,at){ return 'w'+src+at; }
+function buildWatch(){
+  if(WATCH_LOC<0){ DATA.locs.push('DCTV broadcast'); WATCH_LOC=DATA.locs.length-1; }
+  const h=WATCH_HOT();
+  ROOM.set(h+'|'+WATCH_LOC,{name:'DCTV broadcast',floor:null,label:null,
+    fam:'DCTV',tier:3,tracks:0});
+  const base=DATA.events;
+  const made=[];
+  watch.forEach(w=>{
+    const src=base.find(e=>e[ID]===w.src);
+    if(!src) return;
+    const ev=[ '\uD83D\uDCFA '+src[T], w.at, src[DUR], h, WATCH_LOC, src[TRK], src[PRES],
+      'DCTV broadcast of the panel that ran '+DAYFULL[dayOf(src[START])]+' '+hhmm(src[START])+
+      '. Watch from anywhere with a streaming pass.', watchId(w.src,w.at) ];
+    made.push(ev);
+  });
+  EV=base.concat(made);
+}
+const isWatch=i=>EV[i][ID].startsWith('w');
+function toggleWatch(src,at){
+  const id=watchId(src,at);
+  const k=watch.findIndex(w=>watchId(w.src,w.at)===id);
+  if(k>=0){ watch.splice(k,1); picks.delete(id); }
+  else{ watch.push({src,at}); picks.set(id,MAYBE); }
+  savePicks(); buildWatch(); render();
+}
+const watching=(src,at)=>watch.some(w=>w.src===src&&w.at===at);
+
+/* ============================================================
+   TIME HELPERS
+   ============================================================ */
+const pad=n=>String(n).padStart(2,'0');
+const dt=m=>new Date(EPOCH.getTime()+m*60000);
+function hhmm(m){ const d=dt(m); let h=d.getHours(); const ap=h<12?'am':'pm';
+  h=h%12||12; return h+':'+pad(d.getMinutes())+ap; }
+function hshort(m){ const d=dt(m); let h=d.getHours(); const ap=h<12?'a':'p';
+  const mi=d.getMinutes(); h=h%12||12; return mi?h+':'+pad(mi):h+ap; }
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAYFULL={Sun:'Sunday',Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',
+  Thu:'Thursday',Fri:'Friday',Sat:'Saturday'};
+/* never return undefined: a trip departing before the con's first day used to
+   land on a weekday with no entry here, and killed the whole view */
+const dayName=m=>DAYFULL[dayOf(m)]||dayOf(m);
+const dayOf=m=>DAYS[dt(m).getDay()];
+
+
+const nowMin=()=>Math.round((Date.now()-EPOCH.getTime())/60000);
+/* Outside the con, falling back to the first day lands on a Wednesday with
+   three events on it. Use the day with the most programming instead. */
+function busiestDay(){
+  const c={};
+  EV.forEach(e=>{ const d=dayOf(e[START]); c[d]=(c[d]||0)+1; });
+  return Object.keys(c).sort((a,b)=>c[b]-c[a])[0];
+}
+function inCon(){ const n=nowMin();
+  return n>=EV[0][START]-720 && n<=EV[EV.length-1][START]+720; }
+const refMin=()=>inCon()?nowMin():EV[0][START];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let view='now', query='', shown=50;
+let days=new Set();     /* empty means every day */
+let day=null;           /* the Grid draws one day; the first selected */
+let showRunning=false;  /* the collapsed pile at the top of Browse */
+let hotels=new Set();   /* empty means every hotel */
+let listSort='time';   /* time | interest | place | near - Now and Browse */
+let here=null;         /* hotel you are standing in, for the distance sort */
+let myName='';         /* what a link you send is labelled as */
+let friends=[];        /* [{name, picks:{id:level}}] - imported, never merged */
+let onlyShared=false;  /* filter: show only what a friend also starred */
+let showStarted=false; /* collapsed pile of things already underway */
+const GRACE=15;        /* minutes after which something counts as underway */
+let offKinds=new Set(); /* kinds hidden from the lists */
+let gridSort='loc';   /* 'loc' by floor, 'size' by room tier */
+let hidePast=null;    /* set on first render: on during the con, off outside it */
+/* Panels only from the first paint - vendors, photo ops, signings and
+   gaming signups start hidden. Tracks -> Select all brings them back. */
+let offTracks=new Set();   /* excluded tracks are not in the payload at all */
+const openSet=new Set();
+
+/* ============================================================
+   SHARED
+   ============================================================ */
+/* name the selection the way the chips do, so "Other" reads as Other */
+function hotelLabel(){
+  const sel=[...hotels];
+  const rest=sel.filter(h=>!OTHER_VENUES.includes(h));
+  const names=rest.map(h=>HOTEL_NAME[h]);
+  if(sel.some(h=>OTHER_VENUES.includes(h))) names.push('Other');
+  return names.join(' + ');
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function matches(i){
+  const e=EV[i];
+  if(offTracks.has(e[TRK])) return false;
+  if(offKinds.size){
+    const k=kindsOf(i);
+    const label=k.length?k:['fan'];
+    if(label.every(x=>offKinds.has(x))) return false;
+  }
+  if(hotels.size && !hotels.has(DATA.hotels[e[HOT]])) return false;
+  if(query){
+    const hay=(e[T]+' '+e[PRES]+' '+DATA.locs[e[LOC]]+' '+DATA.tracks[e[TRK]]).toLowerCase();
+    if(!query.split(/\s+/).every(w=>hay.includes(w))) return false;
+  }
+  return true;
+}
+
+const NEXT_LABEL={0:'Mark as interested',1:'Mark as must see',2:'Clear'};
+function evNode(i,opts={}){
+  const e=EV[i], h=DATA.hotels[e[HOT]];
+  const lv=levelOf(i);
+  const el=document.createElement('div');
+  el.className='ev'+(lv?' picked lv'+lv:'')+(openSet.has(i)?' open':'')+
+    (ruled.has(e[ID])?' wasruled':'')+(e[ID].startsWith('w')?' iswatch':'');
+  el.innerHTML=
+    '<div class="stripe" style="background:var(--'+h+')"></div>'+
+    '<div class="evbody"><div class="evtitle"></div><div class="evmeta">'+
+      (opts.showTime?'<span class="hb">'+esc(hhmm(e[START]))+'&ndash;'+esc(hhmm(e[START]+e[DUR]))+'</span> &middot; ':'')+
+      (opts.showEnd&&!opts.showTime?'<span class="hb">until '+esc(hhmm(e[START]+e[DUR]))+'</span> &middot; ':'')+
+      '<span class="hb" style="color:var(--'+h+')">'+esc(HOTEL_NAME[h]||h)+'</span> '+
+      '<span>'+esc(roomOf(i).name)+'</span>'+
+      (opts.showFloor&&roomOf(i).label?'<span class="flr"> \u00b7 '+esc(roomOf(i).label)+'</span>':'')+
+      (opts.showAway&&!isRemote(i)&&minsAway(i)!==null
+        ?'<span class="away"> \u00b7 ~'+minsAway(i)+' min walk</span>':'')+
+      kindBadges(i)+
+      (roomOf(i).tier===1?'<span class="big">BIG ROOM</span>':'')+dctvBadge(i)+repeatBadge(i)+
+      (ruled.has(e[ID])?'<span class="ruledtag">RULED OUT</span>':'')+
+      alsoStarred(i).map(f=>'<span class="mate">'+esc(f.name)+
+        (f.lv===MUST?' \uD83C\uDFC6':' \u2605')+'</span>').join('')+
+      '<br><span class="evtrack"></span>'+
+    '</div><div class="evdesc"></div></div>'+
+    (opts.segmented
+      ? '<div class="seg">'+
+          '<button data-set="1" class="s1'+(!isRuled(i)&&lv===1?' on':'')+'" aria-label="Interested">\u2605</button>'+
+          '<button data-set="2" class="s2'+(!isRuled(i)&&lv===2?' on':'')+'" aria-label="Must see">\uD83C\uDFC6</button>'+
+          '<button data-set="x" class="sx'+(isRuled(i)?' on':'')+'" aria-label="Rule out">\u2715</button>'+
+        '</div>'
+      : '<button class="star lv'+lv+'" aria-label="'+esc(NEXT_LABEL[lv])+'">'+
+          LEVEL_MARK[lv]+'</button>');
+  el.querySelector('.evtitle').textContent=e[T];
+  el.querySelector('.evtrack').textContent=DATA.tracks[e[TRK]]+(e[PRES]?' \u00b7 '+e[PRES]:'');
+  const extra=[];
+  const tv=dctvOf(i);
+  if(tv){
+    if(tv.live) extra.push('Airs live on DCTV while it happens.');
+    if(tv.airs.length) extra.push('Replays on DCTV '+
+      tv.airs.map(m=>dayName(m)+' '+hhmm(m)).join(', ')+'.');
+    extra.push('DCTV needs a streaming pass ($10).');
+  }
+  const who=peopleOn(i).filter(p=>p[2]!=='Attending Professional');
+  if(who.length) extra.push('On this panel: '+
+    who.map(p=>p[0]+' \u2014 '+(p[1]?p[1]+', ':'')+p[2]).join('; ')+'.');
+  const rp=repeatsOf(i);
+  if(rp) extra.push('The panel itself also runs '+
+    rp.map(m=>dayName(m)+' '+hhmm(m)).join(', ')+'.');
+  if(roomOf(i).tier===1) extra.push('Ballroom: cleared between panels, line can '+
+    'form up to an hour before.');
+  el.querySelector('.evdesc').textContent=
+    (e[DESC]||'No description in the schedule.')+(extra.length?'\n\n'+extra.join(' '):'');
+  const star=el.querySelector('.star');
+  if(star) star.onclick=ev=>{ ev.stopPropagation(); cycle(i); };
+  el.querySelectorAll('.seg button').forEach(b=>{
+    b.onclick=ev=>{
+      ev.stopPropagation();
+      const v=b.dataset.set;
+      if(v==='x'){ toggleRuled(i); return; }
+      /* setting a level always un-rules it - you cannot want and reject at once */
+      ruled.delete(EV[i][ID]);
+      setLevel(i,+v);
+    };
+  });
+  el.querySelector('.evbody').onclick=()=>{
+    openSet.has(i)?openSet.delete(i):openSet.add(i); el.classList.toggle('open'); };
+  el.querySelector('.evbody').setAttribute('aria-label','Tap for details');
+
+  /* offer each airing as something you can put on your own schedule */
+  const air=dctvOf(i);
+  if(air&&!isWatch(i)){
+    const times=(air.live?[EV[i][START]]:[]).concat(air.airs);
+    const box=document.createElement('div');
+    box.className='watchrow';
+    times.forEach(at=>{
+      const on=watching(EV[i][ID],at);
+      const b=document.createElement('button');
+      b.className='watchbtn'+(on?' on':'');
+      b.textContent=(on?'\u2713 Watching ':'\uD83D\uDCFA Watch ')+
+        dayName(at).slice(0,3)+' '+hhmm(at);
+      b.onclick=ev=>{ ev.stopPropagation(); toggleWatch(EV[i][ID],at); };
+      box.appendChild(b);
+    });
+    el.querySelector('.evbody').appendChild(box);
+  }
+  return el;
+}
+function cycle(i){
+  const id=EV[i][ID], lv=picks.get(id)||0;
+  if(lv===0) picks.set(id,MAYBE);
+  else if(lv===MAYBE) picks.set(id,MUST);
+  else picks.delete(id);
+  savePicks(); render();
+}
+function setLevel(i,lv){
+  const id=EV[i][ID];
+  if(lv) picks.set(id,lv); else picks.delete(id);
+  savePicks(); render();
+}
+
+function renderList(idxs,{showTime=false}={}){
+  const main=document.getElementById('main');
+  let last=null;
+  const frag=document.createDocumentFragment();
+  const byTime=listSort==='time';
+  let group=null;
+  idxs.slice(0,shown).forEach(i=>{
+    const k=bandOf(i)+'|'+bandSub(i);
+    if(k!==last){
+      last=k;
+      const h=document.createElement('div');
+      h.className='timehead';
+      h.innerHTML='<div>'+esc(bandOf(i))+'</div>'+
+        (bandSub(i)?'<span>'+esc(bandSub(i))+'</span>':'');
+      frag.appendChild(h);
+      group=document.createElement('div');
+      group.className='grouped';
+      frag.appendChild(group);
+    }
+    (group||frag).appendChild(evNode(i,{showTime:showTime||!byTime,showEnd:true,
+      showFloor:listSort!=='place'&&listSort!=='near',
+      showAway:listSort==='near'}));
+  });
+  main.appendChild(frag);
+  if(idxs.length>shown){
+    const b=document.createElement('button');
+    b.className='more';
+    b.textContent='Show '+Math.min(50,idxs.length-shown)+' more  ('+(idxs.length-shown)+' left)';
+    b.onclick=()=>{ shown+=50; render(); };
+    main.appendChild(b);
+  }
+}
+const emptyState=(t,b)=>'<div class="empty"><b>'+esc(t)+'</b>'+esc(b)+'</div>';
+
+/* an event is done once it has ended, not once it has started - you can
+   still walk into something already in progress */
+const isPast=i=>EV[i][START]+EV[i][DUR]<=nowMin();
+
+/* where a room sits, for ordering: hotel in the con's layout order, then floor */
+const placeKey=i=>[HOTEL_ORDER.indexOf(DATA.hotels[EV[i][HOT]]),
+                   roomOf(i).floor===null?1e6:roomOf(i).floor];
+function cmpPlace(a,b){
+  const A=placeKey(a),B=placeKey(b);
+  return A[0]-B[0]||A[1]-B[1];
+}
+/* trophies first, then stars, then everything unpicked */
+const cmpLevel=(a,b)=>levelOf(b)-levelOf(a);
+const cmpTime=(a,b)=>EV[a][START]-EV[b][START]||EV[a][T].localeCompare(EV[b][T]);
+
+const LIST_SORTS={time:'Time',interest:'Interest',place:'Place',near:'Distance'};
+
+/* Where you are. No GPS: indoors in Peachtree Center it would be unreliable
+   and could not tell which floor you were on, which is most of the walk.
+   Your running pick is a better signal, and you can override it. */
+function whereAmI(){
+  if(here) return here;
+  const n=nowMin();
+  const live=[...picks.keys()].map(id=>EV.findIndex(e=>e[ID]===id))
+    .filter(i=>i>=0&&EV[i][START]<=n&&EV[i][START]+EV[i][DUR]>n)
+    .sort((a,b)=>levelOf(b)-levelOf(a))[0];
+  if(live!==undefined) return DATA.hotels[EV[live][HOT]];
+  const past=[...picks.keys()].map(id=>EV.findIndex(e=>e[ID]===id))
+    .filter(i=>i>=0&&EV[i][START]+EV[i][DUR]<=n)
+    .sort((a,b)=>EV[b][START]-EV[a][START])[0];
+  if(past!==undefined) return DATA.hotels[EV[past][HOT]];
+  return null;
+}
+const minsAway=i=>{
+  const from=whereAmI();
+  if(!from) return null;
+  return walk(from,DATA.hotels[EV[i][HOT]]);
+};
+/* Streaming has a zero-minute walk, which is true but not what you mean by
+   "nearest" when you are deciding where to go. Sort it to the end. */
+const isRemote=i=>['ONLINE','OFF'].includes(DATA.hotels[EV[i][HOT]]);
+const awayRank=i=>isRemote(i)?9999:(minsAway(i)??9998);
+function sortList(idxs){
+  const c=listSort==='interest'?((a,b)=>cmpLevel(a,b)||cmpPlace(a,b)||cmpTime(a,b))
+        :listSort==='place'   ?((a,b)=>cmpPlace(a,b)||cmpTime(a,b))
+        :listSort==='near'    ?((a,b)=>{
+            const wa=awayRank(a), wb=awayRank(b);
+            if(wa!==wb) return wa-wb;
+            /* same hotel: lower floors are less of a lift wait */
+            const fa=roomOf(a).floor===null?1e6:roomOf(a).floor;
+            const fb=roomOf(b).floor===null?1e6:roomOf(b).floor;
+            return fa-fb||cmpTime(a,b);
+          })
+        :cmpTime;
+  return [...idxs].sort(c);
+}
+/* the heading a row sits under, which has to follow whatever we sorted by */
+function bandOf(i){
+  if(listSort==='near'){
+    if(isRemote(i)) return DATA.hotels[EV[i][HOT]]==='ONLINE'
+      ? 'Streaming \u00b7 watch from anywhere' : 'Offsite';
+    const w=minsAway(i);
+    if(w===null) return 'Set where you are';
+    const h=HOTEL_NAME[DATA.hotels[EV[i][HOT]]];
+    return 'about '+w+' min away \u00b7 '+h;
+  }
+  if(listSort==='interest') return LEVEL_NAME[levelOf(i)];
+  if(listSort==='place'){
+    const r=roomOf(i);
+    return HOTEL_NAME[DATA.hotels[EV[i][HOT]]]+(r.label?' \u00b7 '+r.label:'');
+  }
+  return hhmm(EV[i][START]);
+}
+function bandSub(i){
+  if(listSort==='time') return DAYFULL[dayOf(EV[i][START])];
+  return '';
+}
+const dropPast=idxs=>hidePast?idxs.filter(i=>!isPast(i)):idxs;
+
+/* ============================================================
+   DETAIL SHEET
+   ============================================================ */
+function openSheet(i){
+  const e=EV[i], h=DATA.hotels[e[HOT]], lv=levelOf(i);
+  const c=document.getElementById('sheetCard');
+  c.innerHTML='<h2></h2><div class="smeta"></div><div class="sdesc"></div>'+
+    '<div class="slevel"><button class="lvcycle lv'+lv+'" id="sStar">'+
+      '<span class="mark">'+LEVEL_MARK[lv]+'</span>'+
+      '<span class="lbl">'+esc(LEVEL_NAME[lv])+'</span>'+
+      '<span class="hint">'+esc(NEXT_LABEL[lv])+'</span></button></div>'+
+    '<div class="sbtns">'+
+      (lv?'<button id="sDrop">Remove from My Con</button>':'')+
+      '<button id="sClose">Close</button></div>';
+  c.querySelector('h2').textContent=e[T];
+  c.querySelector('.smeta').innerHTML=
+    '<b>'+esc(DAYFULL[dayOf(e[START])])+' '+esc(hhmm(e[START]))+'&ndash;'+
+      esc(hhmm(e[START]+e[DUR]))+'</b><br>'+
+    '<span style="color:var(--'+h+');font-weight:600">'+esc(HOTEL_NAME[h]||h)+'</span> '+
+    esc(roomOf(i).name)+' \u00b7 '+esc(TIER_NAME[roomOf(i).tier].toLowerCase())+
+    '<br>'+esc(DATA.tracks[e[TRK]])+
+    (e[PRES]?'<br>'+esc(e[PRES]):'');
+  c.querySelector('.sdesc').textContent=e[DESC]||'No description in the schedule.';
+  const who2=peopleOn(i).filter(p=>p[2]!=='Attending Professional');
+  if(who2.length){
+    const w=document.createElement('div');
+    w.className='whobox';
+    w.innerHTML=who2.map(p=>'<b>'+esc(p[0])+'</b>'+(p[1]?' \u2014 '+esc(p[1]):'')+
+      ' <span>'+esc(p[2])+'</span>').join('<br>');
+    c.querySelector('.sdesc').after(w);
+  }
+  const rp=repeatsOf(i);
+  if(rp){
+    const r=document.createElement('div');
+    r.className='rptbox';
+    r.textContent='Also runs '+rp.map(m=>dayName(m)+' '+hhmm(m)).join(', ')+
+      '. If this one clashes with something, you can catch it then.';
+    c.querySelector('.sdesc').after(r);
+  }
+  if(roomOf(i).tier===1){
+    const q=document.createElement('div');
+    q.className='qbox'; q.textContent=QUEUE_NOTE;
+    c.querySelector('.sdesc').after(q);
+  }
+  const tv=dctvOf(i);
+  if(tv){
+    const box=document.createElement('div');
+    box.className='dctvbox';
+    const lines=[];
+    if(tv.live) lines.push('Airs live on DCTV while it happens \u2014 you can watch this one from anywhere.');
+    if(tv.airs.length) lines.push('Replays on DCTV: '+tv.airs.map(m=>
+      dayName(m)+' '+hhmm(m)).join(', ')+'.');
+    lines.push('DCTV needs a streaming membership \u2014 $10, good until 1 June 2027.');
+    box.textContent=lines.join(' ');
+    c.querySelector('.sdesc').after(box);
+  }
+  c.querySelector('#sStar').onclick=()=>{ cycle(i); openSheet(i); };
+  const air2=dctvOf(i);
+  if(air2&&!isWatch(i)){
+    const box=document.createElement('div');
+    box.className='watchrow'; box.style.display='flex';
+    (air2.live?[EV[i][START]]:[]).concat(air2.airs).forEach(at=>{
+      const on=watching(EV[i][ID],at);
+      const b=document.createElement('button');
+      b.className='watchbtn'+(on?' on':'');
+      b.textContent=(on?'\u2713 Watching ':'\uD83D\uDCFA Watch ')+
+        dayName(at).slice(0,3)+' '+hhmm(at);
+      b.onclick=()=>{ toggleWatch(EV[i][ID],at); closeSheet(); };
+      box.appendChild(b);
+    });
+    c.querySelector('.slevel').before(box);
+  }
+  const drop=c.querySelector('#sDrop');
+  if(drop) drop.onclick=()=>{
+    if(isWatch(i)){
+      const w=watch.find(x=>watchId(x.src,x.at)===EV[i][ID]);
+      if(w) toggleWatch(w.src,w.at);
+    }else{ ruled.delete(EV[i][ID]); setLevel(i,0); }
+    closeSheet(); };
+  c.querySelector('#sClose').onclick=closeSheet;
+  document.getElementById('sheet').classList.add('open');
+}
+function closeSheet(){ document.getElementById('sheet').classList.remove('open'); }
+
+/* Best trip per meal per day: slide a window through the meal's hours and
+   score what it runs over. Returns nulls where nothing is possible. */
+function renderTrip(main,t){
+  const box=document.createElement('div');
+  const clear=!t.hit.length&&!t.tight;
+  box.className='trip'+(t.cost>=3?' costly':'')+(clear?' clear':'');
+  const h=document.createElement('div');
+  h.className='triph';
+  h.textContent='\uD83D\uDC15 '+dayName(t.depart).slice(0,3)+' '+
+    hhmm(t.depart)+'\u2013'+hhmm(t.ret);
+  const tag=document.createElement('span');
+  tag.textContent=clear?(t.meal.toLowerCase()+' run \u00b7 clear')
+                       :(t.meal.toLowerCase()+' run');
+  h.appendChild(tag);
+  box.appendChild(h);
+  /* a clear run needs no explanation - one line is the whole story */
+  if(clear) return void main.appendChild(box);
+  const b=document.createElement('div');
+  b.className='tripb';
+  const parts=[];
+  if(!t.hit.length) parts.push('Clear \u2014 nothing you picked runs during it.');
+  else{
+    const names=t.hit.slice(0,3).map(i=>EV[i][T].slice(0,34)).join(', ');
+    parts.push('Runs over '+t.hit.length+' pick'+(t.hit.length===1?'':'s')+': '+names+
+      (t.hit.length>3?' and '+(t.hit.length-3)+' more':'')+'.');
+    const again=t.hit.filter(i=>laterRepeats(i).length).length;
+    const tv=t.hit.filter(i=>dctvOf(i)&&dctvOf(i).live).length;
+    if(again) parts.push(again+' of them run again later.');
+    if(tv&&trip.dctv) parts.push(tv+' air live on DCTV, so you can watch from home.');
+  }
+  parts.push('From the '+HOTEL_NAME[trip.park]+', '+trip.travel+
+    ' min each way, '+trip.home+' min at home.');
+  if(t.tight==='car') parts.push('Tight getting to the car from your previous pick.');
+  if(t.tight==='back') parts.push('Tight getting back for what follows.');
+  b.textContent=parts.join(' ');
+  box.appendChild(b);
+  main.appendChild(box);
+}
+
+function planTrips(list){
+  if(!trip.on) return [];
+  const span=trip.travel*2+trip.home;
+  const out=[];
+  /* every day of the con, not just days you happen to have picks on - the
+     dog eats regardless, and a day with nothing starred is a free window */
+  dayList.forEach(dn=>{
+    const anchor=EV.find(e=>dayOf(e[START])===dn);
+    if(!anchor) return;
+    const dayOffset=Math.floor(anchor[START]/1440)*1440;
+    const dn_=dn;
+    trip.meals.forEach(meal=>{
+      let best=null;
+      /* the hour at home has to sit inside the meal window */
+      const first=Math.max(0,meal.from-trip.travel);
+      for(let dep=first; dep<=meal.to-trip.travel-trip.home; dep+=15){
+        const D=dayOffset+dep, R=D+span;
+        if(paradeClash(dayOffset,dn,D,R)) continue;
+        let cost=0; const hit=[];
+        list.forEach(i=>{
+          if(EV[i][START]<R && EV[i][START]+EV[i][DUR]>D){
+            const c=missCost(i); if(c>0){ cost+=c; hit.push(i); }
+          }
+        });
+        /* walking to and from the car counts against the neighbouring picks */
+        const before=list.filter(i=>EV[i][START]+EV[i][DUR]<=D).pop();
+        const after=list.find(i=>EV[i][START]>=R);
+        let tight=null;
+        if(before!==undefined){
+          const need=walk(DATA.hotels[EV[before][HOT]],trip.park);
+          if(D-(EV[before][START]+EV[before][DUR])<need){ cost+=1.5; tight='car'; }
+        }
+        if(after!==undefined){
+          const need=walk(trip.park,DATA.hotels[EV[after][HOT]])+trip.buffer;
+          if(EV[after][START]-R<need){ cost+=1.5; tight='back'; }
+        }
+        if(!best||cost<best.cost) best={meal:meal.name,day:dn_,depart:D,ret:R,cost,hit,tight};
+      }
+      out.push(best||{meal:meal.name,day:dn_,impossible:true,dayOffset});
+    });
+  });
+  return out.sort((a,b)=>(a.depart||a.dayOffset)-(b.depart||b.dayOffset));
+}
+
+/* ============================================================
+   VIEW - NOW
+   ============================================================ */
+function viewNow(){
+  const main=document.getElementById('main'), n=refMin(), W=120;
+  const live=i=>EV[i][START]+EV[i][DUR]>n && EV[i][START]<n+W;
+
+  const byId=new Map(); EV.forEach((e,n)=>byId.set(e[ID],n));
+  /* your picks obey the same filter and sort as everything else */
+  const myAll=[...picks.keys()].map(id=>byId.get(id)).filter(i=>i!==undefined&&live(i));
+  const mine=sortList(myAll.filter(matches));
+  const hiddenPicks=myAll.length-mine.length;
+  if(mine.length){
+    const h=document.createElement('div');
+    h.className='timehead';
+    h.innerHTML='<div>YOUR NEXT PICKS</div><span>'+mine.length+' coming up'+
+      (hiddenPicks?' \u00b7 '+hiddenPicks+' hidden by filters':'')+'</span>';
+    main.appendChild(h);
+    mine.forEach(i=>main.appendChild(evNode(i,{showTime:true,showFloor:true})));
+  }
+  const soon=[];
+  for(let i=0;i<EV.length;i++) if(!isPicked(i)&&live(i)&&matches(i)) soon.push(i);
+  /* keep started/upcoming split chronological, then order within each */
+  document.getElementById('count').textContent=
+    soon.length+' more in the next 2 hours'+
+    (offTracks.size?' \u00b7 '+offTracks.size+' tracks hidden':'');
+  if(!soon.length&&!mine.length){
+    /* say what the filters are costing rather than implying nothing exists */
+    main.innerHTML=emptyState(
+      hiddenPicks?'Your filters are hiding everything':'Nothing in the next 2 hours',
+      hiddenPicks
+        ? hiddenPicks+' of your picks are on in the next 2 hours, but your current '+
+          'filters exclude them. Clear the filters to see them.'
+        : 'Either the con is between days, or your filters are too tight. Try Browse.');
+    return;
+  }
+  /* Something that began five minutes ago is worth slipping into; something
+     forty minutes in is not. Split rather than lumping them together. */
+  /* a vendor hall open since 10am is not a panel you joined ten hours late */
+  const drop=sortList(soon.filter(i=>isOpen(i)&&EV[i][START]<=n));
+  const timed=soon.filter(i=>!isOpen(i)||EV[i][START]>n);
+  /* In these two buckets the useful order is how much of the thing is left,
+     not the clock. Twenty minutes into a three-hour workshop leaves far more
+     than twenty minutes into an hour-long panel. */
+  const leftFrac=i=>(EV[i][START]+EV[i][DUR]-n)/EV[i][DUR];
+  const byRemaining=(a,b)=>leftFrac(b)-leftFrac(a)||cmpTime(a,b);
+  const fresh=timed.filter(i=>EV[i][START]<=n && n-EV[i][START]<=GRACE).sort(byRemaining);
+  const stale=timed.filter(i=>EV[i][START]<=n && n-EV[i][START]>GRACE).sort(byRemaining);
+  const next=sortList(timed.filter(i=>EV[i][START]>n));
+  if(fresh.length){
+    const h=document.createElement('div');
+    h.className='timehead';
+    h.innerHTML='<div>JUST STARTED</div><span>most of it still to come</span>';
+    main.appendChild(h);
+    const g=document.createElement('div'); g.className='grouped';
+    fresh.forEach(i=>{
+      const node=evNode(i,{showTime:true});
+      const rem=document.createElement('span');
+      rem.className='remain';
+      rem.textContent=(EV[i][START]+EV[i][DUR]-n)+' min left';
+      node.querySelector('.evmeta').appendChild(rem);
+      g.appendChild(node);
+    });
+    main.appendChild(g);
+  }
+  if(stale.length){
+    const h=document.createElement('button');
+    h.className='timehead fold'+(showStarted?' open':'');
+    h.innerHTML='<div>'+(showStarted?'\u25be':'\u25b8')+' ALREADY RUNNING</div>'+
+      '<span>'+stale.length+' began more than '+GRACE+' min ago</span>';
+    h.onclick=()=>{ showStarted=!showStarted; savePicks(); render(); };
+    main.appendChild(h);
+    if(showStarted){
+      const g=document.createElement('div'); g.className='grouped';
+      stale.slice(0,shown).forEach(i=>{
+        const node=evNode(i,{showTime:true});
+        const rem=document.createElement('span');
+        rem.className='remain part';
+        const left=EV[i][START]+EV[i][DUR]-n;
+        rem.textContent=left+' min left of '+EV[i][DUR];
+        node.querySelector('.evmeta').appendChild(rem);
+        g.appendChild(node);
+      });
+      main.appendChild(g);
+    }
+  }
+  if(drop.length){
+    const h=document.createElement('div');
+    h.className='timehead';
+    h.innerHTML='<div>OPEN NOW</div><span>'+drop.length+
+      ' running all day \u2014 drop in whenever</span>';
+    main.appendChild(h);
+    const g=document.createElement('div'); g.className='grouped';
+    drop.slice(0,12).forEach(i=>g.appendChild(evNode(i,{showTime:true})));
+    main.appendChild(g);
+  }
+  renderList(next);
+}
+
+/* ============================================================
+   VIEW - BROWSE
+   ============================================================ */
+function viewBrowse(){
+  const main=document.getElementById('main');
+  let idxs=[];
+  for(let i=0;i<EV.length;i++){
+    if(days.size&&!days.has(dayOf(EV[i][START]))) continue;
+    if(matches(i)) idxs.push(i);
+  }
+  const total=idxs.length;
+  idxs=dropPast(idxs);
+  /* Things that started before now but have not finished sit above the
+     current time in a chronological list, so they are the first thing you
+     see. Same treatment as the Now tab: collapsed unless you want them. */
+  const n=nowMin();
+  const running=idxs.filter(i=>EV[i][START]<=n&&EV[i][START]+EV[i][DUR]>n);
+  if(running.length) idxs=idxs.filter(i=>!running.includes(i));
+  const bits=[idxs.length.toLocaleString()+' events'];
+  if(hotels.size) bits.push(hotelLabel());
+  if(offTracks.size) bits.push(offTracks.size+' tracks hidden');
+  if(offKinds.size) bits.push(offKinds.size+' tags hidden');
+  if(hidePast&&total>idxs.length) bits.push((total-idxs.length)+' already over');
+  document.getElementById('count').textContent=bits.join(' \u00b7 ');
+  if(!idxs.length){
+    main.innerHTML=emptyState(
+      total?'Everything here has finished':'No events match',
+      total?'Turn off Hide past, or pick a later day.'
+           :'Widen the search, pick a different hotel, or turn tracks back on.');
+    return;
+  }
+  if(running.length){
+    const h=document.createElement('button');
+    h.className='timehead fold';
+    h.innerHTML='<div>'+(showRunning?'\u25be':'\u25b8')+' ALREADY RUNNING</div>'+
+      '<span>'+running.length+' under way now</span>';
+    h.onclick=()=>{ showRunning=!showRunning; savePicks(); render(); };
+    main.appendChild(h);
+    if(showRunning){
+      const g=document.createElement('div'); g.className='grouped';
+      sortList(running).slice(0,shown).forEach(i=>{
+        const node=evNode(i,{showTime:true});
+        const rem=document.createElement('span');
+        rem.className='remain part';
+        rem.textContent=(EV[i][START]+EV[i][DUR]-n)+' min left of '+EV[i][DUR];
+        node.querySelector('.evmeta').appendChild(rem);
+        g.appendChild(node);
+      });
+      main.appendChild(g);
+    }
+  }
+  renderList(sortList(idxs));
+}
+
+/* ============================================================
+   VIEW - GRID  (rooms down the side, time across the top)
+   ============================================================ */
+const SLOT=30, SLOTPX=88, LANEPX=36, MAXLANES=6, RAIL=86, MINCELL=44;
+
+function viewGrid(){
+  const main=document.getElementById('main');
+  const d=day;
+  const picked=[...hotels];
+
+  const idxs=[];
+  for(let i=0;i<EV.length;i++){
+    if(dayOf(EV[i][START])!==d) continue;
+    if(!hotels.has(DATA.hotels[EV[i][HOT]])) continue;
+    if(offTracks.has(EV[i][TRK])) continue;
+    if(query){
+      const hay=(EV[i][T]+' '+EV[i][PRES]+' '+DATA.locs[EV[i][LOC]]).toLowerCase();
+      if(!query.split(/\s+/).every(w=>hay.includes(w))) continue;
+    }
+    idxs.push(i);
+  }
+  const hName=hotelLabel();
+  document.getElementById('count').textContent=
+    idxs.length+' events \u00b7 '+hName+' \u00b7 '+DAYFULL[d];
+
+  if(!idxs.length){
+    main.innerHTML=emptyState('Nothing here',
+      hName+' has no matching events on '+DAYFULL[d]+'. Try another hotel or day.');
+    return;
+  }
+
+  /* bucket by normalised room name, not the raw location string */
+  const rooms=new Map();
+  idxs.forEach(i=>{
+    const r=roomOf(i), hc=DATA.hotels[EV[i][HOT]];
+    const k=hc+'|'+r.name;
+    if(!rooms.has(k)) rooms.set(k,{meta:r,hc,name:r.name,list:[]});
+    rooms.get(k).list.push(i);
+  });
+
+  let order=[...rooms.entries()];
+  if(gridSort==='size'){
+    /* biggest rooms first, then by how many tracks share them */
+    order.sort((a,b)=>HOTEL_ORDER.indexOf(a[1].hc)-HOTEL_ORDER.indexOf(b[1].hc)
+      ||a[1].meta.tier-b[1].meta.tier
+      ||b[1].meta.tracks-a[1].meta.tracks||natCmp(a[1].name,b[1].name));
+  }else{
+    /* known floors first, low to high; then family, then room sequence.
+       Rooms with no floor in their name go last, grouped by family. */
+    order.sort((a,b)=>{
+      const hd=HOTEL_ORDER.indexOf(a[1].hc)-HOTEL_ORDER.indexOf(b[1].hc);
+      if(hd) return hd;
+      const A=a[1].meta, B=b[1].meta;
+      const fa=A.floor===null?1e6:A.floor, fb=B.floor===null?1e6:B.floor;
+      if(fa!==fb) return fa-fb;
+      if(A.fam!==B.fam) return A.fam<B.fam?-1:1;
+      return natCmp(a[1].name,b[1].name);
+    });
+  }
+  let t0=Infinity, t1=-Infinity;
+  idxs.forEach(i=>{ t0=Math.min(t0,EV[i][START]); t1=Math.max(t1,EV[i][START]+EV[i][DUR]); });
+  t0=Math.floor(t0/SLOT)*SLOT; t1=Math.ceil(t1/SLOT)*SLOT;
+  const slots=Math.max(1,(t1-t0)/SLOT);
+
+  const sortRow=document.createElement('div');
+  sortRow.className='gsort';
+  sortRow.appendChild(document.createTextNode('Rooms'));
+  [['loc','By floor'],['size','Biggest rooms first']].forEach(([k,label])=>{
+    const b=document.createElement('button');
+    b.textContent=label;
+    b.setAttribute('aria-pressed',String(gridSort===k));
+    b.onclick=()=>{ gridSort=k; render(); };
+    sortRow.appendChild(b);
+  });
+  main.appendChild(sortRow);
+
+  const wrap=document.createElement('div'); wrap.id='gridwrap';
+  const inner=document.createElement('div'); inner.className='ginner';
+  inner.style.width=(SLOTPX*slots+RAIL)+'px';
+
+  const head=document.createElement('div'); head.className='ghead';
+  const corner=document.createElement('div'); corner.className='gcorner';
+  corner.textContent='ROOM'; head.appendChild(corner);
+  for(let s=0;s<slots;s++){
+    const m=t0+s*SLOT;
+    const tk=document.createElement('div');
+    tk.className='gtick'+(dt(m).getMinutes()===0?' hour':'');
+    tk.textContent=hshort(m);
+    head.appendChild(tk);
+  }
+  inner.appendChild(head);
+
+  let lastFloor, lastHotel;
+  order.forEach(([key,bucket])=>{
+      const room=bucket.name;
+      const list=bucket.list;
+      /* a thin divider whenever the floor changes, so the ordering is legible */
+      const band=(gridSort==='loc'?bucket.meta.floor:'t'+bucket.meta.tier)+'@'+bucket.hc;
+      if(band!==lastFloor){
+        lastFloor=band;
+        const multi=picked.length>1;
+        const showHotel=multi&&bucket.hc!==lastHotel;
+        lastHotel=bucket.hc;
+        const fr=document.createElement('div');
+        fr.className='gfloor';
+        const fl=document.createElement('div');
+        fl.className='gflabel';
+        const base=gridSort==='loc'
+          ? (bucket.meta.label||'Floor not listed on the venue map')
+          : TIER_NAME[bucket.meta.tier]+'s';
+        fl.textContent=(picked.length>1?HOTEL_NAME[bucket.hc]+' \u00b7 ':'')+base;
+        if(showHotel) fl.style.color='var(--'+bucket.hc+')';
+        fr.appendChild(fl);
+        inner.appendChild(fr);
+      }
+      list.sort((a,b)=>EV[a][START]-EV[b][START]);
+      const laneEnd=[], lane={}; let overflow=0;
+      list.forEach(i=>{
+        const s=EV[i][START], e=s+EV[i][DUR];
+        let k=laneEnd.findIndex(x=>x<=s);
+        if(k<0){ k=laneEnd.length; laneEnd.push(0); }
+        if(k>=MAXLANES){ overflow++; return; }
+        laneEnd[k]=e; lane[i]=k;
+      });
+      const used=Math.min(MAXLANES,Math.max(1,laneEnd.length));
+
+      const row=document.createElement('div');
+      row.className='grow';
+      row.style.height=(used*LANEPX)+'px';
+
+      const lab=document.createElement('div');
+      lab.className='glabel tier'+bucket.meta.tier;
+      lab.title=room+' \u2014 '+TIER_NAME[bucket.meta.tier].toLowerCase();
+      const ln=document.createElement('div'); ln.textContent=room; lab.appendChild(ln);
+      if(overflow){ const s=document.createElement('small');
+        s.textContent='+'+overflow+' more'; lab.appendChild(s); }
+      row.appendChild(lab);
+
+      list.forEach(i=>{
+        if(!(i in lane)) return;
+        const e=EV[i];
+        const c=document.createElement('button');
+        c.className='gcell'+(levelOf(i)?' picked lv'+levelOf(i):'')
+          +(hidePast&&isPast(i)?' past':'');
+        c.style.left=(RAIL+((e[START]-t0)/SLOT)*SLOTPX+1)+'px';
+        c.style.width=Math.max(MINCELL,(e[DUR]/SLOT)*SLOTPX-3)+'px';
+        c.style.top=(lane[i]*LANEPX+2)+'px';
+        c.style.height=(LANEPX-4)+'px';
+        c.style.background='var(--'+DATA.hotels[e[HOT]]+')';
+        const tm=document.createElement('time'); tm.textContent=hshort(e[START]);
+        const sp=document.createElement('span'); sp.textContent=e[T];
+        c.appendChild(tm); c.appendChild(sp);
+        c.onclick=()=>openSheet(i);
+        row.appendChild(c);
+      });
+      inner.appendChild(row);
+    });
+
+  const n=nowMin();
+  const showNow=inCon()&&n>=t0&&n<=t1;
+  if(showNow){
+    const line=document.createElement('div');
+    line.className='nowline';
+    line.style.left=(RAIL+((n-t0)/SLOT)*SLOTPX)+'px';
+    inner.appendChild(line);
+  }
+
+  wrap.appendChild(inner);
+  main.appendChild(wrap);
+
+  const hint=document.createElement('div');
+  hint.className='ghint';
+  hint.textContent='Scroll sideways for later, down for more rooms. Room names and the '+
+    'time ruler stay pinned. Tap any block for details and to star it.';
+  main.appendChild(hint);
+
+  requestAnimationFrame(()=>{
+    wrap.scrollLeft=Math.max(0,((showNow?n:t0)-t0)/SLOT*SLOTPX-40);
+  });
+}
+
+/* ============================================================
+   VIEW - MY CON
+   ============================================================ */
+function viewMine(){
+  const main=document.getElementById('main');
+  const byId=new Map(); EV.forEach((e,i)=>byId.set(e[ID],i));
+  let all=[...picks.keys()].map(id=>byId.get(id)).filter(i=>i!==undefined)
+    .sort((a,b)=>EV[a][START]-EV[b][START]);
+  const done=hidePast?all.filter(isPast).length:0;
+  all=dropPast(all);
+
+  const nMust=[...picks.values()].filter(v=>v===MUST).length;
+  document.getElementById('count').textContent=
+    nMust+' must see \u00b7 '+(picks.size-nMust)+' interested'
+    +(done?' \u00b7 '+done+' already over':'');
+  if(!picks.size){
+    main.innerHTML=emptyState('Nothing picked yet',
+      'Tap a star once for interested, twice for must see, a third time to clear. Star freely \u2014 this view groups anything clashing so you can choose later.');
+    return;
+  }
+  if(friends.length){
+    const fr=document.createElement('div');
+    fr.className='friendrow';
+    const n=sharedCount();
+    const h=document.createElement('div');
+    h.className='friendh';
+    h.textContent=friends.map(f=>f.name).join(', ')+
+      ' \u00b7 '+n+' panel'+(n===1?'':'s')+' you both starred';
+    fr.appendChild(h);
+    const b=document.createElement('button');
+    b.className='sharedbtn'+(onlyShared?' on':'');
+    b.textContent=onlyShared?'\u2713 Showing only shared':'Show only what we share';
+    b.onclick=()=>{ onlyShared=!onlyShared; shown=50; render(); };
+    fr.appendChild(b);
+    friends.forEach((f,k)=>{
+      const x=document.createElement('button');
+      x.className='dropfriend';
+      x.textContent='Remove '+f.name;
+      x.onclick=()=>{ friends.splice(k,1); savePicks(); render(); };
+      fr.appendChild(x);
+    });
+    main.appendChild(fr);
+  }
+
+  const sync=document.createElement('div');
+  sync.className='syncrow';
+  const nameIn=document.createElement('input');
+  nameIn.className='nameIn'; nameIn.type='text'; nameIn.placeholder='Your name, so friends know whose list it is';
+  nameIn.value=myName;
+  nameIn.oninput=e=>{ myName=e.target.value.slice(0,18); savePicks(); };
+  nameIn.onblur=e=>{ myName=e.target.value.replace(/\s+/g,' ').trim();
+    e.target.value=myName; savePicks(); };
+  sync.appendChild(nameIn);
+  const sb=document.createElement('button');
+  sb.textContent='Send these picks to another device';
+  sb.onclick=()=>{
+    const url=shareLink();
+    const label=myName?'Copy link to share with a friend':'Send these picks to another device';
+    const show=t=>{ sb.textContent=t; setTimeout(()=>{ sb.textContent=label; },2600); };
+    sb.textContent=label;
+    if(navigator.clipboard?.writeText){
+      navigator.clipboard.writeText(url).then(()=>show('Link copied \u2014 send it to yourself'),
+        ()=>{ sync.querySelector('.syncurl').textContent=url; show('Copy the link below'); });
+    }else{ sync.querySelector('.syncurl').textContent=url; show('Copy the link below'); }
+  };
+  const su=document.createElement('div'); su.className='syncurl';
+  sync.appendChild(sb); sync.appendChild(su);
+  main.appendChild(sync);
+
+  if(onlyShared&&friends.length) all=all.filter(i=>alsoStarred(i).length);
+  const list=all.filter(i=>!isOpen(i)), drop=all.filter(i=>isOpen(i));
+  if(!list.length&&!drop.length){
+    main.innerHTML=emptyState('All your picks have finished',
+      'Turn off Hide past to look back at them.');
+    return;
+  }
+
+  let trips=planTrips(list);
+  if(hidePast) trips=trips.filter(t=>t.impossible?false:t.ret>nowMin());
+
+  /* ---- rank what still needs deciding, worst first ----
+     A slot with three must-sees is a harder problem than one with three
+     maybes, and a hop you cannot physically make is harder than either. */
+  {
+    const byStart=new Map();
+    list.forEach(i=>{ const k=EV[i][START];
+      if(!byStart.has(k)) byStart.set(k,[]); byStart.get(k).push(i); });
+    const ks=[...byStart.keys()].sort((a,b)=>a-b);
+    let issues=[];
+    ks.forEach((k,n)=>{
+      const g=byStart.get(k).filter(i=>!isRuled(i)),
+            musts=g.filter(i=>levelOf(i)===MUST);
+      const rescuable=g.filter(i=>laterRepeats(i).length).length;
+      if(musts.length>1)
+        issues.push({score:(rescuable>=musts.length-1?150:300)+musts.length,at:k,
+          txt:musts.length+' must-sees booked against each other'+
+            (rescuable?' \u00b7 '+rescuable+' run again later':'')});
+      else if(musts.length===0&&g.length>1)
+        issues.push({score:100+g.length,at:k,
+          txt:g.length+' options, none chosen yet'+
+            (rescuable?' \u00b7 '+rescuable+' run again later':'')});
+      if(n>0){
+        /* A hop only matters between things you have committed to. With
+           dozens of maybes starred, every pair would read as a crisis. */
+        const prevMust=byStart.get(ks[n-1]).filter(i=>!isRuled(i)&&levelOf(i)===MUST);
+        if(prevMust.length&&musts.length){
+          const gap=k-Math.max(...prevMust.map(i=>EV[i][START]+EV[i][DUR]));
+          if(gap>=0){
+            const need=Math.max(...prevMust.flatMap(a=>musts.map(b=>
+              walk(DATA.hotels[EV[a][HOT]],DATA.hotels[EV[b][HOT]]))));
+            if(gap-need<0)
+              issues.push({score:200+(need-gap),at:k,
+                txt:'only '+gap+' min between two must-sees, walk needs '+need});
+            else if(musts.some(i=>roomOf(i).tier===1)&&gap-need<10)
+              issues.push({score:50,at:k,
+                txt:'must-see in a ballroom, only '+(gap-need)+' min to queue'});
+          }
+        }
+      }
+    });
+    trips.forEach(t=>{
+      if(t.impossible)
+        issues.push({score:250,at:t.dayOffset+trip.meals[0].from,
+          txt:t.meal+' run has nowhere to go on '+DAYFULL[t.day]});
+      else if(t.cost>=3)
+        issues.push({score:120+Math.round(t.cost),at:t.depart,
+          txt:t.meal+' run costs '+t.hit.length+' pick'+(t.hit.length===1?'':'s')});
+      else if(t.tight)
+        issues.push({score:60,at:t.depart,
+          txt:t.meal+' run is tight '+(t.tight==='car'?'getting to the car':'getting back')});
+    });
+    if(hidePast) issues=issues.filter(x=>x.at>nowMin());
+    const hard=issues.filter(x=>x.score>=120).sort((a,b)=>b.score-a.score);
+    const soft=issues.filter(x=>x.score<120).sort((a,b)=>a.at-b.at);
+    if(hard.length||soft.length){
+      const box=document.createElement('div');
+      box.className='decide';
+      const h=document.createElement('div');
+      h.className='decideh';
+      h.textContent=hard.length
+        ? hard.length+' thing'+(hard.length===1?'':'s')+' to sort out'
+        : 'nothing urgent';
+      box.appendChild(h);
+      hard.slice(0,5).forEach(x=>{
+        const r=document.createElement('div');
+        r.className='deciderow'+(x.score>=200?' hard':'');
+        r.innerHTML='<b>'+esc(dayName(x.at).slice(0,3)+' '+hhmm(x.at))+'</b><span></span>';
+        r.querySelector('span').textContent=x.txt;
+        box.appendChild(r);
+      });
+      if(hard.length>5){
+        const r=document.createElement('div');
+        r.className='deciderow'; r.innerHTML='<b></b><span></span>';
+        r.querySelector('span').textContent='and '+(hard.length-5)+' more';
+        box.appendChild(r);
+      }
+      if(soft.length){
+        const r=document.createElement('div');
+        r.className='deciderow soft'; r.innerHTML='<b></b><span></span>';
+        const total=soft.reduce((n,x)=>n+(parseInt(x.txt)||0),0);
+        r.querySelector('span').textContent=soft.length+
+          ' more slot'+(soft.length===1?'':'s')+' where you have options to choose between'+
+          (total?' \u2014 '+total+' picks in all':'')+'. Nothing broken, just undecided.';
+        box.appendChild(r);
+      }
+      main.appendChild(box);
+    }
+  }
+
+
+  /* One row per start time, not per pick. Starring five things at 4pm is a
+     single decision, so it gets a single block rather than four clash bars. */
+  const slots=new Map();
+  list.forEach(i=>{ const k=EV[i][START];
+    if(!slots.has(k)) slots.set(k,[]); slots.get(k).push(i); });
+  const keys=[...slots.keys()].sort((a,b)=>a-b);
+
+  const timeline=keys.map(k=>({at:k,kind:'slot'}))
+    .concat(trips.filter(t=>!t.impossible).map(t=>({at:t.depart,kind:'trip',t})))
+    .sort((a,b)=>a.at-b.at);
+
+  let lastDay=null;
+  timeline.forEach((item,ti)=>{
+    if(item.kind==='trip'){ renderTrip(main,item.t); return; }
+    const k=item.at;
+    const group=slots.get(k).sort((a,b)=>levelOf(b)-levelOf(a));
+    const d=dayOf(k);
+    if(d!==lastDay){
+      lastDay=d;
+      const hd=document.createElement('div');
+      hd.className='daybreak';
+      const cnt=list.filter(x=>dayOf(EV[x][START])===d).length;
+      hd.innerHTML=esc(DAYFULL[d])+'<em>'+cnt+' picked</em>';
+      main.appendChild(hd);
+    }
+
+    /* travel from the previous slot, as a range when the options differ */
+    const prevSlot=timeline.slice(0,ti).filter(x=>x.kind==='slot').pop();
+    const tripBetween=prevSlot&&timeline.some(x=>
+      x.kind==='trip'&&x.at>prevSlot.at&&x.at<k);
+    if(prevSlot&&!tripBetween){
+      const prev=slots.get(prevSlot.at);
+      const ends=prev.map(i=>EV[i][START]+EV[i][DUR]);
+      const gapMin=k-Math.max(...ends), gapMax=k-Math.min(...ends);
+      if(gapMin>=0){
+        const walks=[];
+        prev.forEach(a=>group.forEach(b=>
+          walks.push(walk(DATA.hotels[EV[a][HOT]],DATA.hotels[EV[b][HOT]]))));
+        const wMin=Math.min(...walks), wMax=Math.max(...walks);
+        const slack=gapMin-wMax;
+        /* stay factual unless both ends are commitments */
+        const committed=prev.some(i=>levelOf(i)===MUST)&&group.some(i=>levelOf(i)===MUST);
+        const g=document.createElement('div');
+        g.className='gap'+(!committed?'':slack<0?' tight':slack<5?' warn':'');
+        const wTxt=wMin===wMax?wMax+' min':wMin+'\u2013'+wMax+' min';
+        g.textContent=(gapMin===gapMax?gapMin+' min gap':gapMin+'\u2013'+gapMax+' min gap')
+          +' \u00b7 walk '+wTxt
+          +(!committed?''
+            :slack<0?' \u00b7 tight, you may not make every combination'
+                    :' \u00b7 '+slack+' min to spare');
+        main.appendChild(g);
+      }
+    }
+
+    /* anything picked earlier that is still going during this slot */
+    const running=list.filter(i=>EV[i][START]<k && EV[i][START]+EV[i][DUR]>k);
+    if(running.length){
+      const r=document.createElement('div');
+      r.className='running';
+      r.textContent=running.length===1
+        ? '\u201c'+EV[running[0]][T]+'\u201d runs until '+hhmm(EV[running[0]][START]+EV[running[0]][DUR])+'.'
+        : running.length+' earlier picks are still running.';
+      main.appendChild(r);
+    }
+
+    const live_=group.filter(i=>!isRuled(i)), out_=group.filter(isRuled);
+    const musts=live_.filter(i=>levelOf(i)===MUST);
+    const hd=document.createElement('div');
+    hd.className='slot'+(musts.length>1?' clash':live_.length>1?' choose':'');
+    let status;
+    const nOut=out_.length;
+    if(live_.length<=1&&!nOut) status='';
+    else if(musts.length>1) status=musts.length+' must-sees at once \u2014 pick one';
+    else if(musts.length===1) status='decided'+(live_.length>1?' \u00b7 '+(live_.length-1)+' still open':'')
+      +(nOut?' \u00b7 '+nOut+' ruled out':'');
+    else status=live_.length+' options \u2014 undecided'+(nOut?' \u00b7 '+nOut+' ruled out':'');
+    hd.innerHTML='<b>'+esc(hhmm(k))+'</b>'+(status?'<span>'+esc(status)+'</span>':'');
+    main.appendChild(hd);
+
+    const wrap=document.createElement('div');
+    wrap.className='slotbody';
+    live_.concat(out_).forEach(i=>{
+      const node=evNode(i,{showEnd:true,segmented:true});
+      if(isRuled(i)) node.classList.add('ruled');
+      wrap.appendChild(node);
+      const later=laterRepeats(i);
+      if(group.length>1&&later.length&&!isRuled(i)){
+        const r=document.createElement('div');
+        r.className='catchlater';
+        const b=document.createElement('button');
+        b.textContent='\u21bb Move to '+DAYFULL[dayOf(later[0])].slice(0,3)+' '+hhmm(later[0]);
+        b.onclick=()=>moveToRepeat(i,later[0]);
+        r.appendChild(b);
+        const sp=document.createElement('span');
+        sp.textContent=' \u2014 same panel, no clash there.';
+        r.appendChild(sp);
+        wrap.appendChild(r);
+      }
+    });
+    main.appendChild(wrap);
+  });
+
+  if(drop.length){
+    const hd=document.createElement('div');
+    hd.className='daybreak';
+    hd.innerHTML='Open all day<em>drop in whenever</em>';
+    main.appendChild(hd);
+    drop.forEach(i=>main.appendChild(evNode(i,{showTime:true,segmented:true})));
+  }
+  const note=document.createElement('div');
+  note.className='note';
+  note.textContent='Walk times are estimates for a crowded con, door to door, including elevators and the skybridges. Ballrooms clear between panels and lines can form an hour early, so leave more than the walk.';
+  main.appendChild(note);
+}
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+function render(){
+  const main=document.getElementById('main');
+  main.innerHTML='';
+  /* Distance sort needs a starting point, and the hotel chips are already a
+     list of every hotel - so the pin lives on them rather than in a second
+     identical row. */
+  const hereShown=(listSort==='near'&&view!=='mine');
+  document.getElementById('hotels').classList.toggle('pinning',hereShown);
+  document.getElementById('hereHint').style.display=hereShown?'block':'none';
+  if(hereShown) syncHere();
+  const dayChips=(view==='browse'||view==='grid');
+  const hotelChips=(view!=='mine');   /* Now filters by hotel - show the control */
+  document.getElementById('days').style.display=dayChips?'flex':'none';
+  document.getElementById('hotels').style.display=hotelChips?'flex':'none';
+  document.getElementById('tools').style.display='flex';
+  document.getElementById('q').style.display=(view==='mine')?'none':'block';
+  document.getElementById('trackBtn').style.display=(view==='mine')?'none':'block';
+  const tp=document.getElementById('trackPanel');
+  tp.style.display=(view!=='mine'&&tp.dataset.open==='1')?'block':'none';
+  ['kindPanel','tagPanel'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.style.display=(view!=='mine'&&el.dataset.open==='1')?'block':'none';
+  });
+  ['kindBtn','tagBtn'].forEach(id=>
+    document.getElementById(id).style.display=(view==='mine')?'none':'block');
+  const rp=document.getElementById('tripPanel');
+  rp.style.display=(rp.dataset.open==='1')?'block':'none';
+  document.getElementById('tripBtn').style.display=(view==='mine')?'block':'none';
+
+  if(hidePast===null) hidePast=inCon();
+  const pb=document.getElementById('pastBtn');
+  pb.textContent=view==='grid'?'Dim past':'Hide past';
+  pb.setAttribute('aria-pressed',String(hidePast));
+  pb.style.display=(view==='now')?'none':'block';
+  const cb=document.getElementById('clearBtn');
+  const nf=activeFilters();
+  cb.textContent='Clear '+nf+' filter'+(nf===1?'':'s');
+  cb.style.display=nf?'block':'none';
+  cb.setAttribute('aria-pressed','true');
+  const sb=document.getElementById('sortBtn');
+  sb.textContent='Sort: '+LIST_SORTS[listSort];
+  sb.setAttribute('aria-pressed',String(listSort!=='time'));
+  /* Grid has its own room sort; My Con has to stay chronological for the
+     gap and trip arithmetic to mean anything */
+  sb.style.display=(view==='now'||view==='browse')?'block':'none';
+
+  /* the grid needs a day and at least one hotel to draw */
+  if(view==='grid'){
+    day=[...days].sort((a,b)=>dayList.indexOf(a)-dayList.indexOf(b))[0]
+      || (inCon()?dayOf(nowMin()):null) || busiestDay();
+    if(!hotels.size) hotels.add(HOTEL_ORDER[0]);
+  }
+  syncChips();
+
+  if(view==='now') viewNow();
+  else if(view==='browse') viewBrowse();
+  else if(view==='grid') viewGrid();
+  else viewMine();
+
+  const b=document.getElementById('mineCount');
+  b.hidden=picks.size===0; b.textContent=picks.size;
+  if(importedFriend){
+    const w=document.createElement('div');
+    w.className='imported';
+    w.textContent=importedFriend+"'s picks were added alongside yours. Anything you "+
+      'both starred now carries their name. Your own picks were not changed.';
+    main.prepend(w);
+    importedFriend='';
+  }
+  if(imported>0){
+    const w=document.createElement('div');
+    w.className='imported';
+    w.textContent=imported+' pick'+(imported===1?'':'s')+' arrived from your other device '+
+      'and were merged in. Nothing you already had was removed.';
+    main.prepend(w);
+    imported=0;
+  }
+  if(legacyDropped){
+    legacyDropped=false;
+    const w=document.createElement('div');
+    w.className='legacy';
+    w.textContent='Your earlier stars were saved by list position, which shifted when '+
+      'the schedule was rebuilt. Rather than point them at the wrong panels, they were '+
+      'cleared. Picks are now keyed to each event, so this cannot happen again.';
+    main.prepend(w);
+  }
+  document.querySelectorAll('nav button').forEach(x=>
+    x.dataset.view===view?x.setAttribute('aria-current','page')
+                         :x.removeAttribute('aria-current'));
+  measureHeader();
+}
+
+function allChip(label,isOn,onTap){
+  const b=document.createElement('button');
+  b.className='chip all'; b.textContent=label;
+  b.dataset.all='1'; b.onclick=onTap;
+  return b;
+}
+function buildChrome(){
+  const dd=document.getElementById('days');
+  dd.appendChild(allChip('All days',()=>!days.size,()=>{
+    days.clear(); shown=50; render(); }));
+  dayList.forEach(d=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent=DAYFULL[d]||d; b.dataset.day=d;
+    b.onclick=()=>{ days.has(d)?days.delete(d):days.add(d); shown=50; render(); };
+    dd.appendChild(b);
+  });
+  const hh=document.getElementById('hotels');
+  hh.appendChild(allChip('All hotels',()=>!hotels.size,()=>{
+    hotels.clear();
+    if(view==='grid') hotels.add(HOTEL_ORDER[0]);   /* the grid needs at least one */
+    shown=50; render(); }));
+  HOTEL_CHIPS.filter(c=>c.members||DATA.hotels.includes(c.code)).forEach(c=>{
+    const members=c.members||[c.code];
+    const b=document.createElement('button');
+    b.className='chip hotel'; b.dataset.hotel=c.code;
+    b.dataset.members=members.join(',');
+    b.style.setProperty('--hc','var(--'+(c.tint||c.code)+')');
+    const dot=document.createElement('span'); dot.className='dot';
+    b.appendChild(dot);
+    /* a pin, shown only in Distance sort, and only where standing makes sense */
+    if(!c.members && !['ONLINE'].includes(c.code)){
+      const pin=document.createElement('span');
+      pin.className='pin'; pin.textContent='\uD83D\uDCCD';
+      pin.setAttribute('role','button');
+      pin.setAttribute('aria-label','Set '+(HOTEL_NAME[c.code])+' as where you are');
+      pin.dataset.pin=c.code;
+      pin.onclick=ev=>{ ev.stopPropagation();
+        here=(here===c.code)?null:c.code; savePicks(); shown=50; render(); };
+      b.appendChild(pin);
+    }
+    b.appendChild(document.createTextNode(c.label||HOTEL_NAME[c.code]||c.code));
+    b.onclick=()=>{
+      const on=members.some(m=>hotels.has(m));
+      members.forEach(m=>on?hotels.delete(m):hotels.add(m));
+      shown=50; render(); };
+    hh.appendChild(b);
+  });
+  const kg=document.getElementById('kgrid');
+  const FEATURING=[['actor','Actors'],['author','Authors'],['artist','Artists'],
+   ['creator','Creators'],['musician','Musicians'],['costumer','Costumers'],
+   ['scientist','Scientists'],['performer','Performers'],['writer','Writers'],
+   ['expert','Expert-led'],['fan','Nobody billed']];
+  const OTHERTAGS=[['party','Parties & music'],['paid','Extra fee']];
+  const gg=document.getElementById('ggrid');
+  const mkChip=(k,label,into)=>{
+    const b=document.createElement('button');
+    b.className='tchip'; b.textContent=label; b.dataset.kind=k;
+    b.onclick=()=>{ offKinds.has(k)?offKinds.delete(k):offKinds.add(k);
+      syncKinds(); shown=50; render(); };
+    into.appendChild(b);
+  };
+  FEATURING.forEach(([k,l])=>mkChip(k,l,kg));
+  OTHERTAGS.forEach(([k,l])=>mkChip(k,l,gg));
+  syncKinds();
+
+  const tg=document.getElementById('tgrid');
+  const used=new Set(EV.map(e=>e[TRK]));
+  DATA.tracks.map((t,i)=>[t,i]).filter(([,i])=>used.has(i))
+    .sort((a,b)=>a[0].localeCompare(b[0])).forEach(([t,i])=>{
+    const b=document.createElement('button');
+    b.className='tchip'; b.textContent=t; b.dataset.ti=i;
+    b.onclick=()=>{ offTracks.has(i)?offTracks.delete(i):offTracks.add(i);
+      savePicks(); syncTracks(); shown=50; render(); };
+    tg.appendChild(b);
+  });
+  syncTracks();
+}
+function syncKinds(){
+  document.querySelectorAll('#kgrid .tchip, #ggrid .tchip').forEach(b=>{
+    const off=offKinds.has(b.dataset.kind);
+    b.dataset.state = off?'hidden':'neutral';   /* same states as the tracks */
+    b.setAttribute('aria-pressed',String(!off));
+  });
+  const anyOff=sel=>[...document.querySelectorAll(sel+' .tchip')]
+    .some(b=>offKinds.has(b.dataset.kind));
+  document.getElementById('kindBtn').classList.toggle('on',anyOff('#kgrid'));
+  document.getElementById('tagBtn').classList.toggle('on',anyOff('#ggrid'));
+}
+function syncHere(){
+  const at=whereAmI();
+  document.querySelectorAll('#hotels .pin').forEach(p=>{
+    p.classList.toggle('on',p.dataset.pin===at);
+    p.classList.toggle('guess',!here && p.dataset.pin===at);
+  });
+  const h=document.getElementById('hereHint');
+  h.textContent = here
+    ? "You're at the "+HOTEL_NAME[here]+" \u00b7 tap its pin to clear"
+    : at ? 'Guessing you\u2019re at the '+HOTEL_NAME[at]+
+           ' from your schedule \u00b7 tap a pin to change'
+         : 'Tap a pin to say where you are';
+}
+function syncChips(){
+  document.querySelectorAll('#days .chip').forEach(b=>
+    b.setAttribute('aria-pressed',String(b.dataset.all?!days.size:days.has(b.dataset.day))));
+  document.querySelectorAll('#hotels .chip').forEach(b=>
+    b.setAttribute('aria-pressed',String(b.dataset.all
+      ? !hotels.size
+      : (b.dataset.members||b.dataset.hotel||'').split(',').some(m=>hotels.has(m)))));
+  document.querySelectorAll('#hotels .chip[data-all]').forEach(b=>
+    b.style.display=(view==='grid')?'none':'');   /* grid must have one selected */
+}
+function syncTracks(){
+  document.querySelectorAll('#tgrid .tchip').forEach(b=>{
+    const i=+b.dataset.ti;
+    b.dataset.state = offTracks.has(i)?'hidden':'neutral';
+    b.setAttribute('aria-pressed',String(!offTracks.has(i)));
+  });
+  document.getElementById('trackBtn').classList.toggle('on',offTracks.size>0);
+}
+function measureHeader(){
+  document.documentElement.style.setProperty('--headh',
+    document.getElementById('hdr').offsetHeight+'px');
+}
+
+document.getElementById('q').addEventListener('input',e=>{
+  query=e.target.value.trim().toLowerCase(); shown=50; render(); });
+document.getElementById('pastBtn').onclick=()=>{
+  hidePast=!hidePast; shown=50; render(); };
+/* what counts as a filter: day, hotels, hidden tracks, search text.
+   Followed tracks and picks are yours, not a filter, so they survive. */
+function activeFilters(){
+  let n=0;
+  if(days.size) n++;
+  if(hotels.size) n++;
+  if(offTracks.size) n++;
+  if(query) n++;
+  return n;
+}
+document.getElementById('clearBtn').onclick=()=>{
+  days.clear(); hotels.clear(); offTracks.clear(); query='';
+  document.getElementById('q').value='';
+  if(view==='grid') hotels.add(HOTEL_ORDER[0]);
+  savePicks(); syncTracks(); shown=50; render();
+};
+document.getElementById('sortBtn').onclick=()=>{
+  const order=['time','interest','place','near'];
+  listSort=order[(order.indexOf(listSort)+1)%order.length];
+  shown=50; render(); };
+document.getElementById('kpAll').onclick=()=>{
+  [...document.querySelectorAll('#kgrid .tchip')]
+    .forEach(b=>offKinds.delete(b.dataset.kind));
+  savePicks(); syncKinds(); shown=50; render(); };
+const groupKeys=sel=>[...document.querySelectorAll(sel+' .tchip')].map(b=>b.dataset.kind);
+document.getElementById('kpNone').onclick=()=>{
+  groupKeys('#kgrid').forEach(k=>offKinds.add(k));
+  savePicks(); syncKinds(); shown=50; render(); };
+document.getElementById('gpAll').onclick=()=>{
+  groupKeys('#ggrid').forEach(k=>offKinds.delete(k));
+  savePicks(); syncKinds(); shown=50; render(); };
+document.getElementById('gpNone').onclick=()=>{
+  groupKeys('#ggrid').forEach(k=>offKinds.add(k));
+  savePicks(); syncKinds(); shown=50; render(); };
+/* One function for every panel button. Each used to close its siblings by
+   hand, and each forgot a different one. */
+function togglePanel(id){
+  ['trackPanel','kindPanel','tagPanel','tripPanel'].forEach(x=>{
+    if(x===id) return;
+    const o=document.getElementById(x);
+    o.dataset.open='0'; o.style.display='none';
+  });
+  const p=document.getElementById(id), open=p.dataset.open==='1';
+  p.dataset.open=open?'0':'1'; p.style.display=open?'none':'block';
+  /* the button highlights mean "this category has something hidden", not
+     "this panel is open", so recompute rather than toggle */
+  syncTracks(); syncKinds();
+  measureHeader();
+}
+document.getElementById('kindBtn').onclick=()=>togglePanel('kindPanel');
+document.getElementById('tagBtn').onclick=()=>togglePanel('tagPanel');
+document.getElementById('trackBtn').onclick=()=>togglePanel('trackPanel');
+function hhmmOf(mins){ const h=Math.floor(mins/60), m=mins%60;
+  const ap=h<12?'am':'pm', hh=h%12||12;
+  return hh+(m?':'+pad(m):'')+ap; }
+function syncTrip(){
+  const g=id=>document.getElementById(id);
+  g('tOn').checked=trip.on; g('tDctv').checked=trip.dctv;
+  g('tTravel').value=trip.travel; g('tTravelV').textContent=trip.travel+' min';
+  g('tHome').value=trip.home;     g('tHomeV').textContent=trip.home+' min';
+  g('tBuf').value=trip.buffer;    g('tBufV').textContent=trip.buffer+' min';
+  g('tB1').value=trip.meals[0].from; g('tB1V').textContent=hhmmOf(trip.meals[0].from);
+  g('tB2').value=trip.meals[0].to;   g('tB2V').textContent=hhmmOf(trip.meals[0].to);
+  g('tD1').value=trip.meals[1].from; g('tD1V').textContent=hhmmOf(trip.meals[1].from);
+  g('tD2').value=trip.meals[1].to;   g('tD2V').textContent=hhmmOf(trip.meals[1].to);
+  document.querySelectorAll('#tPark button').forEach(b=>
+    b.setAttribute('aria-pressed',String(b.dataset.h===trip.park)));
+  g('tripBtn').classList.toggle('on',trip.on);
+}
+function bindTrip(){
+  const g=id=>document.getElementById(id);
+  const save=()=>{ savePicks(); syncTrip(); if(view==='mine') render(); };
+  g('tOn').onchange=e=>{ trip.on=e.target.checked; save(); };
+  g('tDctv').onchange=e=>{ trip.dctv=e.target.checked; save(); };
+  [['tTravel','travel'],['tHome','home'],['tBuf','buffer']].forEach(([id,k])=>{
+    g(id).oninput=e=>{ trip[k]=+e.target.value; save(); };
+  });
+  [['tB1',0,'from'],['tB2',0,'to'],['tD1',1,'from'],['tD2',1,'to']].forEach(([id,n,k])=>{
+    g(id).oninput=e=>{
+      trip.meals[n][k]=+e.target.value;
+      /* keep each window at least the trip length wide */
+      const need=trip.travel*2+trip.home;
+      if(trip.meals[n].to-trip.meals[n].from<need)
+        trip.meals[n][k==='from'?'to':'from'] = k==='from'
+          ? trip.meals[n].from+need : trip.meals[n].to-need;
+      save();
+    };
+  });
+  const park=g('tPark');
+  HOTEL_ORDER.filter(h=>!['ONLINE','OFF','PARK'].includes(h)).forEach(h=>{
+    const b=document.createElement('button');
+    b.textContent=HOTEL_NAME[h]; b.dataset.h=h;
+    b.onclick=()=>{ trip.park=h; save(); };
+    park.appendChild(b);
+  });
+  g('tReset').onclick=()=>{
+    const on=trip.on;
+    trip=JSON.parse(JSON.stringify(TRIP_DEFAULTS));
+    trip.on=on; save();
+  };
+  g('tripBtn').onclick=()=>togglePanel('tripPanel');
+  syncTrip();
+}
+
+document.getElementById('tpAll').onclick=()=>{
+  offTracks.clear(); savePicks(); syncTracks(); shown=50; render(); };
+document.getElementById('tpNone').onclick=()=>{
+  new Set(EV.map(e=>e[TRK])).forEach(i=>offTracks.add(i));
+  savePicks(); syncTracks(); shown=50; render(); };
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick=()=>{ view=b.dataset.view; shown=50;
+    document.body.classList.remove('hdrhid'); lastY=0;
+    window.scrollTo(0,0); render(); }; });
+document.querySelector('#sheet .scrim').onclick=closeSheet;
+window.addEventListener('resize',measureHeader);
+
+/* drop the fade once you have scrolled to the end, so it does not imply
+   there is still more to see */
+
+
+function stampBuild(){
+  const b=document.getElementById('build');
+  if(b) b.textContent=DATA.built||'unknown';
+}
+/* Hide on the way down, restore on the way up. Never hide near the top, and
+   never while a settings panel is open - that would pull the control you are
+   using off the screen. */
+let lastY=0, ticking=false;
+function onScroll(){
+  const y=Math.max(0,window.scrollY||window.pageYOffset||0);
+  const panelOpen=['trackPanel','kindPanel','tripPanel']
+    .some(id=>document.getElementById(id).dataset.open==='1');
+  const down=y>lastY+4, up=y<lastY-4;
+  if(!panelOpen && y>140 && down) document.body.classList.add('hdrhid');
+  else if(up || y<=140) document.body.classList.remove('hdrhid');
+  document.getElementById('toTop').hidden = y<600;
+  lastY=y;
+  ticking=false;
+}
+window.addEventListener('scroll',()=>{
+  if(!ticking){ ticking=true; requestAnimationFrame(onScroll); }
+},{passive:true});
+document.getElementById('toTop').onclick=()=>{
+  document.body.classList.remove('hdrhid');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+function tick(){
+  const d=new Date(); let h=d.getHours(); const ap=h<12?'am':'pm'; h=h%12||12;
+  document.getElementById('clock').textContent=
+    (inCon()?dayName(nowMin())+' ':'Off-con \u00b7 ')+h+':'+pad(d.getMinutes())+ap;
+}
+
+(async function init(){
+  try{
+    DATA=await loadData();
+  }catch(err){
+    document.getElementById('main').innerHTML=
+      '<div class="empty"><b>Could not load the schedule</b>'+esc(err.message)+'</div>';
+    return;
+  }
+  EPOCH=new Date(DATA.epoch);
+  EV=DATA.events;
+  HOTEL_ORDER=HOTEL_SEQ.filter(h=>DATA.hotels.includes(h));
+  dayList=[...new Set(EV.map(e=>dayOf(e[START])))]
+    .sort((a,b)=>EV.find(e=>dayOf(e[START])===a)[START]
+                -EV.find(e=>dayOf(e[START])===b)[START]);
+  await loadPicks();
+  imported=importFromHash();
+  /* start on the day of the con you are actually in */
+  if(!days.size && inCon() && dayList.includes(dayOf(nowMin()))) days.add(dayOf(nowMin()));
+  buildRooms();
+  buildWatch();
+  buildChrome();
+  bindTrip();
+  stampBuild();
+  tick(); setInterval(tick,30000);
+  setInterval(()=>{ if(view==='now') render(); },120000);
+  render();
+})();
+</script>
+</body>
+</html>

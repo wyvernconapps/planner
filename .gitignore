@@ -1,0 +1,12 @@
+# Raw source exports (large, and Dragon Con's content) — drop them in to
+# rebuild from scratch, but they don't belong in the repo.
+pipeline/inputs/*
+!pipeline/inputs/.gitkeep
+
+# Build intermediate produced by build_data.py (data-slim.json is the one
+# that's actually committed and consumed by assemble.py).
+pipeline/data.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
