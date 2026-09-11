@@ -38,6 +38,12 @@ header{
   backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
   padding:10px 12px 8px;padding-top:calc(10px + env(safe-area-inset-top));
 }
+/* off-con demo banner: shown when the app time-travels to test with live data */
+#ttbar{
+  background:linear-gradient(90deg,#7c3aed,#b45309);color:#fff;
+  text-align:center;font-size:12px;font-weight:600;line-height:1.3;
+  padding:6px 12px;padding-top:calc(6px + env(safe-area-inset-top));
+}
 /* the header is five stacked rows on a phone and it is sticky, so it costs
    that space permanently. Give it back while scrolling down; a flick up or
    the jump button brings it straight back. */
@@ -408,6 +414,8 @@ nav button[aria-current="page"]{color:var(--gold)}
 </head>
 <body>
 
+<div id="ttbar" hidden></div>
+
 <header id="hdr">
   <div class="hrow">
     <div class="brand">WyvernCon <b>Schedule</b></div>
@@ -492,14 +500,12 @@ nav button[aria-current="page"]{color:var(--gold)}
 <button id="toTop" aria-label="Back to the top" hidden>&#8593;</button>
 
 <footer id="legal">
-  <strong>Unofficial fan-made project.</strong> Not affiliated with, endorsed by, or
-  associated with Dragon Con. Schedule data is Dragon Con's own, reproduced here for
-  personal planning only.
-  <span>Schedule export <b id="build">&mdash;</b> &middot; rooms and times change during
-  the convention. Dragon Con publishes the live grid at
-  <a href="https://app.core-apps.com/dragoncon26">app.core-apps.com/dragoncon26</a>
-  &mdash; check there for anything that matters.</span>
-  <span>Schedule data pulled and shared by <a href="https://www.reddit.com/r/dragoncon/comments/1vy4v81/dragon_con_schedule_spreadsheet_2026/">Max Schilling (u/maxschilling)</a> on r/dragoncon &mdash; this app just reshapes it. Thank you, Max.</span>
+  <strong>Unofficial fan project.</strong> Not affiliated with or endorsed by Dragon Con;
+  the schedule is Dragon Con's own, for personal planning only.
+  <span>Schedule export <b id="build">&mdash;</b> &middot; rooms and times change &mdash; the
+  official live grid is at
+  <a href="https://app.core-apps.com/dragoncon26">app.core-apps.com/dragoncon26</a>.</span>
+  <span>Data pulled and shared by <a href="https://www.reddit.com/r/dragoncon/comments/1vy4v81/dragon_con_schedule_spreadsheet_2026/">Max Schilling (u/maxschilling)</a> &mdash; this app just reshapes it. Thanks, Max.</span>
 </footer>
 
 <div id="sheet"><div class="scrim"></div><div class="card" id="sheetCard"></div></div>
@@ -1011,7 +1017,8 @@ const dayName=m=>DAYFULL[dayOf(m)]||dayOf(m);
 const dayOf=m=>DAYS[dt(m).getDay()];
 
 
-const nowMin=()=>Math.round((Date.now()-EPOCH.getTime())/60000);
+let TT_MIN=null;   /* set in init(): minutes to time-travel to, or null for real time */
+const nowMin=()=> TT_MIN!=null ? TT_MIN : Math.round((Date.now()-EPOCH.getTime())/60000);
 /* Outside the con, falling back to the first day lands on a Wednesday with
    three events on it. Use the day with the most programming instead. */
 function busiestDay(){
@@ -2447,6 +2454,10 @@ document.getElementById('toTop').onclick=()=>{
 };
 
 function tick(){
+  if(TT_MIN!=null){   /* time-travelling: show the simulated clock, not the wall clock */
+    document.getElementById('clock').textContent=dayName(nowMin())+' '+hhmm(nowMin());
+    return;
+  }
   const d=new Date(); let h=d.getHours(); const ap=h<12?'am':'pm'; h=h%12||12;
   document.getElementById('clock').textContent=
     (inCon()?dayName(nowMin())+' ':'Off-con \u00b7 ')+h+':'+pad(d.getMinutes())+ap;
@@ -2462,6 +2473,16 @@ function tick(){
   }
   EPOCH=new Date(DATA.epoch);
   EV=DATA.events;
+  /* Between cons the real clock is outside the schedule, so nothing is "now".
+     Time-travel to Friday noon so Now, Grid and the trip planner actually demo
+     something, and flag it with a banner. During the con, real time is used. */
+  { const real=Math.round((Date.now()-EPOCH.getTime())/60000);
+    if(real<EV[0][START]-720 || real>EV[EV.length-1][START]+720){
+      TT_MIN=((5-EPOCH.getDay()+7)%7)*1440+720;   /* Friday 12:00pm from EPOCH */
+      const b=document.getElementById('ttbar');
+      if(b){ b.textContent='🕘 Time Traveling for Testing Purposes — showing '
+               +dayName(TT_MIN)+' '+hhmm(TT_MIN); b.hidden=false; }
+    } }
   HOTEL_ORDER=HOTEL_SEQ.filter(h=>DATA.hotels.includes(h));
   dayList=[...new Set(EV.map(e=>dayOf(e[START])))]
     .sort((a,b)=>EV.find(e=>dayOf(e[START])===a)[START]

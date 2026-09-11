@@ -11,6 +11,14 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.12 — off-con demo mode + tighter footer
+
+- Between cons (when the real clock falls outside the schedule), the app now
+  **time-travels to Friday 12:00 pm** so Now, Grid, and the trip planner show
+  live data instead of an empty screen — with a banner reading "Time Traveling
+  for Testing Purposes". During the con, real time is used and the banner is hidden.
+- Footer copy trimmed for redundancy (same meaning, fewer words).
+
 ## 1.11.2 — credit the data source in the footer
 
 - The footer now credits **Max Schilling** (u/maxschilling on r/dragoncon), who
