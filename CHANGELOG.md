@@ -11,6 +11,20 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.14 — accessibility + discoverability
+
+- **Readability:** lightened the faint secondary-text colour to meet WCAG AA
+  contrast, and bumped the smallest (9.5px) type up a step.
+- **First-run tips:** a one-time banner explains the core gestures — the star
+  cycles, tapping a row opens details, chips include ✓ / exclude ✕ — dismissed
+  with "Got it" (and remembered).
+- **Badge legend:** a "What the tags mean" key, reachable from the footer and the
+  tips banner, explains every badge — roles, EXPERT, PARTY, EXTRA FEE, BIG ROOM,
+  DCTV, AGAIN, RULED OUT.
+
+_(From the UI/UX review. Reminders need a push backend, so they're a v2 item;
+consolidating the filter bar into one sheet is a larger refactor, still queued.)_
+
 ## 1.13 — smart landing + per-day sort cards
 
 - **Opens on My Con** once you have picks (first-timers still land on Now, so it's

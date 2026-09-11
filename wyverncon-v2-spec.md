@@ -114,6 +114,15 @@ per con day with a count badge; the current/next day is expanded, the rest colla
 A break that clashes with picks surfaces as a card in that day's list, tying #1 and #3
 together.
 
+**4. Accessibility + discoverability. — _shipped 1.14._** WCAG-AA contrast on
+secondary text, larger smallest type, a one-time first-run gesture hint, and a
+badge legend ("What the tags mean"). From the UI/UX review.
+
+**Deferred from the UI/UX review:** reminders/notifications before starred panels
+need the Push API + a push server (a v2 backend item, and they'd break the single
+-file model); consolidating the filter bar into one bottom sheet is a larger
+refactor, queued alongside the Breaks work.
+
 ## What people complain about in the official app
 
 From App Store and Play Store reviews. Mostly 2021 and earlier, and a 2024

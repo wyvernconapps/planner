@@ -14,7 +14,7 @@
 <style>
 :root{
   --bg:#0E1621; --surface:#16202E; --surface2:#1D2939; --line:#27364A;
-  --text:#E9EEF4; --dim:#94A5B8; --faint:#64768C;
+  --text:#E9EEF4; --dim:#94A5B8; --faint:#8A9BB0;
   --gold:#F0A830; --red:#FF6F5E; --green:#5FCF8A;
   --MAR:#F0A830; --HYA:#4FB3D9; --HIL:#E2685A; --WES:#9B8CFF;
   --CG:#5FCF8A; --AMART:#E77FC4; --ONLINE:#7E8B9E; --PARK:#A8C24F; --OFF:#AEB7C2;
@@ -44,6 +44,21 @@ header{
   text-align:center;font-size:12px;font-weight:600;line-height:1.3;
   padding:6px 12px;padding-top:calc(6px + env(safe-area-inset-top));
 }
+/* first-run tips banner */
+#hint{background:var(--surface2);color:var(--dim);font-size:12.5px;line-height:1.4;
+  padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  border-bottom:1px solid var(--line)}
+#hint span{flex:1 1 100%}
+#hint button{font-size:12px;padding:6px 11px;border-radius:7px;border:1px solid var(--line);
+  background:var(--surface);color:var(--text);cursor:pointer}
+#hint #hintGot{background:var(--gold);color:#1A1206;border-color:var(--gold);font-weight:600}
+/* badge legend */
+.legendlink{display:block;margin-top:8px;background:none;border:none;color:var(--gold);
+  font-size:12px;text-decoration:underline;cursor:pointer;padding:0;font-family:inherit}
+.legend{display:flex;flex-direction:column;gap:11px;margin:8px 0 4px}
+.lgrow{display:flex;gap:11px;align-items:flex-start}
+.lgk{flex:0 0 42%;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.lgv{flex:1;color:var(--dim);font-size:12.5px;line-height:1.4}
 /* the header is five stacked rows on a phone and it is sticky, so it costs
    that space permanently. Give it back while scrolling down; a flick up or
    the jump button brings it straight back. */
@@ -199,7 +214,7 @@ main{padding:0 12px}
 .flr{color:var(--faint)}
 .away{color:var(--PARK);font-weight:600}
 .remain{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(240,168,48,.15);color:var(--gold)}
 .remain.part{background:rgba(148,165,184,.14);color:var(--faint)}
 .timehead.fold{width:calc(100% + 24px);text-align:left;cursor:pointer}
@@ -302,14 +317,14 @@ main{padding:0 12px}
 .glabel.tier1{border-left:3px solid var(--gold);padding-left:6px}
 .glabel.tier2{border-left:3px solid #47607E;padding-left:6px}
 .big{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(240,168,48,.16);color:var(--gold)}
 .dctv{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(79,179,217,.16);color:var(--HYA)}
 .dctv.live{background:rgba(95,207,138,.18);color:var(--green)}
 .rpt{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(168,194,79,.16);color:var(--PARK)}
 .rptbox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
   line-height:1.5;background:#1C2416;border:1px solid #3E4F26;color:#C3D69A}
@@ -331,7 +346,7 @@ main{padding:0 12px}
 .ev.ruled .evtitle{text-decoration:line-through}
 .ev.wasruled .evtitle{text-decoration:line-through;opacity:.7}
 .kind{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px}
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px}
 .k-guest{background:rgba(226,104,90,.18);color:var(--HIL)}
 .r-a{background:rgba(226,104,90,.18);color:var(--HIL)}      /* actor */
 .r-b{background:rgba(240,168,48,.16);color:var(--gold)}     /* author, writer */
@@ -348,10 +363,10 @@ main{padding:0 12px}
 .whobox b{color:var(--text)}
 .whobox span{color:var(--faint);font-size:11px}
 .mate{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;
-  font-size:9.5px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
+  font-size:10.5px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
   background:rgba(155,140,255,.18);color:var(--WES)}
 .ruledtag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(255,111,94,.14);color:var(--red)}
 .watchrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;display:none}
 .ev.open .watchrow{display:flex}
@@ -370,7 +385,7 @@ main{padding:0 12px}
 }
 .gcell.lv1{outline:2px solid #8FB4D6;outline-offset:-2px}
 .gcell.lv2{outline:2px solid var(--gold);outline-offset:-2px}
-.gcell time{display:block;font-weight:700;font-size:9.5px;opacity:.7;letter-spacing:.02em}
+.gcell time{display:block;font-weight:700;font-size:10.5px;opacity:.7;letter-spacing:.02em}
 .gfloor{position:relative;height:25px;background:var(--surface2);
   border-bottom:1px solid var(--line);border-top:1px solid var(--line)}
 .gflabel{position:sticky;left:0;display:inline-flex;align-items:center;height:100%;
@@ -419,6 +434,7 @@ nav button[aria-current="page"]{color:var(--gold)}
 <body>
 
 <div id="ttbar" hidden></div>
+<div id="hint" hidden></div>
 
 <header id="hdr">
   <div class="hrow">
@@ -511,6 +527,7 @@ nav button[aria-current="page"]{color:var(--gold)}
   <a href="https://app.core-apps.com/dragoncon26">app.core-apps.com/dragoncon26</a>.</span>
   <span>Data pulled and shared by <a href="https://www.reddit.com/r/dragoncon/comments/1vy4v81/dragon_con_schedule_spreadsheet_2026/">Max Schilling (u/maxschilling)</a> &mdash; this app just reshapes it. Thanks, Max.</span>
   <span>Vibe-coded by Lauren with Claude &mdash; best witch Claudia and technomancer Codie, trained in the Anthropic arts.</span>
+  <button id="legendBtn" class="legendlink">What the tags mean</button>
 </footer>
 
 <div id="sheet"><div class="scrim"></div><div class="card" id="sheetCard"></div></div>
@@ -811,6 +828,7 @@ let watch=[];               /* [{src:eventId, at:minute}] - airings you plan to 
 let legacyDropped=false;
 let imported=0;
 let importedFriend='';
+let hintSeen=false;         /* first-run gesture hint dismissed */
 
 async function readKey(k){
   try{ if(window.storage?.get){ const r=await window.storage.get(k); return r?.value||null; } }catch(e){}
@@ -830,6 +848,7 @@ async function loadPicks(){
       if(o.trip) trip=Object.assign(JSON.parse(JSON.stringify(TRIP_DEFAULTS)),o.trip);
       here=o.here||null;
       showStarted=!!o.showStarted;
+      hintSeen=!!o.hintSeen;
       showRunning=!!o.showRunning;
       myName=o.name||'';
       friends=o.friends||[];
@@ -848,6 +867,7 @@ async function savePicks(){
     here,
     showStarted,
     showRunning,
+    hintSeen,
     name:myName,
     friends,
     trip
@@ -1386,6 +1406,30 @@ function openSheet(i){
   document.getElementById('sheet').classList.add('open');
 }
 function closeSheet(){ document.getElementById('sheet').classList.remove('open'); }
+
+/* a key to every tag, reachable from the footer and the first-run tips */
+function openLegend(){
+  const c=document.getElementById('sheetCard');
+  const roleChips=['actor','author','artist','musician','costumer','creator','scientist','performer']
+    .map(k=>'<span class="kind '+ROLE_CLASS[k]+'">'+KIND_NAME[k]+'</span>').join(' ');
+  const rows=[
+    ['<span class="mark">☆ ★ 🏆</span>','Tap a star to set interest — once for interested (★), twice for must-see (🏆), again to clear. On My Con use the ★ / 🏆 / ✕ buttons instead.'],
+    [roleChips,'Who is on the panel, taken from the Program Book bios.'],
+    ['<span class="kind '+ROLE_CLASS.expert+'">EXPERT</span>','Credentials on the panel — a doctor, NASA, a science or skeptics track.'],
+    ['<span class="kind '+ROLE_CLASS.party+'">PARTY</span>','Music, a dance, a ball or a concert.'],
+    ['<span class="kind '+ROLE_CLASS.paid+'">EXTRA FEE</span>','Costs extra on top of your badge.'],
+    ['<span class="big">BIG ROOM</span>','A headline ballroom — expect a line, arrive early.'],
+    ['<span class="dctv live">DCTV LIVE</span> <span class="dctv">DCTV SUN 7PM</span>','Streamed live, or replayed at that time. DCTV needs a $10 pass.'],
+    ['<span class="rpt">AGAIN SAT 10AM</span>','The same panel runs again then — a clash you can escape.'],
+    ['<span class="ruledtag">RULED OUT</span>','You set it aside in a slot; still saved, just not competing.'],
+    ['📅','Tap any event to open its full details — description, who’s on it, DCTV times, ballroom queue notes.']
+  ];
+  c.innerHTML='<h2>What the tags mean</h2><div class="legend">'+
+    rows.map(r=>'<div class="lgrow"><div class="lgk">'+r[0]+'</div><div class="lgv">'+esc(r[1])+'</div></div>').join('')+
+    '</div><div class="sbtns"><button id="sClose">Close</button></div>';
+  c.querySelector('#sClose').onclick=closeSheet;
+  document.getElementById('sheet').classList.add('open');
+}
 
 /* Best trip per meal per day: slide a window through the meal's hours and
    score what it runs over. Returns nulls where nothing is possible. */
@@ -2518,6 +2562,17 @@ function tick(){
   buildChrome();
   bindTrip();
   stampBuild();
+  document.getElementById('legendBtn').onclick=openLegend;
+  /* one-time gesture hint: the stars cycle, rows expand, chips include/exclude —
+     none of which is obvious. Show it once, then remember it's been dismissed. */
+  if(!hintSeen){
+    const hint=document.getElementById('hint');
+    hint.innerHTML='<span>Tips: tap ☆ to set interest (★ interested, 🏆 must-see) · tap any event for details &amp; DCTV times · filter chips include ✓ or exclude ✕.</span>'+
+      '<button id="hintKey">What the tags mean</button><button id="hintGot">Got it</button>';
+    hint.hidden=false;
+    hint.querySelector('#hintKey').onclick=openLegend;
+    hint.querySelector('#hintGot').onclick=()=>{ hintSeen=true; savePicks(); hint.hidden=true; };
+  }
   tick(); setInterval(tick,30000);
   setInterval(()=>{ if(view==='now') render(); },120000);
   render();
