@@ -72,3 +72,6 @@ The schedule data comes from **Max Schilling** (u/maxschilling on
 who pulls the Dragon Con schedule each year and shares it publicly as a Google
 Sheet. This app just reshapes that data into an offline, phone-friendly form —
 thank you, Max.
+
+Vibe-coded by Lauren with **Claude** — Claudia (best witch — design and ideas)
+and Codie (technomancer — code and deploys), both trained in the Anthropic arts.

@@ -11,6 +11,11 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.12.1 — a cute, honest credit
+
+- Footer notes the app was vibe-coded by Lauren with Claude (best witch Claudia
+  and technomancer Codie, trained in the Anthropic arts). No functional change.
+
 ## 1.12 — off-con demo mode + tighter footer
 
 - Between cons (when the real clock falls outside the schedule), the app now
