@@ -64,3 +64,11 @@ for recovering an older version.
 Patch (`1.11.1`) = fixes/wording · Minor (`1.11`) = new capability · Major
 (`2.0`) = saved picks won't survive, or a rebuild. Keep the commit summary under
 50 characters with the detail in the body.
+
+## Acknowledgements
+
+The schedule data comes from **Max Schilling** (u/maxschilling on
+[r/dragoncon](https://www.reddit.com/r/dragoncon/comments/1vy4v81/dragon_con_schedule_spreadsheet_2026/)),
+who pulls the Dragon Con schedule each year and shares it publicly as a Google
+Sheet. This app just reshapes that data into an offline, phone-friendly form —
+thank you, Max.

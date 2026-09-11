@@ -369,6 +369,45 @@ doing.
 
 ---
 
+## Pulling the schedule data yourself
+
+Right now the data path is manual: Max Schilling (u/maxschilling on r/dragoncon)
+pulls the Dragon Con schedule, shares it as a Google Sheet, and we export that
+to CSV and feed it to the build. A v2 goal is to close that loop so the app can
+refresh its own data — which means learning to pull it directly.
+
+**Where the data lives.** Dragon Con's official app is built on the **Core-apps**
+platform; the web version is at `app.core-apps.com/dragoncon26` (the year in the
+slug will change). All the schedule data flows through Core-apps' backend.
+
+**Two ways to get it, per Max:**
+
+1. **Scrape the rendered web app** — walk the pages at `app.core-apps.com` and
+   parse the HTML. Works, but slow: Max reported it took over an hour to run,
+   which is too slow to keep current during con.
+2. **Pull the database the way the mobile app does** *(the good one)* — the
+   Core-apps mobile app downloads its whole schedule database from a backend
+   endpoint on launch, then parses it locally. Hit that same endpoint directly
+   and you get the full dataset in seconds, ready to parse. This is what Max
+   switched to for 2026, and why he can keep the sheet updated live.
+
+**How to find that endpoint solo (next year):**
+
+- Open `app.core-apps.com/dragoncon<YY>` in a desktop browser with DevTools →
+  Network open, and reload. Look for the request that returns the bulk schedule
+  (often a single DB or JSON bundle, not one call per event) — filter by size,
+  it's the big one.
+- Or inspect the mobile app's traffic (a proxy like mitmproxy/Charles) to see
+  the sync request it makes on first launch.
+- Replay that request directly, save the response, and parse it into the CSV
+  shape `build_data.py` expects (Title, StartDate, EndDate, Location, TrackName,
+  Presenters, Description, EventId).
+
+**Credit:** this whole approach is Max Schilling's; he does the hard part of
+pulling and cleaning the data every year. Anything automated here should keep
+crediting him, and ideally check with him before hammering the Core-apps
+endpoint — being a good citizen of the community he's building.
+
 ## Proposed build order
 
 Each stage should be useful on its own, so the project can stop at any point.

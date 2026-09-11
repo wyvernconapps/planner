@@ -11,6 +11,12 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.11.2 — credit the data source in the footer
+
+- The footer now credits **Max Schilling** (u/maxschilling on r/dragoncon), who
+  pulls the Dragon Con schedule each year and shares it publicly — the data this
+  app reshapes. No functional change; the data payload is identical to 1.11.1.
+
 ## 1.11.1 — Featuring / Other tags, checks & crosses
 
 - `Kind` filter split into **Featuring** (who is on the panel) and **Other
@@ -170,7 +176,9 @@ Carried forward into v2 planning:
 
 ## Sources
 
-- Schedule: CSV export from the official Dragon Con app
+- Schedule: **Max Schilling's** community spreadsheet (u/maxschilling on
+  r/dragoncon), exported to CSV — he pulls it from Dragon Con's Core-apps
+  data feed and shares it publicly each year
 - Floors: Dragon Con venue maps, screenshotted from the app
 - Guest names and roles: 2026 Program Book
 - Room policy and courtesy bus: 2026 Quick Start Guide
