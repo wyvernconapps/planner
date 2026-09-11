@@ -89,6 +89,31 @@ Raw notes, captured as said. Nothing here is designed yet.
 
 ---
 
+## Post-con additions
+
+Queued post-con; decisions locked by Lauren. #2 and #3 shipped in **1.13**; #1 (Breaks)
+is designed and is the **next build** — a full refactor of the trip subsystem (the
+settings panel is hard-wired to two windows today, so it needs a dynamic rebuild,
+plus per-break travel and the confirm/skip card states).
+
+**1. Trips generalized to "Breaks." — _next build._** The dog/pet trip planner becomes a general
+"Breaks" planner. A break has a **type** (🍽️ meal, 🐾 pet, 😴 rest, errand), a
+time **window**, a **duration**, and a **travel on/off** toggle — on = round-trip
+plus parking-hotel awareness (the old pet run); off = on-site (a meal at the con),
+zero travel. Meals get breakfast / lunch / dinner windows. The app **suggests** the
+cheapest slot in each window; you confirm. Break cards have three states: **clear**
+(quiet one-liner), **costs you** (expands with the picks you'd miss + *Take it here /
+Try another time / Skip today*), **locked in** (a solid block conflict math respects).
+The dog planner is now the "Pet" preset.
+
+**2. Landing tab. — _shipped 1.13._** App opens on **My Con when you have picks, else Now** — never a
+blank screen for first-timers, and keeps the off-con time-travel demo useful.
+
+**3. "Things to sort out" → per-day cards. — _shipped 1.13._** The decisions list splits into one card
+per con day with a count badge; the current/next day is expanded, the rest collapsed.
+A break that clashes with picks surfaces as a card in that day's list, tying #1 and #3
+together.
+
 ## What people complain about in the official app
 
 From App Store and Play Store reviews. Mostly 2021 and earlier, and a 2024

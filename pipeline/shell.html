@@ -248,6 +248,10 @@ main{padding:0 12px}
 .deciderow.hard span{color:#E5A79E}
 .deciderow.soft{margin-top:6px;padding-top:8px;border-top:1px solid var(--line)}
 .deciderow.soft span{color:var(--faint)}
+.decideh.fold{display:flex;align-items:center;cursor:pointer;margin-bottom:0}
+.decideh.fold.open{margin-bottom:9px}
+.decideh.fold span{margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;color:var(--faint)}
+.decide+.decide{margin-top:8px}
 .friendrow{margin:12px 0 4px;padding:12px 13px;border-radius:10px;
   background:#1D1B2E;border:1px solid #3D3663}
 .friendh{font-size:12.5px;line-height:1.5;color:#C3BCF0;margin-bottom:9px}
@@ -1053,6 +1057,7 @@ let hidePast=null;    /* set on first render: on during the con, off outside it 
    gaming signups start hidden. Tracks -> Select all brings them back. */
 let offTracks=new Set();   /* excluded tracks are not in the payload at all */
 const openSet=new Set();
+let sortDays=null;      /* My Con: which day's "to sort" card is open; null = init to current + next */
 
 /* ============================================================
    SHARED
@@ -1934,37 +1939,50 @@ function viewMine(){
     const hard=issues.filter(x=>x.score>=120).sort((a,b)=>b.score-a.score);
     const soft=issues.filter(x=>x.score<120).sort((a,b)=>a.at-b.at);
     if(hard.length||soft.length){
-      const box=document.createElement('div');
-      box.className='decide';
-      const h=document.createElement('div');
-      h.className='decideh';
-      h.textContent=hard.length
-        ? hard.length+' thing'+(hard.length===1?'':'s')+' to sort out'
-        : 'nothing urgent';
-      box.appendChild(h);
-      hard.slice(0,5).forEach(x=>{
-        const r=document.createElement('div');
-        r.className='deciderow'+(x.score>=200?' hard':'');
-        r.innerHTML='<b>'+esc(dayName(x.at).slice(0,3)+' '+hhmm(x.at))+'</b><span></span>';
-        r.querySelector('span').textContent=x.txt;
-        box.appendChild(r);
+      /* One collapsible card per day, so you can sort a day at a time rather
+         than face every decision at once. Current + next day open by default. */
+      const both=hard.concat(soft);
+      const firstAt={};
+      both.forEach(x=>{ const d=dayOf(x.at);
+        if(firstAt[d]===undefined||x.at<firstAt[d]) firstAt[d]=x.at; });
+      const dOrder=[...new Set(both.map(x=>dayOf(x.at)))].sort((a,b)=>firstAt[a]-firstAt[b]);
+      if(sortDays===null){
+        sortDays=new Set();
+        const ti=dOrder.indexOf(dayOf(nowMin()));
+        if(ti>=0){ sortDays.add(dOrder[ti]); if(dOrder[ti+1]) sortDays.add(dOrder[ti+1]); }
+        else if(dOrder[0]) sortDays.add(dOrder[0]);
+      }
+      dOrder.forEach(d=>{
+        const dh=hard.filter(x=>dayOf(x.at)===d), ds=soft.filter(x=>dayOf(x.at)===d);
+        const open=sortDays.has(d);
+        const box=document.createElement('div');
+        box.className='decide';
+        const h=document.createElement('div');
+        h.className='decideh fold'+(open?' open':'');
+        h.innerHTML='<div>'+(open?'\u25be ':'\u25b8 ')+esc(DAYFULL[d])+'</div>'+
+          '<span>'+(dh.length+ds.length)+' to sort</span>';
+        h.onclick=()=>{ sortDays.has(d)?sortDays.delete(d):sortDays.add(d); render(); };
+        box.appendChild(h);
+        if(open){
+          dh.forEach(x=>{
+            const r=document.createElement('div');
+            r.className='deciderow'+(x.score>=200?' hard':'');
+            r.innerHTML='<b>'+esc(hhmm(x.at))+'</b><span></span>';
+            r.querySelector('span').textContent=x.txt;
+            box.appendChild(r);
+          });
+          if(ds.length){
+            const r=document.createElement('div');
+            r.className='deciderow soft'; r.innerHTML='<b></b><span></span>';
+            const total=ds.reduce((n,x)=>n+(parseInt(x.txt)||0),0);
+            r.querySelector('span').textContent=ds.length+
+              ' more slot'+(ds.length===1?'':'s')+' with options to choose between'+
+              (total?' \u2014 '+total+' picks':'')+'. Nothing broken, just undecided.';
+            box.appendChild(r);
+          }
+        }
+        main.appendChild(box);
       });
-      if(hard.length>5){
-        const r=document.createElement('div');
-        r.className='deciderow'; r.innerHTML='<b></b><span></span>';
-        r.querySelector('span').textContent='and '+(hard.length-5)+' more';
-        box.appendChild(r);
-      }
-      if(soft.length){
-        const r=document.createElement('div');
-        r.className='deciderow soft'; r.innerHTML='<b></b><span></span>';
-        const total=soft.reduce((n,x)=>n+(parseInt(x.txt)||0),0);
-        r.querySelector('span').textContent=soft.length+
-          ' more slot'+(soft.length===1?'':'s')+' where you have options to choose between'+
-          (total?' \u2014 '+total+' picks in all':'')+'. Nothing broken, just undecided.';
-        box.appendChild(r);
-      }
-      main.appendChild(box);
     }
   }
 
@@ -2490,6 +2508,9 @@ function tick(){
                 -EV.find(e=>dayOf(e[START])===b)[START]);
   await loadPicks();
   imported=importFromHash();
+  /* open on My Con once you've built a plan; a first-timer with no picks lands
+     on Now so the app is never a blank screen (and the off-con demo stays useful) */
+  if(picks.size) view='mine';
   /* start on the day of the con you are actually in */
   if(!days.size && inCon() && dayList.includes(dayOf(nowMin()))) days.add(dayOf(nowMin()));
   buildRooms();

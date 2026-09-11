@@ -11,6 +11,17 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.13 — smart landing + per-day sort cards
+
+- **Opens on My Con** once you have picks (first-timers still land on Now, so it's
+  never a blank screen — and the off-con demo stays useful).
+- **"Things to sort out" splits into one collapsible card per day**, each with a
+  count badge; the current and next day open by default, the rest collapse. Sort a
+  day at a time instead of facing every decision at once.
+
+_(Generalizing Trips into typed, pet-agnostic "Breaks" with meal windows is
+designed and queued as the next build.)_
+
 ## 1.12.1 — a cute, honest credit
 
 - Footer notes the app was vibe-coded by Lauren with Claude (best witch Claudia
