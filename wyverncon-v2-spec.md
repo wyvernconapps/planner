@@ -123,6 +123,55 @@ need the Push API + a push server (a v2 backend item, and they'd break the singl
 -file model); consolidating the filter bar into one bottom sheet is a larger
 refactor, queued alongside the Breaks work.
 
+## v2 build roadmap (no-backend-first)
+
+Almost all of v2 is buildable **client-side** — friend sharing is link-based
+snapshots, not a live server — so a backend only buys real-time social sync and
+reminders. Build in this order; each stage stands on its own and keeps the app
+usable throughout.
+
+**Foundation — the state model.** Three independent axes per event occurrence,
+replacing today's `picks` (1|2) + `ruled`:
+
+- **Interest:** −2 Not Interested (hide all occurrences) · −1 Not Now (this
+  occurrence only — today's "ruled out") · 0 Unrated · +1 Interested · +2 High
+  Priority.
+- **Plan:** Locked In (boolean — a second axis, *not* a sixth interest state).
+- **Privacy:** Mind Ya Business (per-event). Private picks are simply **omitted
+  from the share link you generate**, so a friend never sees them — one-way, no
+  server, and no "hidden attendee" placeholder or mystery count.
+
+Store locally as `{interest:−2..+2, locked:bool, private:bool}`; migrate old
+`picks`/`ruled` on load. Locking **recalculates** (conflicts, leave-by "leave by
+3:48") but **never blocks** — a clash just becomes "something to sort out".
+
+**Then, on that foundation:**
+
+1. **Breaks** (queued #1), keyed to **Locked** status: locked = hard constraints,
+   High Priority = strong preference, Interested = soft, Unrated/Not-Now ignored.
+2. **Conflict Compare view** — a per-slot evidence table (rating · locked ·
+   friends · repeats · DCTV · travel after · queue) + "useful things to know" +
+   *Keep both / Rule one out / Move to repeat*. Organizes the evidence; never
+   recommends.
+3. **Now / My Con ranking:** Locked → High Priority → Interested, factoring time,
+   location, travel, friends, repeats, queue.
+4. **Friend visibility per event** ("Eric 🔒 Going") — expand the share-link
+   payload to carry each pick's level + locked; render from imported links
+   (snapshot, re-share to update).
+5. **Filter bar → one bottom sheet** (from the UI/UX review).
+
+**Skip:** the 5-state single-tap card cycle — a multi-tap cycle "becomes a menu
+you scrub through" (the reason My Con already uses explicit buttons). Use the
+slider / explicit controls in Event Detail instead.
+
+**Backend-only (defer to a real v2 server):** live/real-time friend sync
+(link snapshots are the no-backend version); reminders/notifications before
+starred events (Push API + push server).
+
+_Credit: the Compare view, breaks-keyed-to-locked, the one-way / no-count privacy
+rule, and lock-recalculates-but-doesn't-block came from a ChatGPT review; the
+three-axis model and −2…+2 scale were already in the idea inbox above._
+
 ## What people complain about in the official app
 
 From App Store and Play Store reviews. Mostly 2021 and earlier, and a 2024
