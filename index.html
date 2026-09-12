@@ -1358,8 +1358,7 @@ function openSheet(i){
   if(rp){
     const r=document.createElement('div');
     r.className='rptbox';
-    r.textContent='Also runs '+rp.map(m=>dayName(m)+' '+hhmm(m)).join(', ')+
-      '. If this one clashes with something, you can catch it then.';
+    r.textContent='Also runs '+rp.map(m=>dayName(m)+' '+hhmm(m)).join(', ')+'.';
     c.querySelector('.sdesc').after(r);
   }
   if(roomOf(i).tier===1){
@@ -1372,7 +1371,7 @@ function openSheet(i){
     const box=document.createElement('div');
     box.className='dctvbox';
     const lines=[];
-    if(tv.live) lines.push('Airs live on DCTV while it happens \u2014 you can watch this one from anywhere.');
+    if(tv.live) lines.push('Airs live on DCTV \u2014 watch from anywhere.');
     if(tv.airs.length) lines.push('Replays on DCTV: '+tv.airs.map(m=>
       dayName(m)+' '+hhmm(m)).join(', ')+'.');
     lines.push('DCTV needs a streaming membership \u2014 $10, good until 1 June 2027.');
@@ -1459,12 +1458,12 @@ function renderTrip(main,t){
     const again=t.hit.filter(i=>laterRepeats(i).length).length;
     const tv=t.hit.filter(i=>dctvOf(i)&&dctvOf(i).live).length;
     if(again) parts.push(again+' of them run again later.');
-    if(tv&&trip.dctv) parts.push(tv+' air live on DCTV, so you can watch from home.');
+    if(tv&&trip.dctv) parts.push(tv+' air live on DCTV — watch from home.');
   }
   parts.push('From the '+HOTEL_NAME[trip.park]+', '+trip.travel+
     ' min each way, '+trip.home+' min at home.');
-  if(t.tight==='car') parts.push('Tight getting to the car from your previous pick.');
-  if(t.tight==='back') parts.push('Tight getting back for what follows.');
+  if(t.tight==='car') parts.push(t.tightBy+' min short getting to the car.');
+  if(t.tight==='back') parts.push(t.tightBy+' min short getting back.');
   b.textContent=parts.join(' ');
   box.appendChild(b);
   main.appendChild(box);
@@ -1497,16 +1496,18 @@ function planTrips(list){
         /* walking to and from the car counts against the neighbouring picks */
         const before=list.filter(i=>EV[i][START]+EV[i][DUR]<=D).pop();
         const after=list.find(i=>EV[i][START]>=R);
-        let tight=null;
+        let tight=null, tightBy=0;
         if(before!==undefined){
           const need=walk(DATA.hotels[EV[before][HOT]],trip.park);
-          if(D-(EV[before][START]+EV[before][DUR])<need){ cost+=1.5; tight='car'; }
+          const have=D-(EV[before][START]+EV[before][DUR]);
+          if(have<need){ cost+=1.5; tight='car'; tightBy=need-have; }
         }
         if(after!==undefined){
           const need=walk(trip.park,DATA.hotels[EV[after][HOT]])+trip.buffer;
-          if(EV[after][START]-R<need){ cost+=1.5; tight='back'; }
+          const have=EV[after][START]-R;
+          if(have<need){ cost+=1.5; tight='back'; tightBy=need-have; }
         }
-        if(!best||cost<best.cost) best={meal:meal.name,day:dn_,depart:D,ret:R,cost,hit,tight};
+        if(!best||cost<best.cost) best={meal:meal.name,day:dn_,depart:D,ret:R,cost,hit,tight,tightBy};
       }
       out.push(best||{meal:meal.name,day:dn_,impossible:true,dayOffset});
     });
@@ -1604,7 +1605,7 @@ function viewNow(){
     const h=document.createElement('div');
     h.className='timehead';
     h.innerHTML='<div>OPEN NOW</div><span>'+drop.length+
-      ' running all day \u2014 drop in whenever</span>';
+      ' running all day</span>';
     main.appendChild(h);
     const g=document.createElement('div'); g.className='grouped';
     drop.slice(0,12).forEach(i=>g.appendChild(evNode(i,{showTime:true})));
@@ -1865,7 +1866,7 @@ function viewMine(){
     +(done?' \u00b7 '+done+' already over':'');
   if(!picks.size){
     main.innerHTML=emptyState('Nothing picked yet',
-      'Tap a star once for interested, twice for must see, a third time to clear. Star freely \u2014 this view groups anything clashing so you can choose later.');
+      'Tap a star: once for interested, twice for must-see, again to clear. This view groups clashes so you can decide later.');
     return;
   }
   if(friends.length){
@@ -1943,12 +1944,12 @@ function viewMine(){
       const rescuable=g.filter(i=>laterRepeats(i).length).length;
       if(musts.length>1)
         issues.push({score:(rescuable>=musts.length-1?150:300)+musts.length,at:k,
-          txt:musts.length+' must-sees booked against each other'+
-            (rescuable?' \u00b7 '+rescuable+' run again later':'')});
+          txt:musts.length+' conflicting must-sees'+
+            (rescuable?' \u00b7 '+rescuable+' repeat later':'')});
       else if(musts.length===0&&g.length>1)
         issues.push({score:100+g.length,at:k,
-          txt:g.length+' options, none chosen yet'+
-            (rescuable?' \u00b7 '+rescuable+' run again later':'')});
+          txt:g.length+' options'+
+            (rescuable?' \u00b7 '+rescuable+' repeat later':'')});
       if(n>0){
         /* A hop only matters between things you have committed to. With
            dozens of maybes starred, every pair would read as a crisis. */
@@ -1960,10 +1961,10 @@ function viewMine(){
               walk(DATA.hotels[EV[a][HOT]],DATA.hotels[EV[b][HOT]]))));
             if(gap-need<0)
               issues.push({score:200+(need-gap),at:k,
-                txt:'only '+gap+' min between two must-sees, walk needs '+need});
+                txt:gap+' min between must-sees, walk needs '+need});
             else if(musts.some(i=>roomOf(i).tier===1)&&gap-need<10)
               issues.push({score:50,at:k,
-                txt:'must-see in a ballroom, only '+(gap-need)+' min to queue'});
+                txt:'ballroom must-see, '+(gap-need)+' min to queue'});
           }
         }
       }
@@ -1971,13 +1972,13 @@ function viewMine(){
     trips.forEach(t=>{
       if(t.impossible)
         issues.push({score:250,at:t.dayOffset+trip.meals[0].from,
-          txt:t.meal+' run has nowhere to go on '+DAYFULL[t.day]});
+          txt:t.meal+' run: no window '+DAYFULL[t.day]});
       else if(t.cost>=3)
         issues.push({score:120+Math.round(t.cost),at:t.depart,
           txt:t.meal+' run costs '+t.hit.length+' pick'+(t.hit.length===1?'':'s')});
       else if(t.tight)
         issues.push({score:60,at:t.depart,
-          txt:t.meal+' run is tight '+(t.tight==='car'?'getting to the car':'getting back')});
+          txt:t.meal+' run '+t.tightBy+' min short '+(t.tight==='car'?'to the car':'getting back')});
     });
     if(hidePast) issues=issues.filter(x=>x.at>nowMin());
     const hard=issues.filter(x=>x.score>=120).sort((a,b)=>b.score-a.score);
@@ -2020,8 +2021,8 @@ function viewMine(){
             r.className='deciderow soft'; r.innerHTML='<b></b><span></span>';
             const total=ds.reduce((n,x)=>n+(parseInt(x.txt)||0),0);
             r.querySelector('span').textContent=ds.length+
-              ' more slot'+(ds.length===1?'':'s')+' with options to choose between'+
-              (total?' \u2014 '+total+' picks':'')+'. Nothing broken, just undecided.';
+              ' more undecided slot'+(ds.length===1?'':'s')+
+              (total?' \u00b7 '+total+' picks':'');
             box.appendChild(r);
           }
         }
@@ -2079,7 +2080,7 @@ function viewMine(){
         g.textContent=(gapMin===gapMax?gapMin+' min gap':gapMin+'\u2013'+gapMax+' min gap')
           +' \u00b7 walk '+wTxt
           +(!committed?''
-            :slack<0?' \u00b7 tight, you may not make every combination'
+            :slack<0?' \u00b7 '+(-slack)+' min short'
                     :' \u00b7 '+slack+' min to spare');
         main.appendChild(g);
       }
@@ -2103,10 +2104,10 @@ function viewMine(){
     let status;
     const nOut=out_.length;
     if(live_.length<=1&&!nOut) status='';
-    else if(musts.length>1) status=musts.length+' must-sees at once \u2014 pick one';
-    else if(musts.length===1) status='decided'+(live_.length>1?' \u00b7 '+(live_.length-1)+' still open':'')
+    else if(musts.length>1) status=musts.length+' conflicting must-sees';
+    else if(musts.length===1) status='decided'+(live_.length>1?' \u00b7 '+(live_.length-1)+' open':'')
       +(nOut?' \u00b7 '+nOut+' ruled out':'');
-    else status=live_.length+' options \u2014 undecided'+(nOut?' \u00b7 '+nOut+' ruled out':'');
+    else status=live_.length+' options'+(nOut?' \u00b7 '+nOut+' ruled out':'');
     hd.innerHTML='<b>'+esc(hhmm(k))+'</b>'+(status?'<span>'+esc(status)+'</span>':'');
     main.appendChild(hd);
 
@@ -2136,7 +2137,7 @@ function viewMine(){
   if(drop.length){
     const hd=document.createElement('div');
     hd.className='daybreak';
-    hd.innerHTML='Open all day<em>drop in whenever</em>';
+    hd.innerHTML='Open all day<em>no set time</em>';
     main.appendChild(hd);
     drop.forEach(i=>main.appendChild(evNode(i,{showTime:true,segmented:true})));
   }

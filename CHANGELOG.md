@@ -11,6 +11,16 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.14.2 — concise, factual copy pass
+
+- Reviewed all UI copy against one rule: state the fact, don't characterize your
+  situation — and cut words for faster scanning in a hurry. Examples:
+  "3 must-sees at once — pick one" → **"3 conflicting must-sees"**; the gap
+  warning "tight, you may not make every combination" → **"3 min short"**; trip
+  warnings now give the shortfall ("**4 min short getting to the car**"); dropped
+  reassurances ("Nothing broken, just undecided") and advice ("drop in whenever",
+  "you can catch it then"). Copy only; 27/27 tests pass; build byte-reproducible.
+
 ## 1.14.1 — legend wording
 
 - The badge legend now states each tag's meaning plainly instead of
