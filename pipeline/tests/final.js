@@ -7,9 +7,10 @@ let fail=0;
 const ok=(label,cond,extra='')=>{ if(!cond) fail++;
   console.log('  '+(cond?'ok  ':'FAIL')+'  '+label+(extra?'  '+extra:'')); };
 
-const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelOf,openSheet,'+
+const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelOf,intOf,openSheet,'+
  'get EV(){return EV},get picks(){return picks},get ruled(){return ruled},get watch(){return watch},'+
- 'toggleWatch,toggleRuled,dctvOf,laterRepeats,isWatch,shareLink,importFromHash,'+
+ 'get notInt(){return notInt},get locked(){return locked},get priv(){return priv},'+
+ 'setLocked,setPrivate,isRuled,toggleWatch,toggleRuled,dctvOf,laterRepeats,isWatch,shareLink,importFromHash,'+
  'set hidePast(v){hidePast=v},set listSort(v){listSort=v},set day(v){day=v},get day(){return day},'+
  'get hotels(){return hotels},get days(){return days},get offTracks(){return offTracks},set query(v){query=v},'+
  'get query(){return query},activeFilters,get trip(){return trip},planTrips,roomOf,'+
@@ -37,10 +38,12 @@ setTimeout(()=>{
 
   console.log('\nINTERACTIONS');
   const carl=EV.findIndex(e=>e[T].startsWith('New Achievement'));
-  app.setLevel(carl,2); ok('star to trophy', app.levelOf(carl)===2);
-  app.setLevel(carl,1); ok('trophy to star keeps the pick', app.picks.has(EV[carl][ID]));
-  app.toggleRuled(carl); ok('rule out keeps the star', app.ruled.size===1&&app.picks.size===1);
-  app.toggleRuled(carl); ok('un-rule', app.ruled.size===0);
+  app.setLevel(carl,2); ok('star to high priority', app.levelOf(carl)===2);
+  app.setLevel(carl,1); ok('down to interested keeps the pick', app.picks.has(EV[carl][ID]));
+  app.toggleRuled(carl); ok('not now replaces the pick, mutually exclusive',
+    app.ruled.size===1&&!app.picks.has(EV[carl][ID])&&app.intOf(carl)===-1);
+  app.toggleRuled(carl); ok('un-rule back to unrated', app.ruled.size===0&&app.intOf(carl)===0);
+  app.setLevel(carl,2);   /* re-pick, so the later share test has something to carry */
   const air=app.dctvOf(carl).airs[0];
   app.toggleWatch(EV[carl][ID],air);
   ok('watch becomes an event', app.EV.some(e=>e[ID].startsWith('w')));
@@ -80,9 +83,25 @@ setTimeout(()=>{
   const n=app.importFromHash();
   ok('picks survive the link', n===saved.size&&app.picks.size===saved.size);
 
+  console.log('\nNEW MODEL (three axes)');
+  app.setLevel(carl,2);
+  app.setLocked(carl,true);
+  ok('lock is independent of interest', app.locked.has(EV[carl][ID])&&app.intOf(carl)===2);
+  app.setPrivate(carl,true);
+  ok('private pick is left off the share link', !app.shareLink().includes(EV[carl][ID]));
+  app.setPrivate(carl,false);
+  ok('un-private puts it back on the link', app.shareLink().includes(EV[carl][ID]));
+  app.setLocked(carl,false);
+  const other=EV.findIndex((e,i)=>i!==carl&&e[T]&&!e[ID].startsWith('w'));
+  app.setLevel(other,-2);
+  ok('not interested is -2 and clears any pick',
+     app.intOf(other)===-2&&!app.picks.has(EV[other][ID]));
+  ok('not interested is never shared', !app.shareLink().includes(EV[other][ID]));
+  app.setLevel(other,0);
+
   console.log('\nFILE');
   ok('size sane', html.length<600*1024, Math.round(html.length/1024)+' KB');
-  ok('disclaimer present', html.includes('Unofficial fan-made project'));
+  ok('disclaimer present', html.includes('Unofficial fan project'));
   ok('noindex present', html.includes('noindex, nofollow'));
   console.log(fail?'\n'+fail+' FAILURE(S)':'\nAll checks passed.');
 },80);

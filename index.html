@@ -192,16 +192,23 @@ main{padding:0 12px}
 .tchip[data-state="hidden"]{opacity:.45;text-decoration:line-through}
 .tphint{font-size:11px;color:var(--faint);align-self:center}
 .slevel{margin-top:16px}
-.lvcycle{display:flex;align-items:center;gap:11px;width:100%;padding:13px 14px;
-  border-radius:10px;background:var(--surface2);border:1px solid var(--line);text-align:left}
-.lvcycle .mark{font-size:19px;color:var(--faint);min-width:30px;text-align:center}
-.lvcycle.lv2 .mark{font-size:17px}
-.lvcycle .lbl{font-size:14.5px;font-weight:600;color:var(--dim)}
-.lvcycle .hint{margin-left:auto;font-size:11.5px;color:var(--faint)}
-.lvcycle.lv1{border-color:#5A7392;background:#1A2739}
-.lvcycle.lv1 .mark,.lvcycle.lv1 .lbl{color:#8FB4D6}
-.lvcycle.lv2{border-color:var(--gold);background:#2A2418}
-.lvcycle.lv2 .mark,.lvcycle.lv2 .lbl{color:var(--gold)}
+/* the three-axis control: full interest scale, then Locked in / Mind ya business */
+.axes{margin-top:9px}
+.ev .axes{display:none}
+.ev.open .axes{display:block;margin:9px 0 2px}
+.iscale{display:flex;gap:5px}
+.ibtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 3px;border-radius:9px;background:var(--surface2);
+  border:1px solid var(--line);text-align:center;min-width:0}
+.ibtn .im{font-size:16px;line-height:1}
+.ibtn .il{font-size:9.5px;font-weight:600;color:var(--faint);line-height:1.15}
+.ibtn.on{background:#1A2739;border-color:#5A7392}
+.ibtn.on .il{color:#8FB4D6}
+.iflags{display:flex;gap:7px;margin-top:8px}
+.iflag{flex:1;padding:9px 8px;border-radius:9px;font-size:12.5px;font-weight:600;
+  background:var(--surface2);border:1px solid var(--line);color:var(--dim)}
+.iflag.on{background:#1C2416;border-color:#3E5426;color:#C3D69A}
+.axesnote{margin-top:7px;font-size:11px;color:var(--faint);line-height:1.4}
 
 .legacy{margin:12px 0 4px;padding:11px 13px;border-radius:9px;font-size:12.5px;
   line-height:1.5;background:#2A2418;border:1px solid #5A4A22;color:#E8CF9A}
@@ -368,6 +375,24 @@ main{padding:0 12px}
 .ruledtag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
   font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(255,111,94,.14);color:var(--red)}
+.locktag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  background:rgba(95,207,138,.16);color:var(--green)}
+.privtag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  background:rgba(148,165,184,.16);color:var(--dim)}
+.ev.locked{border-color:#3E7A55}
+.gcell.locked{box-shadow:inset 0 0 0 2px var(--green)}
+/* Not-interested management, at the foot of My Con so a -2 is always reversible */
+.hidden{margin:16px 0 4px;padding:11px 13px;border-radius:9px;
+  background:var(--surface);border:1px solid var(--line)}
+.hiddenh{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--faint);
+  text-transform:uppercase;margin-bottom:8px}
+.hiddenrow{display:flex;align-items:center;gap:10px;padding:6px 0;
+  border-top:1px solid var(--line);font-size:13px;color:var(--dim)}
+.hiddenrow span{flex:1;min-width:0}
+.hiddenrow button{flex:0 0 auto;font-size:11.5px;font-weight:600;color:#8FB4D6;
+  border:1px solid #2E4864;border-radius:6px;padding:4px 9px;background:#132430}
 .watchrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;display:none}
 .ev.open .watchrow{display:flex}
 .watchbtn{font-size:11px;font-weight:700;padding:4px 9px;border-radius:6px;
@@ -818,10 +843,18 @@ const roomOf=i=>ROOM.get(roomKey(EV[i][HOT],EV[i][LOC]))||
    positions, which it could - those are dropped rather than mis-mapped. */
 const KEY='dragoncon2026:v2', OLDKEY='dragoncon2026:picks';
 const MUST=2, MAYBE=1;
-const LEVEL_NAME={0:'Not picked',1:'Interested',2:'Must see'};
-const LEVEL_MARK={0:'\u2606',1:'\u2605',2:'\uD83C\uDFC6'};
-let picks=new Map();        /* event id  -> 1 | 2   */
-let ruled=new Set();        /* event ids ruled out of their slot */
+/* Interest is one axis, -2..+2. Three of its states each have their own store
+   so already-saved data (picks 1|2, ruled -1) loads unchanged - this is why
+   the model can grow without a 2.0 reset. Locked and Private are separate
+   axes that overlay any interest. */
+const LEVEL_NAME={'-2':'Not interested','-1':'Not now',0:'Unrated',1:'Interested',2:'High priority'};
+const LEVEL_MARK={'-2':'\uD83D\uDEAB','-1':'\u2715',0:'\u2606',1:'\u2605',2:'\uD83C\uDFC6'};
+let picks=new Map();        /* event id  -> 1 (Interested) | 2 (High priority) */
+let ruled=new Set();        /* event ids at -1: Not now, this occurrence only */
+let notInt=new Set();       /* event ids at -2: Not interested, hides the whole title */
+let locked=new Set();       /* event ids Locked In - a plan flag, independent of interest */
+let priv=new Set();         /* event ids kept private - omitted from the share link */
+let hiddenTitles=new Set(); /* titles with a -2 occurrence, hidden from every list */
 let watch=[];               /* [{src:eventId, at:minute}] - airings you plan to watch */
 /* trackLevel is gone: following a track is just leaving it visible. Kept as
    a no-op read so links and saves made before 1.10 still load. */
@@ -843,6 +876,11 @@ async function loadPicks(){
       picks=new Map(Object.entries(o.picks||{}).map(([k,n])=>[k,+n]));
       /* pre-1.10 saves stored followed tracks; those were all visible anyway */
       ruled=new Set(o.ruled||[]);
+      /* new axes (1.15); absent in older saves, which is exactly the migration:
+         picks 1|2 stay +1/+2, ruled stays -1, everything else is Unrated (0) */
+      notInt=new Set(o.notInt||[]);
+      locked=new Set(o.locked||[]);
+      priv=new Set(o.priv||[]);
       watch=o.watch||[];
       offTracks=new Set((o.hidden||[]).map(Number));
       if(o.trip) trip=Object.assign(JSON.parse(JSON.stringify(TRIP_DEFAULTS)),o.trip);
@@ -853,6 +891,7 @@ async function loadPicks(){
       myName=o.name||'';
       friends=o.friends||[];
     }catch(e){}
+    refreshHidden();
     return;
   }
   /* v1 data exists but was keyed by position - cannot be trusted */
@@ -863,6 +902,9 @@ async function savePicks(){
     picks:Object.fromEntries(picks),
     hidden:[...offTracks],
     ruled:[...ruled],
+    notInt:[...notInt],
+    locked:[...locked],
+    priv:[...priv],
     watch,
     here,
     showStarted,
@@ -880,7 +922,9 @@ async function savePicks(){
    a carrier. Each pick is its 8-char id plus a level digit; followed tracks
    ride along as indices. Short enough to paste into a text message. */
 function shareLink(){
-  const p=[...picks.entries()].map(([id,lv])=>id+lv).join('');
+  /* Mind Ya Business: a private pick is simply left off the link, so a friend
+     never sees it - one-way, no server, no placeholder or mystery count. */
+  const p=[...picks.entries()].filter(([id])=>!priv.has(id)).map(([id,lv])=>id+lv).join('');
   const t=[...offTracks].join('.');
   const base=location.origin+location.pathname;
   return base+'#p='+p+(t?'&t='+t:'')+
@@ -916,7 +960,9 @@ function importFromHash(){
   let added=0;
   for(let i=0;i+9<=blob.length;i+=9){
     const id=blob.slice(i,i+8), lv=+blob[i+8];
-    if(lv===1||lv===2){ if(picks.get(id)!==lv) added++; picks.set(id,lv); }
+    /* your own link, merged in: go through setInterest so it clears any
+       Not-now / Not-interested you had on the same event */
+    if(lv===1||lv===2){ if((picks.get(id)||0)!==lv) added++; setInterest(id,lv); }
   }
   if(parts.t) offTracks=new Set(parts.t.split('.').filter(Boolean).map(Number));
   if(added||parts.t) savePicks();
@@ -963,33 +1009,81 @@ function missCost(i){
   return w;
 }
 
-/* how much a panel matters: explicit level first, then a followed track */
+/* ---- the three axes, read and written through one layer ----
+   The rest of the app (and v2's later stages) ask these, never the raw stores,
+   so how interest is stored can change without touching every call site. */
+
+/* Interest as a single -2..+2 value, whichever store the event sits in. */
+const intOf=i=>{ const id=EV[i][ID];
+  if(notInt.has(id)) return -2;
+  if(ruled.has(id)) return -1;
+  return picks.get(id)||0; };
+const lockedOf=i=>locked.has(EV[i][ID]);
+const privateOf=i=>priv.has(EV[i][ID]);
+const levelOf=i=>intOf(i);          /* kept as the name the views already use */
+
+/* Set the interest of an id, keeping the four interest states mutually
+   exclusive - you cannot be High Priority and Not Now at once. */
+function setInterest(id,v){
+  picks.delete(id); ruled.delete(id); notInt.delete(id);
+  if(v===2||v===1) picks.set(id,v);
+  else if(v===-1) ruled.add(id);
+  else if(v===-2){ notInt.add(id); locked.delete(id); }  /* not interested unlocks */
+  refreshHidden();
+}
+/* rebuild the set of titles a -2 hides: one occurrence hides the whole title */
+function refreshHidden(){
+  hiddenTitles=new Set();
+  if(!notInt.size||typeof EV==='undefined') return;
+  const byId=new Map(); EV.forEach(e=>byId.set(e[ID],e));
+  notInt.forEach(id=>{ const e=byId.get(id); if(e) hiddenTitles.add(e[T]); });
+}
+
+/* On your plan = actively wanted or committed; My Con also keeps Not-now rows
+   so you can see the slot you set aside. A commitment is what conflict math
+   treats as fixed: a lock, or a High Priority. */
+const onPlan=i=>intOf(i)>0||lockedOf(i);
+const inMyCon=i=>onPlan(i)||intOf(i)===-1;
+const committed=i=>lockedOf(i)||intOf(i)===MUST;
+const isPicked=i=>intOf(i)>0;
+const isRuled=i=>ruled.has(EV[i][ID]);
+
+/* how much a panel matters: explicit interest first, then a lock, then a
+   followed track. A lock is a firm plan, so missing it costs like a top pick -
+   this is locking "recalculating" the trip math. */
 function interest(i){
-  const e=EV[i];
-  if(ruled.has(e[ID])) return 0;   /* you already decided against this one */
-  const p=picks.get(e[ID]);
-  if(p) return p;
+  const v=intOf(i);
+  if(v<0) return 0;                /* Not now / Not interested cost nothing to miss */
+  let w=v;                         /* 0, 1 (Interested) or 2 (High Priority) */
+  if(lockedOf(i)) w=Math.max(w,MUST);
+  if(w) return w;
   /* Once you have curated the track list, what you left visible is what you
      care about. Before that, everything is visible and it says nothing. */
-  return (offTracks.size && !offTracks.has(e[TRK])) ? 0.5 : 0;
+  return (offTracks.size && !offTracks.has(EV[i][TRK])) ? 0.5 : 0;
 }
-const isRuled=i=>ruled.has(EV[i][ID]);
-function toggleRuled(i){
-  const id=EV[i][ID];
-  ruled.has(id)?ruled.delete(id):ruled.add(id);
-  savePicks(); render();
-}
-/* move a pick to a later showing of the same panel */
+
+function setLevel(i,v){ setInterest(EV[i][ID],v); savePicks(); render(); }
+function toggleRuled(i){ const id=EV[i][ID];
+  setInterest(id, ruled.has(id)?0:-1); savePicks(); render(); }
+function setLocked(i,b){ const id=EV[i][ID];
+  b?locked.add(id):locked.delete(id); savePicks(); render(); }
+function setPrivate(i,b){ const id=EV[i][ID];
+  b?priv.add(id):priv.delete(id); savePicks(); render(); }
+
+/* move a pick to a later showing of the same panel; the lock and privacy
+   travel with it, since it is the same plan at a different time */
 function moveToRepeat(i,at){
   const target=EV.findIndex(e=>e[START]===at && e[T]===EV[i][T]);
   if(target<0) return;
-  const lv=levelOf(i)||MAYBE;
-  picks.delete(EV[i][ID]); ruled.delete(EV[i][ID]);
-  picks.set(EV[target][ID],lv);
+  const srcId=EV[i][ID], tgtId=EV[target][ID];
+  const lv=intOf(i)>0?intOf(i):MAYBE;
+  const wasLocked=locked.has(srcId), wasPriv=priv.has(srcId);
+  setInterest(srcId,0); locked.delete(srcId); priv.delete(srcId);
+  setInterest(tgtId,lv);
+  if(wasLocked) locked.add(tgtId);
+  if(wasPriv) priv.add(tgtId);
   savePicks(); render();
 }
-const isPicked=i=>picks.has(EV[i][ID]);
-const levelOf=i=>picks.get(EV[i][ID])||0;
 
 /* Watching a broadcast occupies an hour just like sitting in a room does.
    Rather than special-case it everywhere, each one becomes a genuine event
@@ -1018,8 +1112,8 @@ const isWatch=i=>EV[i][ID].startsWith('w');
 function toggleWatch(src,at){
   const id=watchId(src,at);
   const k=watch.findIndex(w=>watchId(w.src,w.at)===id);
-  if(k>=0){ watch.splice(k,1); picks.delete(id); }
-  else{ watch.push({src,at}); picks.set(id,MAYBE); }
+  if(k>=0){ watch.splice(k,1); setInterest(id,0); }
+  else{ watch.push({src,at}); setInterest(id,MAYBE); }
   savePicks(); buildWatch(); render();
 }
 const watching=(src,at)=>watch.some(w=>w.src===src&&w.at===at);
@@ -1096,6 +1190,7 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>
 
 function matches(i){
   const e=EV[i];
+  if(hiddenTitles.has(e[T])) return false;   /* -2 Not interested hides the title */
   if(offTracks.has(e[TRK])) return false;
   if(offKinds.size){
     const k=kindsOf(i);
@@ -1110,12 +1205,13 @@ function matches(i){
   return true;
 }
 
-const NEXT_LABEL={0:'Mark as interested',1:'Mark as must see',2:'Clear'};
+const NEXT_LABEL={0:'Mark as interested',1:'Mark as high priority',2:'Clear'};
 function evNode(i,opts={}){
   const e=EV[i], h=DATA.hotels[e[HOT]];
-  const lv=levelOf(i);
+  const lv=levelOf(i), pl=lv>0?lv:0;   /* the face only shows positive interest */
   const el=document.createElement('div');
-  el.className='ev'+(lv?' picked lv'+lv:'')+(openSet.has(i)?' open':'')+
+  el.className='ev'+(pl?' picked lv'+pl:'')+(openSet.has(i)?' open':'')+
+    (lockedOf(i)?' locked':'')+
     (ruled.has(e[ID])?' wasruled':'')+(e[ID].startsWith('w')?' iswatch':'');
   el.innerHTML=
     '<div class="stripe" style="background:var(--'+h+')"></div>'+
@@ -1129,19 +1225,21 @@ function evNode(i,opts={}){
         ?'<span class="away"> \u00b7 ~'+minsAway(i)+' min walk</span>':'')+
       kindBadges(i)+
       (roomOf(i).tier===1?'<span class="big">BIG ROOM</span>':'')+dctvBadge(i)+repeatBadge(i)+
-      (ruled.has(e[ID])?'<span class="ruledtag">RULED OUT</span>':'')+
+      (lockedOf(i)?'<span class="locktag">LOCKED IN</span>':'')+
+      (privateOf(i)?'<span class="privtag">PRIVATE</span>':'')+
+      (isRuled(i)?'<span class="ruledtag">NOT NOW</span>':'')+
       alsoStarred(i).map(f=>'<span class="mate">'+esc(f.name)+
         (f.lv===MUST?' \uD83C\uDFC6':' \u2605')+'</span>').join('')+
       '<br><span class="evtrack"></span>'+
     '</div><div class="evdesc"></div></div>'+
     (opts.segmented
       ? '<div class="seg">'+
-          '<button data-set="1" class="s1'+(!isRuled(i)&&lv===1?' on':'')+'" aria-label="Interested">\u2605</button>'+
-          '<button data-set="2" class="s2'+(!isRuled(i)&&lv===2?' on':'')+'" aria-label="Must see">\uD83C\uDFC6</button>'+
-          '<button data-set="x" class="sx'+(isRuled(i)?' on':'')+'" aria-label="Rule out">\u2715</button>'+
+          '<button data-set="1" class="s1'+(lv===1?' on':'')+'" aria-label="Interested">\u2605</button>'+
+          '<button data-set="2" class="s2'+(lv===2?' on':'')+'" aria-label="High priority">\uD83C\uDFC6</button>'+
+          '<button data-set="x" class="sx'+(isRuled(i)?' on':'')+'" aria-label="Not now">\u2715</button>'+
         '</div>'
-      : '<button class="star lv'+lv+'" aria-label="'+esc(NEXT_LABEL[lv])+'">'+
-          LEVEL_MARK[lv]+'</button>');
+      : '<button class="star lv'+pl+'" aria-label="'+esc(NEXT_LABEL[pl])+'">'+
+          LEVEL_MARK[pl]+'</button>');
   el.querySelector('.evtitle').textContent=e[T];
   el.querySelector('.evtrack').textContent=DATA.tracks[e[TRK]]+(e[PRES]?' \u00b7 '+e[PRES]:'');
   const extra=[];
@@ -1169,8 +1267,7 @@ function evNode(i,opts={}){
       ev.stopPropagation();
       const v=b.dataset.set;
       if(v==='x'){ toggleRuled(i); return; }
-      /* setting a level always un-rules it - you cannot want and reject at once */
-      ruled.delete(EV[i][ID]);
+      /* setLevel is mutually exclusive, so this also clears any Not-now */
       setLevel(i,+v);
     };
   });
@@ -1195,19 +1292,55 @@ function evNode(i,opts={}){
     });
     el.querySelector('.evbody').appendChild(box);
   }
+  /* the full interest scale + lock + private live in the expanded detail, so
+     the card face stays a quick tap and this is never a menu you scrub through */
+  if(!isWatch(i)) el.querySelector('.evbody').appendChild(buildAxes(i));
   return el;
 }
-function cycle(i){
-  const id=EV[i][ID], lv=picks.get(id)||0;
-  if(lv===0) picks.set(id,MAYBE);
-  else if(lv===MAYBE) picks.set(id,MUST);
-  else picks.delete(id);
-  savePicks(); render();
+/* the shared interest / lock / privacy control, used in the expanded row and
+   in the grid's detail sheet. refresh (optional) redraws the sheet in place. */
+function buildAxes(i,refresh){
+  const wrap=document.createElement('div');
+  wrap.className='axes';
+  const scale=document.createElement('div');
+  scale.className='iscale';
+  [2,1,0,-1,-2].forEach(v=>{
+    const b=document.createElement('button');
+    b.className='ibtn'+(intOf(i)===v?' on':'');
+    b.setAttribute('aria-pressed',String(intOf(i)===v));
+    b.innerHTML='<span class="im">'+LEVEL_MARK[v]+'</span>'+
+      '<span class="il">'+esc(LEVEL_NAME[v])+'</span>';
+    b.onclick=ev=>{ ev.stopPropagation(); setLevel(i,v); if(refresh) refresh(); };
+    scale.appendChild(b);
+  });
+  wrap.appendChild(scale);
+  const flags=document.createElement('div');
+  flags.className='iflags';
+  const lk=document.createElement('button');
+  lk.className='iflag'+(lockedOf(i)?' on':'');
+  lk.setAttribute('aria-pressed',String(lockedOf(i)));
+  lk.textContent=(lockedOf(i)?'🔒 ':'🔓 ')+'Locked in';
+  lk.onclick=ev=>{ ev.stopPropagation(); setLocked(i,!lockedOf(i)); if(refresh) refresh(); };
+  flags.appendChild(lk);
+  const pv=document.createElement('button');
+  pv.className='iflag'+(privateOf(i)?' on':'');
+  pv.setAttribute('aria-pressed',String(privateOf(i)));
+  pv.textContent=(privateOf(i)?'🙈 ':'👁 ')+'Mind ya business';
+  pv.onclick=ev=>{ ev.stopPropagation(); setPrivate(i,!privateOf(i)); if(refresh) refresh(); };
+  flags.appendChild(pv);
+  wrap.appendChild(flags);
+  const note=document.createElement('div');
+  note.className='axesnote';
+  note.textContent='Locked-in plans drive the conflict math. Private picks are left off any link you share.';
+  wrap.appendChild(note);
+  return wrap;
 }
-function setLevel(i,lv){
-  const id=EV[i][ID];
-  if(lv) picks.set(id,lv); else picks.delete(id);
-  savePicks(); render();
+/* the card-face quick tap: a positive-only cycle, Unrated -> Interested ->
+   High Priority -> Unrated. The negative half, lock and privacy are set in the
+   expanded detail, never by tapping the star. */
+function cycle(i){
+  const v=intOf(i);
+  setLevel(i, v<=0?MAYBE : v===MAYBE?MUST : 0);
 }
 
 function renderList(idxs,{showTime=false}={}){
@@ -1267,11 +1400,12 @@ const LIST_SORTS={time:'Time',interest:'Interest',place:'Place',near:'Distance'}
 function whereAmI(){
   if(here) return here;
   const n=nowMin();
-  const live=[...picks.keys()].map(id=>EV.findIndex(e=>e[ID]===id))
+  const plan=[...picks.keys(),...locked];
+  const live=plan.map(id=>EV.findIndex(e=>e[ID]===id))
     .filter(i=>i>=0&&EV[i][START]<=n&&EV[i][START]+EV[i][DUR]>n)
     .sort((a,b)=>levelOf(b)-levelOf(a))[0];
   if(live!==undefined) return DATA.hotels[EV[live][HOT]];
-  const past=[...picks.keys()].map(id=>EV.findIndex(e=>e[ID]===id))
+  const past=plan.map(id=>EV.findIndex(e=>e[ID]===id))
     .filter(i=>i>=0&&EV[i][START]+EV[i][DUR]<=n)
     .sort((a,b)=>EV[b][START]-EV[a][START])[0];
   if(past!==undefined) return DATA.hotels[EV[past][HOT]];
@@ -1327,15 +1461,13 @@ const dropPast=idxs=>hidePast?idxs.filter(i=>!isPast(i)):idxs;
    DETAIL SHEET
    ============================================================ */
 function openSheet(i){
-  const e=EV[i], h=DATA.hotels[e[HOT]], lv=levelOf(i);
+  const e=EV[i], h=DATA.hotels[e[HOT]];
+  const on=inMyCon(i)||lockedOf(i)||privateOf(i);
   const c=document.getElementById('sheetCard');
   c.innerHTML='<h2></h2><div class="smeta"></div><div class="sdesc"></div>'+
-    '<div class="slevel"><button class="lvcycle lv'+lv+'" id="sStar">'+
-      '<span class="mark">'+LEVEL_MARK[lv]+'</span>'+
-      '<span class="lbl">'+esc(LEVEL_NAME[lv])+'</span>'+
-      '<span class="hint">'+esc(NEXT_LABEL[lv])+'</span></button></div>'+
+    '<div class="slevel"></div>'+
     '<div class="sbtns">'+
-      (lv?'<button id="sDrop">Remove from My Con</button>':'')+
+      (on?'<button id="sDrop">Remove from My Con</button>':'')+
       '<button id="sClose">Close</button></div>';
   c.querySelector('h2').textContent=e[T];
   c.querySelector('.smeta').innerHTML=
@@ -1378,7 +1510,8 @@ function openSheet(i){
     box.textContent=lines.join(' ');
     c.querySelector('.sdesc').after(box);
   }
-  c.querySelector('#sStar').onclick=()=>{ cycle(i); openSheet(i); };
+  /* the full scale + lock + private; changing one redraws the sheet in place */
+  if(!isWatch(i)) c.querySelector('.slevel').appendChild(buildAxes(i,()=>openSheet(i)));
   const air2=dctvOf(i);
   if(air2&&!isWatch(i)){
     const box=document.createElement('div');
@@ -1399,7 +1532,7 @@ function openSheet(i){
     if(isWatch(i)){
       const w=watch.find(x=>watchId(x.src,x.at)===EV[i][ID]);
       if(w) toggleWatch(w.src,w.at);
-    }else{ ruled.delete(EV[i][ID]); setLevel(i,0); }
+    }else{ const id=EV[i][ID]; locked.delete(id); priv.delete(id); setLevel(i,0); }
     closeSheet(); };
   c.querySelector('#sClose').onclick=closeSheet;
   document.getElementById('sheet').classList.add('open');
@@ -1412,7 +1545,10 @@ function openLegend(){
   const roleChips=['actor','author','artist','musician','costumer','creator','scientist','performer']
     .map(k=>'<span class="kind '+ROLE_CLASS[k]+'">'+KIND_NAME[k]+'</span>').join(' ');
   const rows=[
-    ['<span class="mark">☆ ★ 🏆</span>','Tap a star to set interest — once for interested (★), twice for must-see (🏆), again to clear. On My Con use the ★ / 🏆 / ✕ buttons instead.'],
+    ['<span class="mark">☆ ★ 🏆</span>','Tap the star: once for interested (★), again for high priority (🏆), again to clear. On My Con use the ★ / 🏆 / ✕ buttons.'],
+    ['<span class="mark">🚫 ✕ ☆ ★ 🏆</span>','Open any event for the full scale: 🚫 not interested (hides the whole title), ✕ not now (this time only), ☆ unrated, ★ interested, 🏆 high priority.'],
+    ['<span class="locktag">LOCKED IN</span>','Your plan, not just your wishlist. Locked-in events drive the conflict math; a clash becomes something to sort out, never a block.'],
+    ['<span class="privtag">PRIVATE</span>','Mind ya business: this pick is left off any link you share, so friends never see it.'],
     [roleChips,'Who is on the panel, taken from the Program Book bios.'],
     ['<span class="kind '+ROLE_CLASS.expert+'">EXPERT</span>','Credentials on the panel — a doctor, NASA, a science or skeptics track.'],
     ['<span class="kind '+ROLE_CLASS.party+'">PARTY</span>','Music, a dance, a ball or a concert.'],
@@ -1420,8 +1556,8 @@ function openLegend(){
     ['<span class="big">BIG ROOM</span>','A headline ballroom. The line can start forming up to an hour before.'],
     ['<span class="dctv live">DCTV LIVE</span> <span class="dctv">DCTV SUN 7PM</span>','Streamed live, or replayed at that time. DCTV needs a $10 pass.'],
     ['<span class="rpt">AGAIN SAT 10AM</span>','The same panel runs again at that time.'],
-    ['<span class="ruledtag">RULED OUT</span>','A pick you have ruled out for its time slot. It stays in your list but no longer counts as a conflict.'],
-    ['📅','Tap any event to open its full details — description, who’s on it, DCTV times, ballroom queue notes.']
+    ['<span class="ruledtag">NOT NOW</span>','Set aside for its time slot. It stays in My Con but no longer counts as a conflict.'],
+    ['📅','Tap any event to open its full details — description, who’s on it, DCTV times, ballroom queue notes, and the full interest scale.']
   ];
   c.innerHTML='<h2>What the tags mean</h2><div class="legend">'+
     rows.map(r=>'<div class="lgrow"><div class="lgk">'+r[0]+'</div><div class="lgv">'+esc(r[1])+'</div></div>').join('')+
@@ -1523,8 +1659,9 @@ function viewNow(){
   const live=i=>EV[i][START]+EV[i][DUR]>n && EV[i][START]<n+W;
 
   const byId=new Map(); EV.forEach((e,n)=>byId.set(e[ID],n));
-  /* your picks obey the same filter and sort as everything else */
-  const myAll=[...picks.keys()].map(id=>byId.get(id)).filter(i=>i!==undefined&&live(i));
+  /* your plan (wanted or locked) obeys the same filter and sort as everything else */
+  const myAll=[...new Set([...picks.keys(),...locked])].map(id=>byId.get(id))
+    .filter(i=>i!==undefined&&live(i));
   const mine=sortList(myAll.filter(matches));
   const hiddenPicks=myAll.length-mine.length;
   if(mine.length){
@@ -1536,7 +1673,7 @@ function viewNow(){
     mine.forEach(i=>main.appendChild(evNode(i,{showTime:true,showFloor:true})));
   }
   const soon=[];
-  for(let i=0;i<EV.length;i++) if(!isPicked(i)&&live(i)&&matches(i)) soon.push(i);
+  for(let i=0;i<EV.length;i++) if(!onPlan(i)&&live(i)&&matches(i)) soon.push(i);
   /* keep started/upcoming split chronological, then order within each */
   document.getElementById('count').textContent=
     soon.length+' more in the next 2 hours'+
@@ -1681,6 +1818,7 @@ function viewGrid(){
   const idxs=[];
   for(let i=0;i<EV.length;i++){
     if(dayOf(EV[i][START])!==d) continue;
+    if(hiddenTitles.has(EV[i][T])) continue;
     if(!hotels.has(DATA.hotels[EV[i][HOT]])) continue;
     if(offTracks.has(EV[i][TRK])) continue;
     if(query){
@@ -1810,8 +1948,8 @@ function viewGrid(){
         if(!(i in lane)) return;
         const e=EV[i];
         const c=document.createElement('button');
-        c.className='gcell'+(levelOf(i)?' picked lv'+levelOf(i):'')
-          +(hidePast&&isPast(i)?' past':'');
+        c.className='gcell'+(intOf(i)>0?' picked lv'+intOf(i):'')
+          +(lockedOf(i)?' locked':'')+(hidePast&&isPast(i)?' past':'');
         c.style.left=(RAIL+((e[START]-t0)/SLOT)*SLOTPX+1)+'px';
         c.style.width=Math.max(MINCELL,(e[DUR]/SLOT)*SLOTPX-3)+'px';
         c.style.top=(lane[i]*LANEPX+2)+'px';
@@ -1849,24 +1987,54 @@ function viewGrid(){
   });
 }
 
+/* the home for Not-interested titles, so a -2 is always reversible: one card
+   per hidden title with a Show again button */
+function renderHidden(){
+  const box=document.createElement('div');
+  box.className='hidden';
+  const h=document.createElement('div');
+  h.className='hiddenh';
+  h.textContent='Not interested · '+hiddenTitles.size+' hidden';
+  box.appendChild(h);
+  const byId=new Map(); EV.forEach(e=>byId.set(e[ID],e));
+  const byTitle=new Map();
+  notInt.forEach(id=>{ const e=byId.get(id); if(!e) return;
+    if(!byTitle.has(e[T])) byTitle.set(e[T],[]); byTitle.get(e[T]).push(id); });
+  [...byTitle.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([title,idsArr])=>{
+    const r=document.createElement('div'); r.className='hiddenrow';
+    const t=document.createElement('span'); t.textContent=title; r.appendChild(t);
+    const b=document.createElement('button');
+    b.textContent='Show again';
+    b.onclick=()=>{ idsArr.forEach(id=>setInterest(id,0)); savePicks(); render(); };
+    r.appendChild(b); box.appendChild(r);
+  });
+  return box;
+}
+
 /* ============================================================
    VIEW - MY CON
    ============================================================ */
 function viewMine(){
   const main=document.getElementById('main');
   const byId=new Map(); EV.forEach((e,i)=>byId.set(e[ID],i));
-  let all=[...picks.keys()].map(id=>byId.get(id)).filter(i=>i!==undefined)
+  /* My Con holds your plan plus any Not-now rows, so a slot you set aside is
+     still visible to change your mind. Not-interested (-2) is excluded. */
+  const conIds=new Set([...picks.keys(),...ruled,...locked]);
+  let all=[...conIds].map(id=>byId.get(id)).filter(i=>i!==undefined)
     .sort((a,b)=>EV[a][START]-EV[b][START]);
   const done=hidePast?all.filter(isPast).length:0;
   all=dropPast(all);
 
-  const nMust=[...picks.values()].filter(v=>v===MUST).length;
+  const nHigh=[...picks.values()].filter(v=>v===MUST).length;
+  const nInt=[...picks.values()].filter(v=>v===MAYBE).length;
   document.getElementById('count').textContent=
-    nMust+' must see \u00b7 '+(picks.size-nMust)+' interested'
+    nHigh+' high priority \u00b7 '+nInt+' interested'
+    +(locked.size?' \u00b7 '+locked.size+' locked in':'')
     +(done?' \u00b7 '+done+' already over':'');
-  if(!picks.size){
+  if(!conIds.size){
+    if(notInt.size){ main.appendChild(renderHidden()); return; }
     main.innerHTML=emptyState('Nothing picked yet',
-      'Tap a star: once for interested, twice for must-see, again to clear. This view groups clashes so you can decide later.');
+      'Tap the star for interested, again for high priority. Open any event for the full scale, plus Locked in and Mind ya business. This view groups clashes so you can decide later.');
     return;
   }
   if(friends.length){
@@ -1940,11 +2108,11 @@ function viewMine(){
     let issues=[];
     ks.forEach((k,n)=>{
       const g=byStart.get(k).filter(i=>!isRuled(i)),
-            musts=g.filter(i=>levelOf(i)===MUST);
+            musts=g.filter(committed);   /* a lock or a High Priority is a commitment */
       const rescuable=g.filter(i=>laterRepeats(i).length).length;
       if(musts.length>1)
         issues.push({score:(rescuable>=musts.length-1?150:300)+musts.length,at:k,
-          txt:musts.length+' conflicting must-sees'+
+          txt:musts.length+' conflicting commitments'+
             (rescuable?' \u00b7 '+rescuable+' repeat later':'')});
       else if(musts.length===0&&g.length>1)
         issues.push({score:100+g.length,at:k,
@@ -1953,7 +2121,7 @@ function viewMine(){
       if(n>0){
         /* A hop only matters between things you have committed to. With
            dozens of maybes starred, every pair would read as a crisis. */
-        const prevMust=byStart.get(ks[n-1]).filter(i=>!isRuled(i)&&levelOf(i)===MUST);
+        const prevMust=byStart.get(ks[n-1]).filter(i=>!isRuled(i)&&committed(i));
         if(prevMust.length&&musts.length){
           const gap=k-Math.max(...prevMust.map(i=>EV[i][START]+EV[i][DUR]));
           if(gap>=0){
@@ -1961,10 +2129,10 @@ function viewMine(){
               walk(DATA.hotels[EV[a][HOT]],DATA.hotels[EV[b][HOT]]))));
             if(gap-need<0)
               issues.push({score:200+(need-gap),at:k,
-                txt:gap+' min between must-sees, walk needs '+need});
+                txt:gap+' min between commitments, walk needs '+need});
             else if(musts.some(i=>roomOf(i).tier===1)&&gap-need<10)
               issues.push({score:50,at:k,
-                txt:'ballroom must-see, '+(gap-need)+' min to queue'});
+                txt:'ballroom commitment, '+(gap-need)+' min to queue'});
           }
         }
       }
@@ -2047,7 +2215,8 @@ function viewMine(){
   timeline.forEach((item,ti)=>{
     if(item.kind==='trip'){ renderTrip(main,item.t); return; }
     const k=item.at;
-    const group=slots.get(k).sort((a,b)=>levelOf(b)-levelOf(a));
+    const group=slots.get(k).sort((a,b)=>
+      (committed(b)-committed(a))||(levelOf(b)-levelOf(a)));
     const d=dayOf(k);
     if(d!==lastDay){
       lastDay=d;
@@ -2072,14 +2241,14 @@ function viewMine(){
           walks.push(walk(DATA.hotels[EV[a][HOT]],DATA.hotels[EV[b][HOT]]))));
         const wMin=Math.min(...walks), wMax=Math.max(...walks);
         const slack=gapMin-wMax;
-        /* stay factual unless both ends are commitments */
-        const committed=prev.some(i=>levelOf(i)===MUST)&&group.some(i=>levelOf(i)===MUST);
+        /* stay factual unless both ends are commitments (a lock or High Priority) */
+        const bothFixed=prev.some(committed)&&group.some(committed);
         const g=document.createElement('div');
-        g.className='gap'+(!committed?'':slack<0?' tight':slack<5?' warn':'');
+        g.className='gap'+(!bothFixed?'':slack<0?' tight':slack<5?' warn':'');
         const wTxt=wMin===wMax?wMax+' min':wMin+'\u2013'+wMax+' min';
         g.textContent=(gapMin===gapMax?gapMin+' min gap':gapMin+'\u2013'+gapMax+' min gap')
           +' \u00b7 walk '+wTxt
-          +(!committed?''
+          +(!bothFixed?''
             :slack<0?' \u00b7 '+(-slack)+' min short'
                     :' \u00b7 '+slack+' min to spare');
         main.appendChild(g);
@@ -2098,16 +2267,16 @@ function viewMine(){
     }
 
     const live_=group.filter(i=>!isRuled(i)), out_=group.filter(isRuled);
-    const musts=live_.filter(i=>levelOf(i)===MUST);
+    const musts=live_.filter(committed);
     const hd=document.createElement('div');
     hd.className='slot'+(musts.length>1?' clash':live_.length>1?' choose':'');
     let status;
     const nOut=out_.length;
     if(live_.length<=1&&!nOut) status='';
-    else if(musts.length>1) status=musts.length+' conflicting must-sees';
+    else if(musts.length>1) status=musts.length+' conflicting commitments';
     else if(musts.length===1) status='decided'+(live_.length>1?' \u00b7 '+(live_.length-1)+' open':'')
-      +(nOut?' \u00b7 '+nOut+' ruled out':'');
-    else status=live_.length+' options'+(nOut?' \u00b7 '+nOut+' ruled out':'');
+      +(nOut?' \u00b7 '+nOut+' not now':'');
+    else status=live_.length+' options'+(nOut?' \u00b7 '+nOut+' not now':'');
     hd.innerHTML='<b>'+esc(hhmm(k))+'</b>'+(status?'<span>'+esc(status)+'</span>':'');
     main.appendChild(hd);
 
@@ -2145,6 +2314,7 @@ function viewMine(){
   note.className='note';
   note.textContent='Walk times are estimates for a crowded con, door to door, including elevators and the skybridges. Ballrooms clear between panels and lines can form an hour early, so leave more than the walk.';
   main.appendChild(note);
+  if(notInt.size) main.appendChild(renderHidden());
 }
 
 /* ============================================================
@@ -2210,7 +2380,8 @@ function render(){
   else viewMine();
 
   const b=document.getElementById('mineCount');
-  b.hidden=picks.size===0; b.textContent=picks.size;
+  const conN=new Set([...picks.keys(),...ruled,...locked]).size;
+  b.hidden=conN===0; b.textContent=conN;
   if(importedFriend){
     const w=document.createElement('div');
     w.className='imported';
@@ -2555,7 +2726,7 @@ function tick(){
   imported=importFromHash();
   /* open on My Con once you've built a plan; a first-timer with no picks lands
      on Now so the app is never a blank screen (and the off-con demo stays useful) */
-  if(picks.size) view='mine';
+  if(picks.size||ruled.size||locked.size) view='mine';
   /* start on the day of the con you are actually in */
   if(!days.size && inCon() && dayList.includes(dayOf(nowMin()))) days.add(dayOf(nowMin()));
   buildRooms();
@@ -2568,7 +2739,7 @@ function tick(){
      none of which is obvious. Show it once, then remember it's been dismissed. */
   if(!hintSeen){
     const hint=document.getElementById('hint');
-    hint.innerHTML='<span>Tips: tap ☆ to set interest (★ interested, 🏆 must-see) · tap any event for details &amp; DCTV times · filter chips include ✓ or exclude ✕.</span>'+
+    hint.innerHTML='<span>Tips: tap ☆ for interested (again for 🏆 high priority) · open any event for the full scale, Locked in and Mind ya business · filter chips include ✓ or exclude ✕.</span>'+
       '<button id="hintKey">What the tags mean</button><button id="hintGot">Got it</button>';
     hint.hidden=false;
     hint.querySelector('#hintKey').onclick=openLegend;

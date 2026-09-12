@@ -11,6 +11,27 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.15 — three-axis state model (v2 foundation)
+
+The picks model is rebuilt into three independent axes per event, the foundation
+the rest of v2 sits on. Saved picks survive, so this is a minor bump, not 2.0.
+
+- **Interest scale, −2..+2.** Replaces the two-level star. −2 **Not interested**
+  (hides every occurrence of that title, reversible from a "Not interested" list
+  at the foot of My Con) · −1 **Not now** (this occurrence only — the old "ruled
+  out") · 0 **Unrated** · +1 **Interested** · +2 **High priority**. The card face
+  keeps the quick star (Unrated → Interested → High priority → clear) and My Con
+  keeps its ★ / 🏆 / ✕ buttons; the full scale opens in each event's expanded
+  detail — no five-state single-tap cycle.
+- **Locked In.** An independent plan flag, not a sixth interest state. A lock is
+  a commitment the conflict and trip math respect: a clash becomes "something to
+  sort out", never a block.
+- **Mind Ya Business.** A per-event private flag. Private picks are simply left
+  off the share link you generate — one-way, no server, no placeholder.
+- **Migration:** old saves load unchanged (picks 1|2 → +1/+2, ruled → −1,
+  everything else Unrated). Share links keep the same wire format, now with
+  private picks omitted. Full test suite passes; build byte-reproducible.
+
 ## 1.14.2 — concise, factual copy pass
 
 - Reviewed all UI copy against one rule: state the fact, don't characterize your

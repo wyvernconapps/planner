@@ -30,15 +30,15 @@ setTimeout(()=>{
 
   console.log('\nSTAR MARKS:', JSON.stringify(app.LEVEL_MARK));
   console.log('STAR LABELS:', JSON.stringify(app.LEVEL_NAME));
-  // sheet uses the same control
+  // sheet uses the same three-axis control
   app.openSheet(at(16*60)[0]);
-  const cyc=ids.sheetCard.querySelector('.lvcycle');
+  const cyc=ids.sheetCard.querySelector('.iscale');
   console.log('\nsheet control class:',cyc?cyc.className:'MISSING');
-  console.log('sheet shows same star:',cyc?JSON.stringify(cyc.textContent):'-');
+  console.log('sheet scale buttons:',cyc?cyc.querySelectorAll('.ibtn').length:'-');
 },50);
 setTimeout(()=>{
   console.log('\n--- raw innerHTML, to see past the shim ---');
   ids.main.querySelectorAll('.deciderow').forEach(r=>console.log('  ',r.innerHTML));
-  const c=ids.sheetCard.querySelector('.lvcycle');
+  const c=ids.sheetCard.querySelector('.iscale');
   console.log('   sheet:',c?c.innerHTML:'-');
 },120);
