@@ -11,6 +11,13 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.14.1 — legend wording
+
+- The badge legend now states each tag's meaning plainly instead of
+  characterizing your situation. **AGAIN** reads "The same panel runs again at
+  that time" (it had lifted a maintainer's rationale from a code comment);
+  **RULED OUT** and **BIG ROOM** tightened the same way.
+
 ## 1.14 — accessibility + discoverability
 
 - **Readability:** lightened the faint secondary-text colour to meet WCAG AA
