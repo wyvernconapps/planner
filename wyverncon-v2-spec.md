@@ -189,6 +189,15 @@ Small refinements to the shipped 1.15 state model. To be done in a later **Build
    and Likert scales, and puts the most-frequent positive taps in the easy
    right-thumb zone. Applies to both the expanded-row scale and the grid sheet.
 
+4. **An age-restricted tag, like EXTRA FEE.** A badge for any age-gated event.
+   Derive it in the pipeline the same way the other "kinds" tags are — scan
+   title/description for `18+`, `21+`, "mature audiences", "adults only", "ID
+   required", etc. — emit an `age` kind, and give it a badge, a legend row, and
+   a chip under "Other tags" beside Extra fee. Show the actual threshold when
+   the text states it (**18+** / **21+**), else a generic **AGE-RESTRICTED**.
+   Caveat: only as reliable as how consistently the schedule marks it, same as
+   EXTRA FEE detection today — a few will slip through.
+
 _Resolved at Q time: keep buttons over a slider — the five states carry distinct
 meanings (−2 hides the title, −1 is occurrence-specific), not smooth intensity,
 so discrete labeled buttons beat a drag-slider for clarity and accessibility._
