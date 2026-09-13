@@ -172,6 +172,27 @@ _Credit: the Compare view, breaks-keyed-to-locked, the one-way / no-count privac
 rule, and lock-recalculates-but-doesn't-block came from a ChatGPT review; the
 three-axis model and −2…+2 scale were already in the idea inbox above._
 
+### Queued tweaks — post-1.15 (Q'd 2026-09-12 by Lauren, not built)
+
+Small refinements to the shipped 1.15 state model. To be done in a later **Build**.
+
+1. **A tag per repeat, not just the next one.** Today a repeating panel shows a
+   single "AGAIN SAT 10AM" badge (the next showing) and lists the rest in the
+   detail. Show a tag for each repeat on the card. Watch crowding — likely cap
+   at the first couple of tags with a "+N more", full list still in the detail.
+2. **Rename −2 "Not interested" → "Not ever".** Pairs with −1 "Not now" as a
+   "not now / not ever" progression. Update the scale button label, the legend
+   row, and the "Not interested" hidden-list header at the foot of My Con.
+3. **Flip the interest scale so most-positive is on the right.** 1.15 ships it
+   positive-left (`[🏆 ★ ☆ ✕ 🚫]`); best practice is ascending left→right
+   (`[🚫 ✕ ☆ ★ 🏆]`, Not ever → High priority) — matches the −2…+2 number line
+   and Likert scales, and puts the most-frequent positive taps in the easy
+   right-thumb zone. Applies to both the expanded-row scale and the grid sheet.
+
+_Resolved at Q time: keep buttons over a slider — the five states carry distinct
+meanings (−2 hides the title, −1 is occurrence-specific), not smooth intensity,
+so discrete labeled buttons beat a drag-slider for clarity and accessibility._
+
 ## What people complain about in the official app
 
 From App Store and Play Store reviews. Mostly 2021 and earlier, and a 2024
