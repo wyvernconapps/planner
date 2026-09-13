@@ -197,6 +197,17 @@ Small refinements to the shipped 1.15 state model. To be done in a later **Build
    the text states it (**18+** / **21+**), else a generic **AGE-RESTRICTED**.
    Caveat: only as reliable as how consistently the schedule marks it, same as
    EXTRA FEE detection today — a few will slip through.
+5. **A real Help button, beyond the tag legend.** Today the only persistent help
+   is "What the tags mean"; the first-run tips cover gestures but vanish after
+   "Got it". Add a persistent **"How this works" / "?"** entry (footer, next to
+   the tag legend, and linked from the first-run tips), opening the same sheet
+   with short labeled sections: **Getting around** (Now / Browse / Grid / My Con,
+   one line each) · **Marking events** (interest scale, Locked in, Mind ya
+   business) · **Sharing** (the link — no account, moves picks between devices
+   and friends) · **Trips** (the go-home planner) · **Offline** (loads once,
+   needs no signal). Fold the existing tag key in as the last section, so Help
+   is one home rather than two scattered buttons. Keep it scannable — short
+   sections, not prose; one-handed and in a hurry.
 
 _Resolved at Q time: keep buttons over a slider — the five states carry distinct
 meanings (−2 hides the title, −1 is occurrence-specific), not smooth intensity,
