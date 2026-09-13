@@ -11,6 +11,27 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.16 — repeat tags, age tag, Help, scale polish
+
+Post-1.15 queue, five tweaks:
+
+- **A tag per repeat.** A repeating panel now shows a tag for each *later*
+  showing ("AGAIN THU 8PM · AGAIN FRI 10AM · +4 more") instead of just the next
+  one, capped at two plus a "+N more"; the full list stays in the detail.
+- **Age-restricted tag.** A new badge (**18+** / **21+** / **AGE-RESTRICTED**)
+  and an "Age-restricted" filter chip under Other tags, read from each event's
+  own text at load — the same idea as EXTRA FEE, with the same caveat that a few
+  may be missed. 75 events flagged in the 2026 data.
+- **A real Help button.** "What the tags mean" becomes **"How this works"** — one
+  sheet with short sections (Getting around · Marking events · Sharing · Trips ·
+  Offline) with the tag key folded in at the end, reachable from the footer and
+  the first-run tips.
+- **−2 renamed "Not ever"** (from "Not interested"), pairing with −1 "Not now".
+- **Interest scale flipped** so most-positive is on the right
+  (`🚫 ✕ ☆ ★ 🏆`), matching the −2…+2 number line and the right-thumb zone.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.15 — three-axis state model (v2 foundation)
 
 The picks model is rebuilt into three independent axes per event, the foundation

@@ -220,9 +220,10 @@ _Credit: the Compare view, breaks-keyed-to-locked, the one-way / no-count privac
 rule, and lock-recalculates-but-doesn't-block came from a ChatGPT review; the
 three-axis model and −2…+2 scale were already in the idea inbox above._
 
-### Queued tweaks — post-1.15 (Q'd 2026-09-12 by Lauren, not built)
+### Queued tweaks — post-1.15 (Q'd 2026-09-12) → **all shipped in 1.16 (2026-09-13)**
 
-Small refinements to the shipped 1.15 state model. To be done in a later **Build**.
+Small refinements to the 1.15 state model. All five below shipped in **1.16**;
+kept here as the record of what was asked and decided.
 
 1. **A tag per repeat, not just the next one.** Today a repeating panel shows a
    single "AGAIN SAT 10AM" badge (the next showing) and lists the rest in the

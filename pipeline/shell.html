@@ -55,6 +55,12 @@ header{
 /* badge legend */
 .legendlink{display:block;margin-top:8px;background:none;border:none;color:var(--gold);
   font-size:12px;text-decoration:underline;cursor:pointer;padding:0;font-family:inherit}
+/* the Help sheet: short labeled sections, then the tag key */
+.help{display:flex;flex-direction:column;gap:13px;margin:8px 0 4px}
+.hsec>b{display:block;color:var(--text);font-size:14px;margin-bottom:3px}
+.hsec>div{color:var(--dim);font-size:13px;line-height:1.5}
+.helpsub{font-size:13px;color:var(--faint);margin:18px 0 2px;font-weight:700;
+  letter-spacing:.03em;text-transform:uppercase}
 .legend{display:flex;flex-direction:column;gap:11px;margin:8px 0 4px}
 .lgrow{display:flex;gap:11px;align-items:flex-start}
 .lgk{flex:0 0 42%;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
@@ -333,6 +339,7 @@ main{padding:0 12px}
 .rpt{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
   font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(168,194,79,.16);color:var(--PARK)}
+.rpt.more{background:rgba(148,165,184,.14);color:var(--faint)}
 .rptbox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
   line-height:1.5;background:#1C2416;border:1px solid #3E4F26;color:#C3D69A}
 .catchlater{margin:-2px 0 8px;padding:5px 2px 5px 0;font-size:11.5px;
@@ -365,6 +372,7 @@ main{padding:0 12px}
 .r-p{background:rgba(231,127,196,.22);color:var(--AMART)}   /* party */
 .r-f2{background:rgba(255,111,94,.16);color:var(--red)}     /* extra fee */
 .r-h{background:rgba(148,165,184,.16);color:var(--dim)}     /* billed, role unclear */
+.r-age{background:var(--red);color:#1A0E0C;font-weight:800}  /* age-restricted: a solid gate */
 .whobox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
   line-height:1.7;background:var(--surface2);border:1px solid var(--line);color:var(--dim)}
 .whobox b{color:var(--text)}
@@ -552,7 +560,7 @@ nav button[aria-current="page"]{color:var(--gold)}
   <a href="https://app.core-apps.com/dragoncon26">app.core-apps.com/dragoncon26</a>.</span>
   <span>Data pulled and shared by <a href="https://www.reddit.com/r/dragoncon/comments/1vy4v81/dragon_con_schedule_spreadsheet_2026/">Max Schilling (u/maxschilling)</a> &mdash; this app just reshapes it. Thanks, Max.</span>
   <span>Vibe-coded by Lauren with Claude &mdash; best witch Claudia and technomancer Codie, trained in the Anthropic arts.</span>
-  <button id="legendBtn" class="legendlink">What the tags mean</button>
+  <button id="legendBtn" class="legendlink">How this works</button>
 </footer>
 
 <div id="sheet"><div class="scrim"></div><div class="card" id="sheetCard"></div></div>
@@ -630,24 +638,54 @@ const dctvOf=i=>DATA.dctv[EV[i][ID]]||null;
 const KIND_NAME={actor:'ACTOR',author:'AUTHOR',artist:'ARTIST',musician:'MUSICIAN',
   costumer:'COSTUMER',creator:'CREATOR',scientist:'SCIENTIST',writer:'WRITER',
   performer:'PERFORMER',expert:'EXPERT',party:'PARTY',guest:'GUEST',
-  paid:'EXTRA FEE'};
+  paid:'EXTRA FEE',age:'AGE-RESTRICTED'};
 const ROLE_CLASS={actor:'r-a',author:'r-b',artist:'r-c',musician:'r-d',
   costumer:'r-e',creator:'r-f',scientist:'r-g',writer:'r-b',performer:'r-e',
-  expert:'r-g',party:'r-p',guest:'r-h',paid:'r-f2'};
+  expert:'r-g',party:'r-p',guest:'r-h',paid:'r-f2',age:'r-age'};
 const peopleOn=i=>DATA.people[EV[i][ID]]||[];
-const kindsOf=i=>DATA.kinds[EV[i][ID]]||[];
+
+/* Age restriction is read from each event's own text at load, the same idea as
+   the EXTRA FEE tag - as reliable as how consistently the schedule marks it, so
+   a few will slip through. Show the stated threshold (18+/21+) where we can. */
+let ageLabels=new Map();   /* event id -> '18+' | '21+' | 'AGE-RESTRICTED' */
+function detectAge(e){
+  const h=(e[T]+' '+(e[DESC]||'')).toLowerCase();
+  if(/\b21\s*\+|\b21\s+and\s+(?:up|over|older)|must be 21|21\s*and\s*up/.test(h)) return '21+';
+  if(/\b18\s*\+|\b18\s+and\s+(?:up|over|older)|must be 18|18\s*and\s*up/.test(h)) return '18+';
+  if(/mature audience|adults?\s*only|adult content|explicit content/.test(h)) return 'AGE-RESTRICTED';
+  return null;
+}
+function buildAge(){
+  ageLabels=new Map();
+  DATA.events.forEach(e=>{ const l=detectAge(e); if(l) ageLabels.set(e[ID],l); });
+}
+function kindsOf(i){
+  const base=DATA.kinds[EV[i][ID]]||[];
+  return ageLabels.has(EV[i][ID]) ? base.concat('age') : base;
+}
 function kindBadges(i){
-  return kindsOf(i).map(k=>'<span class="kind '+(ROLE_CLASS[k]||'r-h')+'">'+
-    (KIND_NAME[k]||k.toUpperCase())+'</span>').join('');
+  return kindsOf(i).map(k=>{
+    const label = k==='age' ? (ageLabels.get(EV[i][ID])||'AGE-RESTRICTED')
+                            : (KIND_NAME[k]||k.toUpperCase());
+    return '<span class="kind '+(ROLE_CLASS[k]||'r-h')+'">'+esc(label)+'</span>';
+  }).join('');
 }
 
 /* other times the same panel runs. The point of showing it: a clash you can
    catch later is not really a clash. */
 const repeatsOf=i=>DATA.repeats[EV[i][ID]]||null;
 const laterRepeats=i=>(repeatsOf(i)||[]).filter(m=>m>EV[i][START]);
+/* One tag per later showing so you can see every catch-it-later at a glance,
+   capped so a panel with many repeats does not crowd the card - the full list
+   is always in the detail. Earlier showings aren't shown; they aren't a catch. */
+const RPT_CAP=2;
 function repeatBadge(i){
-  const r=repeatsOf(i); if(!r) return '';
-  return '<span class="rpt">'+esc(repeatBadgeText(i))+'</span>';
+  const later=laterRepeats(i);
+  if(!later.length) return '';
+  const tags=later.slice(0,RPT_CAP)
+    .map(m=>'<span class="rpt">AGAIN '+esc(shortWhen(m))+'</span>').join('');
+  const more=later.length-RPT_CAP;
+  return tags+(more>0?'<span class="rpt more">+'+more+' more</span>':'');
 }
 /* Quick Start Guide: large ballrooms are cleared between panels, and lines
    cannot form more than an hour before an event (two hours before the day's
@@ -664,10 +702,6 @@ function dctvBadge(i){
   const t=dctvOf(i); if(!t) return '';
   if(t.live) return '<span class="dctv live">DCTV LIVE</span>';
   return '<span class="dctv">DCTV '+esc(shortWhen(t.airs[0]))+'</span>';
-}
-function repeatBadgeText(i){
-  const later=laterRepeats(i);
-  return later.length?'AGAIN '+shortWhen(later[0]):'RUNS AGAIN';
 }
 
 /* Anything over 4 hours is a drop-in: an open game room, a repair table,
@@ -847,7 +881,7 @@ const MUST=2, MAYBE=1;
    so already-saved data (picks 1|2, ruled -1) loads unchanged - this is why
    the model can grow without a 2.0 reset. Locked and Private are separate
    axes that overlay any interest. */
-const LEVEL_NAME={'-2':'Not interested','-1':'Not now',0:'Unrated',1:'Interested',2:'High priority'};
+const LEVEL_NAME={'-2':'Not ever','-1':'Not now',0:'Unrated',1:'Interested',2:'High priority'};
 const LEVEL_MARK={'-2':'\uD83D\uDEAB','-1':'\u2715',0:'\u2606',1:'\u2605',2:'\uD83C\uDFC6'};
 let picks=new Map();        /* event id  -> 1 (Interested) | 2 (High priority) */
 let ruled=new Set();        /* event ids at -1: Not now, this occurrence only */
@@ -1304,7 +1338,9 @@ function buildAxes(i,refresh){
   wrap.className='axes';
   const scale=document.createElement('div');
   scale.className='iscale';
-  [2,1,0,-1,-2].forEach(v=>{
+  /* ascending left -> right: most-positive on the right, matching the -2..+2
+     number line and the easy right-thumb zone */
+  [-2,-1,0,1,2].forEach(v=>{
     const b=document.createElement('button');
     b.className='ibtn'+(intOf(i)===v?' on':'');
     b.setAttribute('aria-pressed',String(intOf(i)===v));
@@ -1539,27 +1575,41 @@ function openSheet(i){
 }
 function closeSheet(){ document.getElementById('sheet').classList.remove('open'); }
 
-/* a key to every tag, reachable from the footer and the first-run tips */
-function openLegend(){
+/* how the app works, reachable from the footer and the first-run tips. The tag
+   key is folded in as the last section, so this is the one place for help. */
+function openHelp(){
   const c=document.getElementById('sheetCard');
   const roleChips=['actor','author','artist','musician','costumer','creator','scientist','performer']
     .map(k=>'<span class="kind '+ROLE_CLASS[k]+'">'+KIND_NAME[k]+'</span>').join(' ');
+  /* section bodies carry safe, constant HTML (bold), so they are not escaped */
+  const sections=[
+    ['Getting around','<b>Now</b> — what’s on and near you. <b>Browse</b> — the whole schedule, search and filter. <b>Grid</b> — rooms down the side, time across the top. <b>My Con</b> — your plan, with clashes grouped and trips home.'],
+    ['Marking events','Tap the star for interested, again for high priority, again to clear. Open any event for the full scale — Not ever, Not now, Unrated, Interested, High priority — plus <b>Locked in</b> (a firm plan the clash and trip math respect) and <b>Mind ya business</b> (kept off any link you share).'],
+    ['Sharing','On My Con, <b>Send these picks</b> copies a link — no account. Paste it on another device to carry your picks over, or send it to a friend: their picks appear beside yours, tagged with their name. Private picks are never in the link.'],
+    ['Trips','On My Con, <b>Trips</b> plans a run out of the con — feed the dog, grab a meal — in the cheapest gap, and warns when a run would cost you a pick or leave you short on time.'],
+    ['Offline','It loads once, then needs no signal — the whole thing is one file about 470KB. Your picks live on this device (and in any link you make); nothing is sent anywhere.']
+  ];
   const rows=[
     ['<span class="mark">☆ ★ 🏆</span>','Tap the star: once for interested (★), again for high priority (🏆), again to clear. On My Con use the ★ / 🏆 / ✕ buttons.'],
-    ['<span class="mark">🚫 ✕ ☆ ★ 🏆</span>','Open any event for the full scale: 🚫 not interested (hides the whole title), ✕ not now (this time only), ☆ unrated, ★ interested, 🏆 high priority.'],
+    ['<span class="mark">🚫 ✕ ☆ ★ 🏆</span>','Open any event for the full scale: 🚫 not ever (hides the whole title), ✕ not now (this time only), ☆ unrated, ★ interested, 🏆 high priority.'],
     ['<span class="locktag">LOCKED IN</span>','Your plan, not just your wishlist. Locked-in events drive the conflict math; a clash becomes something to sort out, never a block.'],
     ['<span class="privtag">PRIVATE</span>','Mind ya business: this pick is left off any link you share, so friends never see it.'],
     [roleChips,'Who is on the panel, taken from the Program Book bios.'],
     ['<span class="kind '+ROLE_CLASS.expert+'">EXPERT</span>','Credentials on the panel — a doctor, NASA, a science or skeptics track.'],
     ['<span class="kind '+ROLE_CLASS.party+'">PARTY</span>','Music, a dance, a ball or a concert.'],
     ['<span class="kind '+ROLE_CLASS.paid+'">EXTRA FEE</span>','Costs extra on top of your badge.'],
+    ['<span class="kind '+ROLE_CLASS.age+'">18+</span> <span class="kind '+ROLE_CLASS.age+'">21+</span>','Age-restricted — the panel states a minimum age. Read from the schedule text, so a few may be missed.'],
     ['<span class="big">BIG ROOM</span>','A headline ballroom. The line can start forming up to an hour before.'],
     ['<span class="dctv live">DCTV LIVE</span> <span class="dctv">DCTV SUN 7PM</span>','Streamed live, or replayed at that time. DCTV needs a $10 pass.'],
-    ['<span class="rpt">AGAIN SAT 10AM</span>','The same panel runs again at that time.'],
+    ['<span class="rpt">AGAIN SAT 10AM</span>','The same panel runs again at that time — one tag per later showing.'],
     ['<span class="ruledtag">NOT NOW</span>','Set aside for its time slot. It stays in My Con but no longer counts as a conflict.'],
     ['📅','Tap any event to open its full details — description, who’s on it, DCTV times, ballroom queue notes, and the full interest scale.']
   ];
-  c.innerHTML='<h2>What the tags mean</h2><div class="legend">'+
+  c.innerHTML='<h2>How this works</h2>'+
+    '<div class="help">'+sections.map(s=>
+      '<div class="hsec"><b>'+esc(s[0])+'</b><div>'+s[1]+'</div></div>').join('')+'</div>'+
+    '<h3 class="helpsub">What the tags mean</h3>'+
+    '<div class="legend">'+
     rows.map(r=>'<div class="lgrow"><div class="lgk">'+r[0]+'</div><div class="lgv">'+esc(r[1])+'</div></div>').join('')+
     '</div><div class="sbtns"><button id="sClose">Close</button></div>';
   c.querySelector('#sClose').onclick=closeSheet;
@@ -1994,7 +2044,7 @@ function renderHidden(){
   box.className='hidden';
   const h=document.createElement('div');
   h.className='hiddenh';
-  h.textContent='Not interested · '+hiddenTitles.size+' hidden';
+  h.textContent='Not ever · '+hiddenTitles.size+' hidden';
   box.appendChild(h);
   const byId=new Map(); EV.forEach(e=>byId.set(e[ID],e));
   const byTitle=new Map();
@@ -2465,7 +2515,7 @@ function buildChrome(){
    ['creator','Creators'],['musician','Musicians'],['costumer','Costumers'],
    ['scientist','Scientists'],['performer','Performers'],['writer','Writers'],
    ['expert','Expert-led'],['fan','Nobody billed']];
-  const OTHERTAGS=[['party','Parties & music'],['paid','Extra fee']];
+  const OTHERTAGS=[['party','Parties & music'],['paid','Extra fee'],['age','Age-restricted']];
   const gg=document.getElementById('ggrid');
   const mkChip=(k,label,into)=>{
     const b=document.createElement('button');
@@ -2730,19 +2780,20 @@ function tick(){
   /* start on the day of the con you are actually in */
   if(!days.size && inCon() && dayList.includes(dayOf(nowMin()))) days.add(dayOf(nowMin()));
   buildRooms();
+  buildAge();
   buildWatch();
   buildChrome();
   bindTrip();
   stampBuild();
-  document.getElementById('legendBtn').onclick=openLegend;
+  document.getElementById('legendBtn').onclick=openHelp;
   /* one-time gesture hint: the stars cycle, rows expand, chips include/exclude —
      none of which is obvious. Show it once, then remember it's been dismissed. */
   if(!hintSeen){
     const hint=document.getElementById('hint');
     hint.innerHTML='<span>Tips: tap ☆ for interested (again for 🏆 high priority) · open any event for the full scale, Locked in and Mind ya business · filter chips include ✓ or exclude ✕.</span>'+
-      '<button id="hintKey">What the tags mean</button><button id="hintGot">Got it</button>';
+      '<button id="hintKey">How this works</button><button id="hintGot">Got it</button>';
     hint.hidden=false;
-    hint.querySelector('#hintKey').onclick=openLegend;
+    hint.querySelector('#hintKey').onclick=openHelp;
     hint.querySelector('#hintGot').onclick=()=>{ hintSeen=true; savePicks(); hint.hidden=true; };
   }
   tick(); setInterval(tick,30000);
