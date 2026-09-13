@@ -86,6 +86,8 @@ Raw notes, captured as said. Nothing here is designed yet.
   Within a group of friends people volunteer good finds too — "no line at
   Krispy Kreme, go now" is a normal thing to tell your people. So a positive
   signal is not a corrective bolted on, it is half the point.
+- Be able to have calendar notifications and sync with people's calendars. Also
+  have the ability to share events specifically.
 
 ---
 
