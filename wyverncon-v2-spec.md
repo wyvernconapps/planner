@@ -1,8 +1,40 @@
-# WyvernCon Schedule — v2 Spec
+# WyvernCon Schedule — v2 / v3 Spec
 
 **Status:** draft, open for edits
 **v1 shipped:** Dragon Con 2026, wyvernconapps.github.io/planner
-**Target:** post-con build, no deadline
+**Target:** v2 has no deadline; v3 is later still
+
+---
+
+## Scope split — v2 (no backend) vs v3 (backend)
+
+_Added 2026-09-13._ The dividing line for every feature and idea in this spec:
+
+- **v2 = anything one static file + a URL can do.** No server, no accounts, no
+  shared/stored/live state. Built solo (Codie + GitHub Pages), shipped
+  incrementally, stays ~470KB and fully offline. This is the whole near-term
+  plan — see **v2 build plan (no backend)** below.
+- **v3 = anything that needs a backend.** Accounts, stored/shared/real-time
+  state, photos, or push. This is where the single-file model ends
+  (React/Vite/Netlify/Supabase). The premise / structural-finding / privacy /
+  two-modes / build-order sections lower down are the **v3 chapter** — they were
+  written when all of this was still called "v2".
+
+| v2 — solo (Codie + GitHub) | v3 — needs a backend |
+| --- | --- |
+| State model *(done, 1.15)* | Accounts / Supabase |
+| Breaks · Conflict Compare · Now/My Con ranking | QR short-code → stored schedule |
+| Filter bar → one bottom sheet | Network diagram of who knows whom |
+| Link-based friend sharing + visibility levels | Cosplay photos |
+| **Calendar export (.ics / add-to-calendar)** | Room-full reports (live, even friends-only) |
+| **Share a specific event (link)** | Live / real-time friend sync |
+| Data-pull automation (the pipeline) | Push reminders before starred panels |
+| The Q'd post-1.15 tweaks | Two-way sync with other people's calendars |
+
+The two **bold** items are the straddlers moved onto the v2 side on 2026-09-13:
+a `.ics` export lets your *own* calendar fire the reminders with no server, and
+a single-event share is just a smaller link. Their fuller, backend versions —
+live two-way calendar sync, and stored/short-code sharing — stay in v3.
 
 ---
 
@@ -125,7 +157,11 @@ need the Push API + a push server (a v2 backend item, and they'd break the singl
 -file model); consolidating the filter bar into one bottom sheet is a larger
 refactor, queued alongside the Breaks work.
 
-## v2 build roadmap (no-backend-first)
+## v2 build plan (no backend)
+
+_This is the whole v2 track — everything a single static file + a URL can do,
+built solo by Codie on GitHub Pages. Backend features live in the v3 chapter
+below; see the **Scope split** at the top._
 
 Almost all of v2 is buildable **client-side** — friend sharing is link-based
 snapshots, not a live server — so a backend only buys real-time social sync and
@@ -161,14 +197,24 @@ Store locally as `{interest:−2..+2, locked:bool, private:bool}`; migrate old
    payload to carry each pick's level + locked; render from imported links
    (snapshot, re-share to update).
 5. **Filter bar → one bottom sheet** (from the UI/UX review).
+6. **Calendar export** — a "Add to calendar" that generates an `.ics` file (or
+   per-event calendar links) from your picks, so your *own* Google/Apple
+   calendar holds them and fires the reminders. One-way, client-side, no server.
+   *(Straddler moved into v2 on 2026-09-13; live two-way calendar sync is v3.)*
+7. **Share a specific event** — a link that carries a single event rather than
+   your whole list, for "look at this one panel". Just a smaller share link.
+   *(Straddler moved into v2 on 2026-09-13; stored/short-code sharing is v3.)*
+
+Plus the **Q'd post-1.15 tweaks** (repeat tags, "not ever", scale direction,
+age-restricted tag, a real Help button) — see the queue after this section.
 
 **Skip:** the 5-state single-tap card cycle — a multi-tap cycle "becomes a menu
 you scrub through" (the reason My Con already uses explicit buttons). Use the
 slider / explicit controls in Event Detail instead.
 
-**Backend-only (defer to a real v2 server):** live/real-time friend sync
-(link snapshots are the no-backend version); reminders/notifications before
-starred events (Push API + push server).
+**Deferred to v3 (needs a backend):** live/real-time friend sync (link snapshots
+are the no-backend version); push reminders/notifications before starred events
+(Push API + push server); two-way sync with other people's calendars.
 
 _Credit: the Compare view, breaks-keyed-to-locked, the one-way / no-count privacy
 rule, and lock-recalculates-but-doesn't-block came from a ChatGPT review; the
@@ -281,7 +327,17 @@ Everything in v1 works offline and belongs to one person.
 
 ---
 
-## The v2 premise
+# v3 — the backend chapter
+
+_Everything from here to Open questions is the **v3** track: it needs a server
+(accounts, stored/shared/real-time state, photos, push). It was written when all
+of this was still called "v2"; per the Scope split at the top, treat every "v2"
+in the prose below as **v3**. Two exceptions apply to both tracks: **Pulling the
+schedule data yourself** (a solo pipeline task — automating the yearly data
+refresh, no server, so really a v2/build item) and the reference sections after
+Open questions (room capacity, carried-over)._
+
+## The v3 premise
 
 Four requested features:
 
@@ -534,9 +590,10 @@ pulling and cleaning the data every year. Anything automated here should keep
 crediting him, and ideally check with him before hammering the Core-apps
 endpoint — being a good citizen of the community he's building.
 
-## Proposed build order
+## v3 build order (backend)
 
-Each stage should be useful on its own, so the project can stop at any point.
+The order for the backend chapter, once v2 is built out. Each stage should be
+useful on its own, so the project can stop at any point.
 
 **1. Privacy model.** Written down and agreed before any code. Output is a
 short document, not a feature.
