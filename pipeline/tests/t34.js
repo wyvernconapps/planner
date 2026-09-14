@@ -10,7 +10,13 @@ const mk=()=>new Function(js+'\n;return {set view(v){view=v},render,setLevel,'+
   'set hidePast(v){hidePast=v},set onlyShared(v){onlyShared=v}};')();
 
 const lauren=mk(), eric=mk();
-setTimeout(()=>{
+/* both instances load their schedule asynchronously; wait until each has one
+   rather than guessing a fixed delay (a fixed timeout raced the two inits) */
+function whenReady(fn){ let n=0;
+  (function w(){ if([lauren,eric].every(a=>a.EV&&a.EV.length>1000)) return fn();
+    if(++n>400){ console.log('  TIMEOUT waiting for the schedule to load'); return; }
+    setTimeout(w,10); })(); }
+whenReady(()=>{
   const EV=lauren.EV, START=1, ID=8;
   const sat=EV.map((e,i)=>i).filter(i=>Math.floor(EV[i][START]/1440)===3);
 
@@ -54,4 +60,4 @@ setTimeout(()=>{
   globalThis.location.hash=ericLink.slice(ericLink.indexOf('#'));
   const self=eric.importFromHash();
   console.log('\n  Eric opening his own link: friends =',eric.friends.length,'(must be 0)');
-},80);
+});
