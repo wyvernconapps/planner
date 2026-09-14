@@ -21,6 +21,7 @@ Live at **[wyvernconapps.github.io/planner](https://wyvernconapps.github.io/plan
 | `CHANGELOG.md` | Version history, 1.0 → 1.11.1. |
 | `github-guide.md` | Plain-language GitHub guide for this one-file, one-person project. |
 | `wyverncon-v2-spec.md` | The post-con v2 plan and idea inbox. |
+| `event-tagging-spec.md` | The event-format classification spec, implemented by `classifyFormat()` in `shell.html` (1.19). Extend its override table for corrections. |
 
 ## Source vs. built
 
