@@ -5,7 +5,7 @@ const js=fs.readFileSync(require('path').join(__dirname,'..','..','index.html'),
   .match(/<script>([\s\S]*)<\/script>/)[1];
 const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,openSheet,'+
   'get EV(){return EV},set listSort(v){listSort=v},set hidePast(v){hidePast=v},'+
-  'get trip(){return trip},toggleWatch,dctvOf,get picks(){return picks}};')();
+  'get breaks(){return breaks},renderBreaks,toggleWatch,dctvOf,get picks(){return picks}};')();
 let fails=0;
 const go=(what,fn)=>{ try{ fn(); }catch(e){ fails++;
   console.log('  THREW  '+what+'  ->  '+e.constructor.name+': '+e.message); } };
@@ -15,12 +15,14 @@ setTimeout(()=>{
   console.log('Clicking every control in every view:\n');
   for(const v of ['now','browse','grid','mine']){
     app.view=v; go('render '+v,()=>app.render());
-    // header controls
-    ['clearBtn','sortBtn','pastBtn','trackBtn','kindBtn','tripBtn','toTop',
-     'tpAll','tpNone','kpAll','kpNone','tReset'].forEach(id=>{
+    // header + filter-sheet controls (the sheet holds every filter now)
+    ['searchBtn','filtersBtn','sortSheetBtn','breaksBtn','fClose',
+     'clearBtn','pastBtn','toTop','tpAll','tpNone','kpAll','kpNone','gpAll','gpNone'].forEach(id=>{
       const el=ids[id];
       if(el&&el.onclick) go(v+' #'+id,()=>{ el.onclick(); app.render(); });
     });
+    // sort row buttons
+    ids.sortRow.children.forEach(b=>{ if(b.onclick) go(v+' sort',()=>{ b.onclick(); }); });
     // every chip
     [...ids.days.children,...ids.hotels.children].forEach((c,n)=>{
       if(c.onclick) go(v+' chip'+n,()=>{ c.onclick(); app.render(); });
@@ -28,16 +30,20 @@ setTimeout(()=>{
     ids.hotels.querySelectorAll('.pin').forEach(p=>{
       go(v+' pin',()=>{ p.onclick({stopPropagation(){}}); app.render(); });
     });
-    [...ids.tgrid.children.slice(0,3),...ids.kgrid.children].forEach(c=>{
+    [...ids.tgrid.children.slice(0,3),...ids.kgrid.children,...ids.ggrid.children].forEach(c=>{
       if(c.onclick) go(v+' filterchip',()=>{ c.onclick(); app.render(); });
     });
-    // trip settings
-    ['tOn','tDctv'].forEach(id=>{ if(ids[id]&&ids[id].onchange)
-      go(v+' '+id,()=>{ ids[id].checked=true; ids[id].onchange({target:ids[id]}); }); });
-    ['tTravel','tHome','tBuf','tB1','tB2','tD1','tD2'].forEach(id=>{
-      if(ids[id]&&ids[id].oninput) go(v+' '+id,()=>{
-        ids[id].value='60'; ids[id].oninput({target:{value:'60'}}); }); });
-    ids.tPark.children.forEach(b=>{ if(b.onclick) go(v+' park',()=>b.onclick()); });
+    // break settings: fire every control the dynamic box built
+    go(v+' renderBreaks',()=>app.renderBreaks());
+    ids.breaksBox.querySelectorAll('input').forEach((inp,n)=>{
+      go(v+' brk-input'+n,()=>{
+        if(inp.type==='checkbox'){ inp.checked=!inp.checked; if(inp.onchange) inp.onchange({target:inp}); }
+        else if(inp.oninput) inp.oninput({target:{value:inp.type==='range'?'60':'x'}});
+      });
+    });
+    ids.breaksBox.querySelectorAll('button').forEach((b,n)=>{
+      if(b.onclick) go(v+' brk-btn'+n,()=>b.onclick());
+    });
     // rows: star, expand, seg buttons, watch
     ids.main.querySelectorAll('.ev').slice(0,6).forEach(r=>{
       const st=r.querySelector('.star');

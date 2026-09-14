@@ -13,7 +13,9 @@ const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelO
  'setLocked,setPrivate,isRuled,toggleWatch,toggleRuled,dctvOf,laterRepeats,isWatch,shareLink,importFromHash,'+
  'set hidePast(v){hidePast=v},set listSort(v){listSort=v},set day(v){day=v},get day(){return day},'+
  'get hotels(){return hotels},get days(){return days},get offTracks(){return offTracks},set query(v){query=v},'+
- 'get query(){return query},activeFilters,get trip(){return trip},planTrips,roomOf,'+
+ 'get query(){return query},activeFilters,planTrips,roomOf,makeBreak,'+
+ 'set breakOn(v){breakOn=v},get breakOn(){return breakOn},get breaks(){return breaks},'+
+ 'set breaks(v){breaks=v},get breakDecisions(){return breakDecisions},set hasDctvPass(v){hasDctvPass=v},'+
  'get DATA(){return DATA},set picks(v){picks=v}};')();
 
 setTimeout(()=>{
@@ -64,16 +66,21 @@ setTimeout(()=>{
     catch(e){ ok('sort '+m,false,e.message); }
   });
 
-  console.log('\nTRIPS');
-  app.trip.on=true;
+  console.log('\nBREAKS');
+  app.breakOn=true;
   const list=[...app.picks.keys()].map(id=>app.EV.findIndex(e=>e[ID]===id)).filter(i=>i>=0);
   const plan=app.planTrips(list);
-  ok('two meals planned per day', plan.length>=2, plan.length+' trips');
-  ok('trips have a cost', plan.every(t=>t.impossible||typeof t.cost==='number'));
-  app.trip.meals[1]={name:'Dinner',from:9*60,to:12*60+30};
-  ok('parade blocks Sat morning',
-     app.planTrips(list).some(t=>t.day==='Sat'&&t.meal==='Dinner'&&t.impossible));
-  app.trip.meals[1]={name:'Dinner',from:18*60,to:21*60};
+  ok('breaks planned across days', plan.length>=2, plan.length+' break-days');
+  ok('breaks have a cost', plan.every(t=>t.impossible||typeof t.cost==='number'));
+  ok('breaks carry a type/travel flag', plan.every(t=>t.impossible||typeof t.travel==='boolean'));
+  /* a travel break whose window is only the Saturday parade blackout has no slot */
+  app.breaks=[app.makeBreak('pet',{label:'Feed the dog',from:9*60,to:12*60+30,duration:60,each:30})];
+  ok('parade blocks a Sat-morning-only break',
+     app.planTrips(list).some(t=>t.day==='Sat'&&t.impossible));
+  /* an on-site break (travel off) plans with zero travel */
+  app.breaks=[app.makeBreak('meal',{label:'Lunch',from:12*60,to:14*60,duration:45})];
+  ok('on-site break plans without travel',
+     app.planTrips(list).some(t=>!t.impossible&&t.travel===false));
 
   console.log('\nSYNC');
   const url=app.shareLink();

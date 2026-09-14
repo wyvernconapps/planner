@@ -117,11 +117,8 @@ const nav=new El('nav'); root.appendChild(nav);
 ['now','browse','grid','mine'].forEach(v=>{
   const b=new El('button'); b.dataset.view=v; nav.appendChild(b);
 });
-if(ids['sheet']){
-  const scrim=new El('div'); scrim.className='scrim'; ids['sheet'].appendChild(scrim);
-}
-['trackPanel','tripPanel','kindPanel'].forEach(id=>{
-  if(ids[id]) ids[id].dataset.open='0';
+['sheet','filterSheet'].forEach(id=>{
+  if(ids[id]){ const scrim=new El('div'); scrim.className='scrim'; ids[id].appendChild(scrim); }
 });
 
 globalThis.document={

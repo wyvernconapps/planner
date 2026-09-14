@@ -11,6 +11,36 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.17 — Breaks, one filter sheet, bigger type
+
+The first item of the v2 build plan: the trip planner generalized to typed
+**Breaks**, every scattered filter control folded into **one bottom sheet**, and
+an accessibility pass. Saved picks (and old dog-trip settings) survive, so this
+is a minor bump.
+
+- **Trips → Breaks.** The dog planner is now one preset among four types —
+  🍽️ Meal, 🐾 Pet, 😴 Rest, 🧾 Errand. Each break has its own time **window**,
+  a **duration**, and a **travel toggle**: travel on is a round trip with
+  parking-hotel awareness (the old pet run), travel off is on-site with zero
+  travel (a meal at the con). You can add, name, and remove as many as you like.
+  The app **suggests the cheapest slot** in each window; each break card in My
+  Con is one of three states — **clear** (a quiet one-liner), **costs you**
+  (expands with the picks you'd miss and *Take it here / Try another time / Skip
+  today*), or **locked in** (a solid block the conflict math respects, like a
+  locked-in pick). Old dog-trip settings migrate to two Pet breaks; the DCTV
+  pass becomes a standalone setting.
+- **One filter sheet.** The search box and the Featuring / Other tags / Tracks /
+  Trips buttons, plus the Days and Locations chip rows, are gone from the header.
+  In their place, one row reads **Search · Filters (N) · Sort** — the `(N)` a
+  live count of active filters — and opens a single bottom sheet holding Search,
+  Days, Locations, Sort, Featuring, Other tags, Tracks, Hide-past, Clear, and the
+  Break settings. The header is now three lines instead of eight.
+- **Accessibility.** Smallest type lifted to an 11px floor (from 9.5–10.5px), and
+  the badge legend gains rows for the new Break-state cards. Secondary text
+  already meets WCAG AA from 1.14.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.16 — repeat tags, age tag, Help, scale polish
 
 Post-1.15 queue, five tweaks:

@@ -113,45 +113,16 @@ body.hdrhid .timehead{top:0}
 .chip .dot{display:none}
   background:var(--hc);margin-right:6px;vertical-align:1px}
 
-.tools{display:flex;gap:8px;margin-top:9px}
-.tools input{
-  flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);
-  border-radius:9px;padding:9px 11px;color:var(--text);font-size:14.5px;
-}
-.tools input::placeholder{color:var(--faint)}
-.tbtn{
-  flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:9px;
-  padding:9px 12px;font-size:13.5px;font-weight:600;color:var(--dim)
-}
-.tbtn.on{border-color:var(--gold);color:var(--gold)}
-.countrow{display:flex;align-items:center;gap:10px;padding-top:8px}
-.count{flex:1;min-width:0;padding:0 2px;font-size:12px;color:var(--faint)}
+.count{padding:6px 2px 0;font-size:12px;color:var(--faint)}
 .pastbtn{flex:0 0 auto;font-size:11.5px;font-weight:600;color:var(--faint);
   padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:var(--surface);
   white-space:nowrap}
 .pastbtn[aria-pressed="true"]{color:var(--gold);border-color:var(--gold)}
 .gcell.past{opacity:.34}
 
-/* ---- track filter ---- */
-#trackPanel,#tripPanel,#kindPanel,#tagPanel{display:none;padding:10px 12px 4px;border-top:1px solid var(--line);
-  margin-top:9px;max-height:52vh;overflow-y:auto}
-.trow{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:12.5px;color:var(--dim)}
-.trow>span{flex:0 0 118px}
-.tsub{padding:12px 0 2px;font-size:11px;font-weight:700;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--gold)}
-.tsub+.trow>span{flex:0 0 46px}
-.trow>span+input[type=range]{min-width:130px}
-.trow input[type=range]{flex:1;min-width:60px;accent-color:var(--gold)}
-.trow input[type=checkbox]{margin-left:auto;width:20px;height:20px;accent-color:var(--gold)}
-.trow b{flex:0 0 54px;text-align:right;font-size:11.5px;color:var(--gold);
-  font-variant-numeric:tabular-nums}
-.tpark{display:flex;flex-wrap:wrap;gap:5px;flex:1}
-.tpark button{padding:4px 9px;border-radius:6px;font-size:11.5px;background:var(--surface2);
-  border:1px solid var(--line);color:var(--faint)}
-.tpark button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+/* ---- filter chips + break cards ---- */
 .treset{margin-top:10px;font-size:11.5px;font-weight:600;color:var(--faint);
   padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:var(--surface)}
-.tnote{padding:8px 0 4px;font-size:11px;color:var(--faint);line-height:1.5}
 .trip{margin:14px 0 8px;padding:12px 13px;border-radius:10px;
   background:#1B2416;border:1px solid #3E5426}
 .trip.clear{padding:8px 13px;opacity:.72}
@@ -207,7 +178,7 @@ main{padding:0 12px}
   padding:8px 3px;border-radius:9px;background:var(--surface2);
   border:1px solid var(--line);text-align:center;min-width:0}
 .ibtn .im{font-size:16px;line-height:1}
-.ibtn .il{font-size:9.5px;font-weight:600;color:var(--faint);line-height:1.15}
+.ibtn .il{font-size:11px;font-weight:600;color:var(--faint);line-height:1.15}
 .ibtn.on{background:#1A2739;border-color:#5A7392}
 .ibtn.on .il{color:#8FB4D6}
 .iflags{display:flex;gap:7px;margin-top:8px}
@@ -227,7 +198,7 @@ main{padding:0 12px}
 .flr{color:var(--faint)}
 .away{color:var(--PARK);font-weight:600}
 .remain{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(240,168,48,.15);color:var(--gold)}
 .remain.part{background:rgba(148,165,184,.14);color:var(--faint)}
 .timehead.fold{width:calc(100% + 24px);text-align:left;cursor:pointer}
@@ -315,7 +286,7 @@ main{padding:0 12px}
 .ghead{position:sticky;top:0;z-index:3;display:flex;height:30px;
   background:var(--surface2);border-bottom:1px solid var(--line)}
 .gcorner{position:sticky;left:0;z-index:4;flex:0 0 86px;background:var(--surface2);
-  border-right:1px solid var(--line);font-size:10.5px;font-weight:700;color:var(--faint);
+  border-right:1px solid var(--line);font-size:11px;font-weight:700;color:var(--faint);
   display:flex;align-items:center;padding-left:9px;letter-spacing:.04em}
 .gtick{flex:0 0 88px;font-size:11px;color:var(--faint);padding:8px 0 0 7px;
   border-left:1px solid var(--line);font-variant-numeric:tabular-nums}
@@ -326,18 +297,18 @@ main{padding:0 12px}
   background:var(--surface);border-right:1px solid var(--line);
   padding:5px 7px 5px 9px;font-size:11.5px;line-height:1.25;color:var(--text);
   display:flex;flex-direction:column;justify-content:center;overflow:hidden}
-.glabel small{color:var(--faint);font-size:10px;margin-top:2px}
+.glabel small{color:var(--faint);font-size:11px;margin-top:2px}
 .glabel.tier1{border-left:3px solid var(--gold);padding-left:6px}
 .glabel.tier2{border-left:3px solid #47607E;padding-left:6px}
 .big{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(240,168,48,.16);color:var(--gold)}
 .dctv{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(79,179,217,.16);color:var(--HYA)}
 .dctv.live{background:rgba(95,207,138,.18);color:var(--green)}
 .rpt{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(168,194,79,.16);color:var(--PARK)}
 .rpt.more{background:rgba(148,165,184,.14);color:var(--faint)}
 .rptbox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
@@ -360,7 +331,7 @@ main{padding:0 12px}
 .ev.ruled .evtitle{text-decoration:line-through}
 .ev.wasruled .evtitle{text-decoration:line-through;opacity:.7}
 .kind{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px}
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px}
 .k-guest{background:rgba(226,104,90,.18);color:var(--HIL)}
 .r-a{background:rgba(226,104,90,.18);color:var(--HIL)}      /* actor */
 .r-b{background:rgba(240,168,48,.16);color:var(--gold)}     /* author, writer */
@@ -378,16 +349,16 @@ main{padding:0 12px}
 .whobox b{color:var(--text)}
 .whobox span{color:var(--faint);font-size:11px}
 .mate{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
+  font-size:11px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
   background:rgba(155,140,255,.18);color:var(--WES)}
 .ruledtag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(255,111,94,.14);color:var(--red)}
 .locktag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(95,207,138,.16);color:var(--green)}
 .privtag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(148,165,184,.16);color:var(--dim)}
 .ev.locked{border-color:#3E7A55}
 .gcell.locked{box-shadow:inset 0 0 0 2px var(--green)}
@@ -418,11 +389,11 @@ main{padding:0 12px}
 }
 .gcell.lv1{outline:2px solid #8FB4D6;outline-offset:-2px}
 .gcell.lv2{outline:2px solid var(--gold);outline-offset:-2px}
-.gcell time{display:block;font-weight:700;font-size:10.5px;opacity:.7;letter-spacing:.02em}
+.gcell time{display:block;font-weight:700;font-size:11px;opacity:.7;letter-spacing:.02em}
 .gfloor{position:relative;height:25px;background:var(--surface2);
   border-bottom:1px solid var(--line);border-top:1px solid var(--line)}
 .gflabel{position:sticky;left:0;display:inline-flex;align-items:center;height:100%;
-  padding:0 12px 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.06em;
+  padding:0 12px 0 9px;font-size:11px;font-weight:700;letter-spacing:.06em;
   color:var(--gold);background:var(--surface2);white-space:nowrap}
 .gsort{display:flex;align-items:center;gap:10px;margin-top:10px;
   font-size:11.5px;color:var(--faint)}
@@ -461,7 +432,89 @@ nav button{flex:1;padding:11px 4px 12px;font-size:11px;font-weight:600;color:var
 nav button b{font-size:17px;font-weight:600;line-height:1}
 nav button[aria-current="page"]{color:var(--gold)}
 .badge{position:absolute;transform:translate(15px,-4px);background:var(--gold);color:#16202E;
-  font-size:10px;font-weight:700;border-radius:999px;padding:1px 5px;line-height:1.5}
+  font-size:11px;font-weight:700;border-radius:999px;padding:1px 5px;line-height:1.5}
+
+/* ---- filter bar: one row, Search / Filters (N) / Sort, opening the sheet ---- */
+.filterbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px}
+.fbtn{flex:0 1 auto;background:var(--surface);border:1px solid var(--line);border-radius:9px;
+  padding:9px 13px;font-size:13.5px;font-weight:600;color:var(--text)}
+.fbtn#searchBtn{flex:1 1 auto;text-align:left;color:var(--dim)}
+.fbtn .n{color:var(--gold)}
+.fbtn.on{border-color:var(--gold);color:var(--gold)}
+.fdot{color:var(--faint);font-size:12px}
+
+/* ---- filter sheet: one bottom sheet holding every filter + Break settings ---- */
+#filterSheet{position:fixed;inset:0;z-index:55;display:none}
+#filterSheet.open{display:block}
+#filterSheet .scrim{position:absolute;inset:0;background:rgba(6,10,16,.66)}
+#filterSheet .fcard{position:absolute;left:0;right:0;bottom:0;max-height:86vh;overflow-y:auto;
+  background:var(--surface);border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0;padding:14px 16px calc(20px + env(safe-area-inset-bottom))}
+.fhead{display:flex;align-items:center;gap:10px;position:sticky;top:-14px;z-index:2;
+  background:var(--surface);margin:-14px -16px 6px;padding:14px 16px 10px;
+  border-bottom:1px solid var(--line)}
+.fhead b{font-size:17px;font-weight:700}
+.fhead #fClose{margin-left:auto;background:var(--gold);color:#1A1206;font-weight:700;
+  border-radius:9px;padding:8px 16px;font-size:14px}
+.fsec{padding:12px 0;border-bottom:1px solid var(--line)}
+.fsec:last-child{border-bottom:none}
+.fseclabel{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:9px}
+.fseclabel span{font-weight:500;letter-spacing:0;text-transform:none;color:var(--faint);
+  font-size:11.5px;margin-left:7px}
+#filterSheet .chiprow{margin-top:0}
+.sortrow{display:flex;flex-wrap:wrap;gap:6px}
+.sortrow button{padding:8px 14px;border-radius:999px;font-size:13.5px;font-weight:600;
+  background:var(--surface2);border:1px solid var(--line);color:var(--dim)}
+.sortrow button[aria-pressed="true"]{background:var(--gold);color:#16202E;border-color:var(--gold)}
+#filterSheet #q{width:100%;background:var(--surface2);border:1px solid var(--line);
+  border-radius:9px;padding:11px 12px;color:var(--text);font-size:15px;margin-bottom:4px}
+#filterSheet #q::placeholder{color:var(--faint)}
+#filterSheet .pastbtn{font-size:13px}
+#filterSheet #clearBtn{margin-top:14px;width:100%;padding:11px;font-size:13.5px}
+
+/* ---- break settings (in the filter sheet) ---- */
+.brkmaster{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;
+  color:var(--text);margin-bottom:4px}
+.brkmaster input{width:20px;height:20px;accent-color:var(--gold)}
+.brknote{font-size:12px;color:var(--faint);line-height:1.5;margin:2px 0 10px}
+.brkcard{margin:10px 0;padding:11px 12px;border-radius:10px;background:var(--surface2);
+  border:1px solid var(--line)}
+.brkcard.off{opacity:.5}
+.brkrow{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:13px;color:var(--dim)}
+.brkrow>span{flex:0 0 96px}
+.brkrow input[type=range]{flex:1;min-width:60px;accent-color:var(--gold)}
+.brkrow input[type=text]{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;color:var(--text);font-size:13.5px}
+.brkrow b{flex:0 0 60px;text-align:right;font-size:12px;color:var(--gold);
+  font-variant-numeric:tabular-nums}
+.brktypes{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.brktypes button{padding:5px 10px;border-radius:7px;font-size:12.5px;background:var(--surface);
+  border:1px solid var(--line);color:var(--faint)}
+.brktypes button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+.brktravel{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--dim)}
+.brktravel input{width:20px;height:20px;accent-color:var(--gold)}
+.brkpark{display:flex;flex-wrap:wrap;gap:5px;flex:1}
+.brkpark button{padding:4px 9px;border-radius:6px;font-size:11.5px;background:var(--surface);
+  border:1px solid var(--line);color:var(--faint)}
+.brkpark button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+.brkdel{margin-top:6px;font-size:11.5px;font-weight:600;color:var(--red);
+  padding:5px 10px;border-radius:7px;border:1px solid #5E2E2A;background:transparent}
+.brkadd{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.brkadd button{padding:7px 12px;border-radius:8px;font-size:12.5px;font-weight:600;
+  background:var(--surface2);border:1px dashed var(--line);color:var(--dim)}
+/* the three break-card choices in My Con */
+.tripacts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.tripacts button{font-size:12px;font-weight:600;padding:7px 12px;border-radius:8px;
+  background:var(--surface);border:1px solid var(--line);color:var(--dim)}
+.tripacts .takeit{border-color:#3E5426;color:#C3D69A}
+.tripacts .skipit{color:var(--faint)}
+.trip.locked{background:#152219;border-color:#2E5A3E}
+.trip.locked .triph{color:var(--green)}
+.trip.locked .tripb{color:#9FD8B4}
+.brktag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
+  background:rgba(95,207,138,.16);color:var(--green)}
 </style>
 </head>
 <body>
@@ -474,81 +527,74 @@ nav button[aria-current="page"]{color:var(--gold)}
     <div class="brand">WyvernCon <b>Schedule</b></div>
     <div class="clock" id="clock"></div>
   </div>
-  <div class="chiprow" id="days"></div>
-  <div class="chiprow" id="hotels"></div>
-  <div class="herehint" id="hereHint"></div>
-  <div class="tools" id="tools">
-    <input id="q" type="search" placeholder="Search titles, guests, rooms" autocomplete="off">
-    <button class="tbtn" id="kindBtn">Featuring</button>
-    <button class="tbtn" id="tagBtn">Other tags</button>
-    <button class="tbtn" id="trackBtn">Tracks</button>
-    <button class="tbtn" id="tripBtn">Trips</button>
+  <div class="filterbar" id="filterbar">
+    <button class="fbtn" id="searchBtn">&#128269; Search</button>
+    <span class="fdot" id="dot1">&middot;</span>
+    <button class="fbtn" id="filtersBtn">Filters</button>
+    <span class="fdot" id="dot2">&middot;</span>
+    <button class="fbtn" id="sortSheetBtn">Sort</button>
+    <button class="fbtn" id="breaksBtn">Breaks</button>
   </div>
-  <div id="tripPanel" data-open="0">
-    <label class="trow"><span>Go home to feed the dog</span>
-      <input type="checkbox" id="tOn"></label>
-    <label class="trow"><span>Travel each way</span>
-      <input type="range" id="tTravel" min="5" max="90" step="5">
-      <b id="tTravelV"></b></label>
-    <label class="trow"><span>Time at home</span>
-      <input type="range" id="tHome" min="15" max="180" step="15">
-      <b id="tHomeV"></b></label>
-    <label class="trow"><span>Buffer before next panel</span>
-      <input type="range" id="tBuf" min="0" max="45" step="5">
-      <b id="tBufV"></b></label>
-    <div class="trow"><span>Car parked at</span><div class="tpark" id="tPark"></div></div>
-    <div class="tsub">Breakfast window</div>
-    <label class="trow"><span>from</span>
-      <input type="range" id="tB1" min="300" max="720" step="15"><b id="tB1V"></b></label>
-    <label class="trow"><span>until</span>
-      <input type="range" id="tB2" min="360" max="780" step="15"><b id="tB2V"></b></label>
-    <div class="tsub">Dinner window</div>
-    <label class="trow"><span>from</span>
-      <input type="range" id="tD1" min="900" max="1290" step="15"><b id="tD1V"></b></label>
-    <label class="trow"><span>until</span>
-      <input type="range" id="tD2" min="960" max="1380" step="15"><b id="tD2V"></b></label>
-    <label class="trow"><span>I have a DCTV streaming pass</span>
-      <input type="checkbox" id="tDctv"></label>
-    <button class="treset" id="tReset">Reset trip settings</button>
-    <div class="tnote">Trips only appear in My Con. Walk time to the car is added
-      from wherever your previous pick is.</div>
-  </div>
-  <div id="kindPanel" data-open="0">
-    <div class="tp-head">
-      <button id="kpAll">Show all</button>
-      <button id="kpNone">Hide all</button>
-      <span class="tphint">Who is on the panel</span>
-    </div>
-    <div class="tgrid" id="kgrid"></div>
-    <div class="tnote">Roles come from each guest's own bio in the 2026 Program
-      Book. Attending Professionals are named in the detail but carry no badge.
-      A panel with nobody billed is a fan panel.</div>
-  </div>
-  <div id="tagPanel" data-open="0">
-    <div class="tp-head">
-      <button id="gpAll">Show all</button>
-      <button id="gpNone">Hide all</button>
-      <span class="tphint">Everything that is not about who is on it</span>
-    </div>
-    <div class="tgrid" id="ggrid"></div>
-  </div>
-  <div id="trackPanel" data-open="0">
-    <div class="tp-head">
-      <button id="tpAll">Show all</button>
-      <button id="tpNone">Hide all</button>
-      <span class="tphint">Hide all, then tap the few you want</span>
-    </div>
-    <div class="tgrid" id="tgrid"></div>
-  </div>
-  <div class="countrow">
-    <div class="count" id="count"></div>
-    <button class="pastbtn" id="clearBtn"></button>
-    <button class="pastbtn" id="sortBtn"></button>
-    <button class="pastbtn" id="pastBtn"></button>
-  </div>
+  <div class="count" id="count"></div>
 </header>
 
 <main id="main"></main>
+
+<!-- one bottom sheet holding every filter and the Break settings; sections are
+     shown per view (My Con sees only Breaks) -->
+<div id="filterSheet"><div class="scrim"></div><div class="fcard" id="filterCard">
+  <div class="fhead"><b id="fTitle">Filters</b><button id="fClose">Done</button></div>
+  <div class="fsec" id="secSearch">
+    <input id="q" type="search" placeholder="Search titles, guests, rooms" autocomplete="off">
+  </div>
+  <div class="fsec" id="secDays">
+    <div class="fseclabel">Days</div>
+    <div class="chiprow" id="days"></div>
+  </div>
+  <div class="fsec" id="secLoc">
+    <div class="fseclabel">Locations</div>
+    <div class="chiprow" id="hotels"></div>
+    <div class="herehint" id="hereHint"></div>
+  </div>
+  <div class="fsec" id="secSort">
+    <div class="fseclabel">Sort</div>
+    <div class="sortrow" id="sortRow"></div>
+  </div>
+  <div class="fsec" id="secFeat">
+    <div class="fseclabel">Featuring <span>who is on the panel</span></div>
+    <div class="tp-head">
+      <button id="kpAll">Show all</button>
+      <button id="kpNone">Hide all</button>
+    </div>
+    <div class="tgrid" id="kgrid"></div>
+    <div class="brknote">Roles come from each guest's own bio in the 2026 Program
+      Book. A panel with nobody billed is a fan panel.</div>
+  </div>
+  <div class="fsec" id="secTags">
+    <div class="fseclabel">Other tags <span>everything not about who is on it</span></div>
+    <div class="tp-head">
+      <button id="gpAll">Show all</button>
+      <button id="gpNone">Hide all</button>
+    </div>
+    <div class="tgrid" id="ggrid"></div>
+  </div>
+  <div class="fsec" id="secTracks">
+    <div class="fseclabel">Tracks <span>hide all, then tap the few you want</span></div>
+    <div class="tp-head">
+      <button id="tpAll">Show all</button>
+      <button id="tpNone">Hide all</button>
+    </div>
+    <div class="tgrid" id="tgrid"></div>
+  </div>
+  <div class="fsec" id="secPast">
+    <button class="pastbtn" id="pastBtn"></button>
+  </div>
+  <button class="treset" id="clearBtn"></button>
+  <div class="fsec" id="secBreaks">
+    <div class="fseclabel">Breaks <span>go home, grab a meal, take a rest</span></div>
+    <div id="breaksBox"></div>
+  </div>
+</div></div>
 
 <button id="toTop" aria-label="Back to the top" hidden>&#8593;</button>
 
@@ -917,7 +963,24 @@ async function loadPicks(){
       priv=new Set(o.priv||[]);
       watch=o.watch||[];
       offTracks=new Set((o.hidden||[]).map(Number));
-      if(o.trip) trip=Object.assign(JSON.parse(JSON.stringify(TRIP_DEFAULTS)),o.trip);
+      /* Breaks (v2). A pre-Breaks save has o.trip (the dog planner): migrate
+         its two meal windows into two Pet breaks, its dctv flag into the
+         global pass. A Breaks-era save has o.breaks and carries across as-is. */
+      if(o.breaks){
+        breaks=o.breaks;
+        breakOn=o.breakOn??false;
+        breakDecisions=o.breakDecisions||{};
+        hasDctvPass=!!o.hasDctvPass;
+      }else if(o.trip){
+        const t=o.trip;
+        breakOn=!!t.on;
+        hasDctvPass=!!t.dctv;
+        breaks=(t.meals||[]).map(m=>makeBreak('pet',{
+          label:m.name+' — feed the dog',from:m.from,to:m.to,
+          duration:t.home,each:t.travel,buffer:t.buffer,park:t.park}));
+        if(!breaks.length) breaks=DEFAULT_BREAKS();
+        breakDecisions={};
+      }
       here=o.here||null;
       showStarted=!!o.showStarted;
       hintSeen=!!o.hintSeen;
@@ -946,7 +1009,10 @@ async function savePicks(){
     hintSeen,
     name:myName,
     friends,
-    trip
+    breaks,
+    breakOn,
+    breakDecisions,
+    hasDctvPass
   });
   try{ if(window.storage?.set){ await window.storage.set(KEY,v); return; } }catch(e){}
   try{ localStorage.setItem(KEY,v); }catch(e){}
@@ -1015,13 +1081,41 @@ const sharedCount=()=>{
   return n;
 };
 
-/* ---- going home to feed the dog ----
-   A trip is travel out, an hour at home, travel back, plus the walk to and
-   from wherever the car is parked. The question is which two-hour holes cost
-   the least, measured against what you actually picked. */
-const TRIP_DEFAULTS={on:false,travel:30,home:60,buffer:10,park:'MAR',dctv:false,
-  meals:[{name:'Breakfast',from:7*60,to:10*60},{name:'Dinner',from:18*60,to:21*60}]};
-let trip=JSON.parse(JSON.stringify(TRIP_DEFAULTS));
+/* ---- Breaks: leaving the con and coming back ----
+   Generalised from the old dog-trip planner. A break has a TYPE, a time
+   WINDOW, a DURATION, and a TRAVEL toggle: travel on = a round trip with
+   parking-hotel awareness (the old pet run), travel off = an on-site break
+   (a meal at the con) with zero travel. The app suggests the cheapest slot in
+   each window; you confirm it ("Take it here" locks it in as a hard block),
+   move it ("Try another time"), or drop it for the day ("Skip today").
+   The Pet preset is the old dog planner. */
+const BREAK_TYPES={
+  meal:  {icon:'🍽️', label:'Meal',   travel:false},
+  pet:   {icon:'🐾',       label:'Pet',    travel:true},
+  rest:  {icon:'😴',       label:'Rest',   travel:false},
+  errand:{icon:'🧾',       label:'Errand', travel:true}
+};
+/* meal windows the Meal preset offers */
+const MEAL_WINDOWS={Breakfast:[7*60,10*60],Lunch:[12*60,14*60+30],Dinner:[18*60,21*60]};
+/* stable-ish id for a new break */
+let breakSeq=0;
+const newBreakId=()=>'b'+(Date.now().toString(36))+(breakSeq++);
+function makeBreak(type,over={}){
+  const t=BREAK_TYPES[type]||BREAK_TYPES.meal;
+  const base={id:newBreakId(),type,label:over.label||t.label,travel:t.travel,
+    from:12*60,to:14*60,duration:type==='pet'?60:45,each:30,buffer:10,park:'MAR'};
+  return Object.assign(base,over);
+}
+/* Fresh install seeds the old two-feeding dog runs, so nothing regresses for
+   an existing user; migration below carries a real saved trip across. */
+const DEFAULT_BREAKS=()=>[
+  makeBreak('pet',{label:'Breakfast — feed the dog',from:7*60,to:10*60,duration:60,each:30}),
+  makeBreak('pet',{label:'Dinner — feed the dog',   from:18*60,to:21*60,duration:60,each:30})
+];
+let breaks=DEFAULT_BREAKS();
+let breakOn=false;              /* master toggle - breaks only appear when on */
+let breakDecisions={};          /* '<breakId>|<day>' -> {state:'here'|'alt'|'skip', at} */
+let hasDctvPass=false;          /* global: a DCTV streaming pass discounts miss cost */
 
 /* Saturday morning the parade closes Peachtree and downtown gridlocks. The
    panel schedule says this is the cheapest window of the weekend; the street
@@ -1038,8 +1132,8 @@ function missCost(i){
   if(!w) return 0;
   if(laterRepeats(i).length) w*=0.25;          /* catch it another time */
   const tv=dctvOf(i);
-  if(tv&&tv.live&&trip.dctv) w*=0.15;          /* watch it from the sofa */
-  else if(tv&&tv.airs.length&&trip.dctv) w*=0.4;
+  if(tv&&tv.live&&hasDctvPass) w*=0.15;         /* watch it from the sofa */
+  else if(tv&&tv.airs.length&&hasDctvPass) w*=0.4;
   return w;
 }
 
@@ -1583,10 +1677,11 @@ function openHelp(){
     .map(k=>'<span class="kind '+ROLE_CLASS[k]+'">'+KIND_NAME[k]+'</span>').join(' ');
   /* section bodies carry safe, constant HTML (bold), so they are not escaped */
   const sections=[
-    ['Getting around','<b>Now</b> — what’s on and near you. <b>Browse</b> — the whole schedule, search and filter. <b>Grid</b> — rooms down the side, time across the top. <b>My Con</b> — your plan, with clashes grouped and trips home.'],
+    ['Getting around','<b>Now</b> — what’s on and near you. <b>Browse</b> — the whole schedule, search and filter. <b>Grid</b> — rooms down the side, time across the top. <b>My Con</b> — your plan, with clashes grouped and breaks worked in.'],
+    ['Search, Filters & Sort','One button row above the list opens a single sheet: <b>Search</b> titles, guests and rooms; <b>Filters</b> for days, locations, who’s featured, other tags and tracks (the number is how many are active); and <b>Sort</b> by time, interest, place or distance. Tap <b>Done</b> to close it.'],
     ['Marking events','Tap the star for interested, again for high priority, again to clear. Open any event for the full scale — Not ever, Not now, Unrated, Interested, High priority — plus <b>Locked in</b> (a firm plan the clash and trip math respect) and <b>Mind ya business</b> (kept off any link you share).'],
     ['Sharing','On My Con, <b>Send these picks</b> copies a link — no account. Paste it on another device to carry your picks over, or send it to a friend: their picks appear beside yours, tagged with their name. Private picks are never in the link.'],
-    ['Trips','On My Con, <b>Trips</b> plans a run out of the con — feed the dog, grab a meal — in the cheapest gap, and warns when a run would cost you a pick or leave you short on time.'],
+    ['Breaks','On My Con, <b>Breaks</b> plans time out — a meal, a pet run, a rest, an errand. Each has a window and a duration, and a travel toggle for whether you leave the con. The app suggests the cheapest slot; <b>Take it here</b> locks it in, <b>Try another time</b> moves it, <b>Skip today</b> drops it for the day.'],
     ['Offline','It loads once, then needs no signal — the whole thing is one file about 470KB. Your picks live on this device (and in any link you make); nothing is sent anywhere.']
   ];
   const rows=[
@@ -1603,6 +1698,9 @@ function openHelp(){
     ['<span class="dctv live">DCTV LIVE</span> <span class="dctv">DCTV SUN 7PM</span>','Streamed live, or replayed at that time. DCTV needs a $10 pass.'],
     ['<span class="rpt">AGAIN SAT 10AM</span>','The same panel runs again at that time — one tag per later showing.'],
     ['<span class="ruledtag">NOT NOW</span>','Set aside for its time slot. It stays in My Con but no longer counts as a conflict.'],
+    ['<span class="brktag">🍽️ · clear</span>','A break card in My Con with a clear slot — nothing you picked runs during it.'],
+    ['<span class="brktag" style="background:rgba(240,168,48,.16);color:var(--gold)">🐾 costs 2</span>','A break that would run over picks. Take it there, move it to another time, or skip the day.'],
+    ['<span class="brktag">🐾 · locked in</span>','A break you confirmed — a solid block the conflict math treats like a locked-in pick.'],
     ['📅','Tap any event to open its full details — description, who’s on it, DCTV times, ballroom queue notes, and the full interest scale.']
   ];
   c.innerHTML='<h2>How this works</h2>'+
@@ -1616,61 +1714,130 @@ function openHelp(){
   document.getElementById('sheet').classList.add('open');
 }
 
-/* Best trip per meal per day: slide a window through the meal's hours and
-   score what it runs over. Returns nulls where nothing is possible. */
+/* set a per-day decision for a break, then redraw */
+function setBreakDecision(breakId,day,dec){
+  const k=breakId+'|'+day;
+  if(dec===null) delete breakDecisions[k]; else breakDecisions[k]=dec;
+  savePicks(); render();
+}
+const brOf=id=>breaks.find(b=>b.id===id);
+
+/* One card per break per day, in three states:
+   - clear     : the suggested slot misses nothing - a quiet one-liner
+   - costs you : it would cost picks - expands with what you'd miss and the
+                 three choices (Take it here / Try another time / Skip today)
+   - locked in : you confirmed it - a solid block the conflict math respects */
 function renderTrip(main,t){
+  const br=brOf(t.breakId)||{};
+  const icon=(BREAK_TYPES[br.type]||BREAK_TYPES.meal).icon;
   const box=document.createElement('div');
-  const clear=!t.hit.length&&!t.tight;
-  box.className='trip'+(t.cost>=3?' costly':'')+(clear?' clear':'');
+  const clear=!t.locked && !t.hit.length && !t.tight;
+  box.className='trip'+(t.locked?' locked':t.cost>=3?' costly':'')+(clear?' clear':'');
   const h=document.createElement('div');
   h.className='triph';
-  h.textContent='\uD83D\uDC15 '+dayName(t.depart).slice(0,3)+' '+
-    hhmm(t.depart)+'\u2013'+hhmm(t.ret);
+  h.textContent=icon+' '+dayName(t.depart).slice(0,3)+' '+
+    hhmm(t.depart)+'–'+hhmm(t.ret);
   const tag=document.createElement('span');
-  tag.textContent=clear?(t.meal.toLowerCase()+' run \u00b7 clear')
-                       :(t.meal.toLowerCase()+' run');
+  tag.textContent=t.locked?(t.meal.toLowerCase()+' · locked in')
+                 :clear   ?(t.meal.toLowerCase()+' · clear')
+                          :t.meal.toLowerCase();
   h.appendChild(tag);
   box.appendChild(h);
-  /* a clear run needs no explanation - one line is the whole story */
-  if(clear) return void main.appendChild(box);
+  /* a clear suggestion needs no explanation - one line, plus a quiet way to
+     pin it down */
+  if(clear){
+    const act=document.createElement('div');
+    act.className='tripacts';
+    const lk=document.createElement('button');
+    lk.textContent='Lock it in';
+    lk.onclick=()=>setBreakDecision(t.breakId,t.day,{state:'here',at:t.depart});
+    act.appendChild(lk);
+    box.appendChild(act);
+    return void main.appendChild(box);
+  }
   const b=document.createElement('div');
   b.className='tripb';
   const parts=[];
-  if(!t.hit.length) parts.push('Clear \u2014 nothing you picked runs during it.');
-  else{
+  if(t.locked){
+    parts.push('Blocked out'+(t.travel?' — you’re away from the con.':' on-site.'));
+    if(t.hit.length){
+      const names=t.hit.slice(0,3).map(i=>EV[i][T].slice(0,34)).join(', ');
+      parts.push('Overlaps '+t.hit.length+' pick'+(t.hit.length===1?'':'s')+': '+names+
+        (t.hit.length>3?' and '+(t.hit.length-3)+' more':'')+' — sort them below.');
+    }
+  }else if(!t.hit.length){
+    parts.push('Clear — nothing you picked runs during it.');
+  }else{
     const names=t.hit.slice(0,3).map(i=>EV[i][T].slice(0,34)).join(', ');
     parts.push('Runs over '+t.hit.length+' pick'+(t.hit.length===1?'':'s')+': '+names+
       (t.hit.length>3?' and '+(t.hit.length-3)+' more':'')+'.');
     const again=t.hit.filter(i=>laterRepeats(i).length).length;
     const tv=t.hit.filter(i=>dctvOf(i)&&dctvOf(i).live).length;
     if(again) parts.push(again+' of them run again later.');
-    if(tv&&trip.dctv) parts.push(tv+' air live on DCTV — watch from home.');
+    if(tv&&hasDctvPass) parts.push(tv+' air live on DCTV — watch from home.');
   }
-  parts.push('From the '+HOTEL_NAME[trip.park]+', '+trip.travel+
-    ' min each way, '+trip.home+' min at home.');
+  if(t.travel) parts.push('From the '+HOTEL_NAME[br.park]+', '+br.each+
+    ' min each way, '+br.duration+' min there.');
+  else parts.push('On-site, '+br.duration+' min.');
   if(t.tight==='car') parts.push(t.tightBy+' min short getting to the car.');
   if(t.tight==='back') parts.push(t.tightBy+' min short getting back.');
   b.textContent=parts.join(' ');
   box.appendChild(b);
+  /* the three choices; a locked break offers only to release it */
+  const act=document.createElement('div');
+  act.className='tripacts';
+  if(t.locked){
+    const un=document.createElement('button');
+    un.textContent='Change';
+    un.onclick=()=>setBreakDecision(t.breakId,t.day,null);
+    act.appendChild(un);
+  }else{
+    const take=document.createElement('button');
+    take.className='takeit';
+    take.textContent='Take it here';
+    take.onclick=()=>setBreakDecision(t.breakId,t.day,{state:'here',at:t.depart});
+    act.appendChild(take);
+    if(t.slots&&t.slots.length>1){
+      const alt=document.createElement('button');
+      alt.textContent='Try another time';
+      alt.onclick=()=>{
+        const cur=t.slots.findIndex(s=>s.depart===t.depart);
+        const nx=t.slots[(cur+1)%t.slots.length];
+        setBreakDecision(t.breakId,t.day,{state:'alt',at:nx.depart});
+      };
+      act.appendChild(alt);
+    }
+    const skip=document.createElement('button');
+    skip.className='skipit';
+    skip.textContent='Skip today';
+    skip.onclick=()=>setBreakDecision(t.breakId,t.day,{state:'skip'});
+    act.appendChild(skip);
+  }
+  box.appendChild(act);
   main.appendChild(box);
 }
 
+/* Plan every break on every con day. Returns trip-shaped objects (the shape
+   the conflict-math and My Con timeline already speak): {breakId, meal, day,
+   depart, ret, cost, hit, tight, tightBy, travel, locked, slots} - or
+   {impossible:true} where the window has no room. */
 function planTrips(list){
-  if(!trip.on) return [];
-  const span=trip.travel*2+trip.home;
+  if(!breakOn || !breaks.length) return [];
   const out=[];
-  /* every day of the con, not just days you happen to have picks on - the
-     dog eats regardless, and a day with nothing starred is a free window */
+  /* every day of the con, not just days you have picks on - a break is a
+     standing plan, and a day with nothing starred is a free window */
   dayList.forEach(dn=>{
     const anchor=EV.find(e=>dayOf(e[START])===dn);
     if(!anchor) return;
     const dayOffset=Math.floor(anchor[START]/1440)*1440;
-    const dn_=dn;
-    trip.meals.forEach(meal=>{
-      let best=null;
-      /* the hour at home has to sit inside the meal window */
-      const first=Math.max(0,meal.from-trip.travel);
-      for(let dep=first; dep<=meal.to-trip.travel-trip.home; dep+=15){
+    breaks.forEach(br=>{
+      const dec=breakDecisions[br.id+'|'+dn];
+      if(dec&&dec.state==='skip') return;          /* dropped for the day */
+      const span=br.travel?(br.each*2+br.duration):br.duration;
+      const first=Math.max(0, br.from-(br.travel?br.each:0));
+      const last=br.to-(br.travel?br.each:0)-br.duration;
+      const slots=[];
+      for(let dep=first; dep<=last; dep+=15){
         const D=dayOffset+dep, R=D+span;
         if(paradeClash(dayOffset,dn,D,R)) continue;
         let cost=0; const hit=[];
@@ -1679,23 +1846,43 @@ function planTrips(list){
             const c=missCost(i); if(c>0){ cost+=c; hit.push(i); }
           }
         });
-        /* walking to and from the car counts against the neighbouring picks */
-        const before=list.filter(i=>EV[i][START]+EV[i][DUR]<=D).pop();
-        const after=list.find(i=>EV[i][START]>=R);
         let tight=null, tightBy=0;
-        if(before!==undefined){
-          const need=walk(DATA.hotels[EV[before][HOT]],trip.park);
-          const have=D-(EV[before][START]+EV[before][DUR]);
-          if(have<need){ cost+=1.5; tight='car'; tightBy=need-have; }
+        if(br.travel){
+          /* walking to and from the car counts against the neighbouring picks */
+          const before=list.filter(i=>EV[i][START]+EV[i][DUR]<=D).pop();
+          const after=list.find(i=>EV[i][START]>=R);
+          if(before!==undefined){
+            const need=walk(DATA.hotels[EV[before][HOT]],br.park);
+            const have=D-(EV[before][START]+EV[before][DUR]);
+            if(have<need){ cost+=1.5; tight='car'; tightBy=need-have; }
+          }
+          if(after!==undefined){
+            const need=walk(br.park,DATA.hotels[EV[after][HOT]])+br.buffer;
+            const have=EV[after][START]-R;
+            if(have<need){ cost+=1.5; tight='back'; tightBy=need-have; }
+          }
         }
-        if(after!==undefined){
-          const need=walk(trip.park,DATA.hotels[EV[after][HOT]])+trip.buffer;
-          const have=EV[after][START]-R;
-          if(have<need){ cost+=1.5; tight='back'; tightBy=need-have; }
-        }
-        if(!best||cost<best.cost) best={meal:meal.name,day:dn_,depart:D,ret:R,cost,hit,tight,tightBy};
+        slots.push({depart:D,ret:R,cost,hit,tight,tightBy});
       }
-      out.push(best||{meal:meal.name,day:dn_,impossible:true,dayOffset});
+      if(!slots.length){
+        out.push({breakId:br.id,meal:br.label,day:dn,impossible:true,dayOffset,travel:br.travel});
+        return;
+      }
+      slots.sort((a,b)=>a.cost-b.cost || a.depart-b.depart);
+      let chosen, locked=false;
+      if(dec&&dec.state==='here'){
+        chosen=slots.find(s=>s.depart===dec.at)
+          ||{depart:dec.at,ret:dec.at+span,cost:0,
+             hit:list.filter(i=>EV[i][START]<dec.at+span&&EV[i][START]+EV[i][DUR]>dec.at&&missCost(i)>0),
+             tight:null,tightBy:0};
+        locked=true;
+      }else if(dec&&dec.state==='alt'){
+        chosen=slots.find(s=>s.depart===dec.at)||slots[0];
+      }else{
+        chosen=slots[0];
+      }
+      out.push(Object.assign({breakId:br.id,meal:br.label,day:dn,dayOffset,
+        travel:br.travel,locked,slots},chosen));
     });
   });
   return out.sort((a,b)=>(a.depart||a.dayOffset)-(b.depart||b.dayOffset));
@@ -2189,14 +2376,18 @@ function viewMine(){
     });
     trips.forEach(t=>{
       if(t.impossible)
-        issues.push({score:250,at:t.dayOffset+trip.meals[0].from,
-          txt:t.meal+' run: no window '+DAYFULL[t.day]});
+        issues.push({score:250,at:t.dayOffset+((brOf(t.breakId)||{}).from||0),
+          txt:t.meal+': no window '+DAYFULL[t.day]});
+      else if(t.locked&&t.hit.length)
+        /* a locked-in break is a hard constraint: overlapping picks must be sorted */
+        issues.push({score:220,at:t.depart,
+          txt:t.meal+' (locked) blocks '+t.hit.length+' pick'+(t.hit.length===1?'':'s')});
       else if(t.cost>=3)
         issues.push({score:120+Math.round(t.cost),at:t.depart,
-          txt:t.meal+' run costs '+t.hit.length+' pick'+(t.hit.length===1?'':'s')});
+          txt:t.meal+' costs '+t.hit.length+' pick'+(t.hit.length===1?'':'s')});
       else if(t.tight)
         issues.push({score:60,at:t.depart,
-          txt:t.meal+' run '+t.tightBy+' min short '+(t.tight==='car'?'to the car':'getting back')});
+          txt:t.meal+' '+t.tightBy+' min short '+(t.tight==='car'?'to the car':'getting back')});
     });
     if(hidePast) issues=issues.filter(x=>x.at>nowMin());
     const hard=issues.filter(x=>x.score>=120).sort((a,b)=>b.score-a.score);
@@ -2380,41 +2571,45 @@ function render(){
   document.getElementById('hotels').classList.toggle('pinning',hereShown);
   document.getElementById('hereHint').style.display=hereShown?'block':'none';
   if(hereShown) syncHere();
-  const dayChips=(view==='browse'||view==='grid');
-  const hotelChips=(view!=='mine');   /* Now filters by hotel - show the control */
-  document.getElementById('days').style.display=dayChips?'flex':'none';
-  document.getElementById('hotels').style.display=hotelChips?'flex':'none';
-  document.getElementById('tools').style.display='flex';
-  document.getElementById('q').style.display=(view==='mine')?'none':'block';
-  document.getElementById('trackBtn').style.display=(view==='mine')?'none':'block';
-  const tp=document.getElementById('trackPanel');
-  tp.style.display=(view!=='mine'&&tp.dataset.open==='1')?'block':'none';
-  ['kindPanel','tagPanel'].forEach(id=>{
-    const el=document.getElementById(id);
-    el.style.display=(view!=='mine'&&el.dataset.open==='1')?'block':'none';
-  });
-  ['kindBtn','tagBtn'].forEach(id=>
-    document.getElementById(id).style.display=(view==='mine')?'none':'block');
-  const rp=document.getElementById('tripPanel');
-  rp.style.display=(rp.dataset.open==='1')?'block':'none';
-  document.getElementById('tripBtn').style.display=(view==='mine')?'block':'none';
+
+  /* which sections of the one filter sheet apply to this view. Days is only
+     used by Browse and Grid; My Con sees only Breaks. */
+  const seen={
+    secSearch:view!=='mine', secDays:(view==='browse'||view==='grid'),
+    secLoc:view!=='mine', secSort:(view==='now'||view==='browse'),
+    secFeat:view!=='mine', secTags:view!=='mine', secTracks:view!=='mine',
+    secPast:view!=='now', secBreaks:view==='mine'
+  };
+  for(const id in seen) document.getElementById(id).hidden=!seen[id];
+  document.getElementById('clearBtn').hidden=(view==='mine');
+
+  /* the header buttons: Search / Filters (N) / Sort for browsing views,
+     a single Breaks button in My Con */
+  const browsing=view!=='mine';
+  const nf=activeFilters();
+  document.getElementById('searchBtn').hidden=!browsing;
+  document.getElementById('dot1').hidden=!browsing;
+  document.getElementById('dot2').hidden=!(view==='now'||view==='browse');
+  const fb=document.getElementById('filtersBtn');
+  fb.hidden=!browsing;
+  fb.innerHTML='Filters'+(nf?' <span class="n">('+nf+')</span>':'');
+  fb.classList.toggle('on',nf>0);
+  const ssb=document.getElementById('sortSheetBtn');
+  ssb.hidden=!(view==='now'||view==='browse');
+  ssb.textContent='Sort: '+LIST_SORTS[listSort];
+  ssb.classList.toggle('on',listSort!=='time');
+  document.getElementById('breaksBtn').hidden=(view!=='mine');
+  document.getElementById('breaksBtn').classList.toggle('on',breakOn);
 
   if(hidePast===null) hidePast=inCon();
   const pb=document.getElementById('pastBtn');
-  pb.textContent=view==='grid'?'Dim past':'Hide past';
+  pb.textContent=(view==='grid'?'Dim past':'Hide past')+(hidePast?': on':': off');
   pb.setAttribute('aria-pressed',String(hidePast));
-  pb.style.display=(view==='now')?'none':'block';
   const cb=document.getElementById('clearBtn');
-  const nf=activeFilters();
-  cb.textContent='Clear '+nf+' filter'+(nf===1?'':'s');
-  cb.style.display=nf?'block':'none';
+  cb.textContent=nf?('Clear '+nf+' filter'+(nf===1?'':'s')):'No filters set';
   cb.setAttribute('aria-pressed','true');
-  const sb=document.getElementById('sortBtn');
-  sb.textContent='Sort: '+LIST_SORTS[listSort];
-  sb.setAttribute('aria-pressed',String(listSort!=='time'));
-  /* Grid has its own room sort; My Con has to stay chronological for the
-     gap and trip arithmetic to mean anything */
-  sb.style.display=(view==='now'||view==='browse')?'block':'none';
+  buildSortRow();
+  renderBreaks();
 
   /* the grid needs a day and at least one hotel to draw */
   if(view==='grid'){
@@ -2546,10 +2741,6 @@ function syncKinds(){
     b.dataset.state = off?'hidden':'neutral';   /* same states as the tracks */
     b.setAttribute('aria-pressed',String(!off));
   });
-  const anyOff=sel=>[...document.querySelectorAll(sel+' .tchip')]
-    .some(b=>offKinds.has(b.dataset.kind));
-  document.getElementById('kindBtn').classList.toggle('on',anyOff('#kgrid'));
-  document.getElementById('tagBtn').classList.toggle('on',anyOff('#ggrid'));
 }
 function syncHere(){
   const at=whereAmI();
@@ -2580,7 +2771,6 @@ function syncTracks(){
     b.dataset.state = offTracks.has(i)?'hidden':'neutral';
     b.setAttribute('aria-pressed',String(!offTracks.has(i)));
   });
-  document.getElementById('trackBtn').classList.toggle('on',offTracks.size>0);
 }
 function measureHeader(){
   document.documentElement.style.setProperty('--headh',
@@ -2602,15 +2792,11 @@ function activeFilters(){
   return n;
 }
 document.getElementById('clearBtn').onclick=()=>{
-  days.clear(); hotels.clear(); offTracks.clear(); query='';
+  days.clear(); hotels.clear(); offTracks.clear(); offKinds.clear(); query='';
   document.getElementById('q').value='';
   if(view==='grid') hotels.add(HOTEL_ORDER[0]);
-  savePicks(); syncTracks(); shown=50; render();
+  savePicks(); syncTracks(); syncKinds(); shown=50; render();
 };
-document.getElementById('sortBtn').onclick=()=>{
-  const order=['time','interest','place','near'];
-  listSort=order[(order.indexOf(listSort)+1)%order.length];
-  shown=50; render(); };
 document.getElementById('kpAll').onclick=()=>{
   [...document.querySelectorAll('#kgrid .tchip')]
     .forEach(b=>offKinds.delete(b.dataset.kind));
@@ -2625,74 +2811,152 @@ document.getElementById('gpAll').onclick=()=>{
 document.getElementById('gpNone').onclick=()=>{
   groupKeys('#ggrid').forEach(k=>offKinds.add(k));
   savePicks(); syncKinds(); shown=50; render(); };
-/* One function for every panel button. Each used to close its siblings by
-   hand, and each forgot a different one. */
-function togglePanel(id){
-  ['trackPanel','kindPanel','tagPanel','tripPanel'].forEach(x=>{
-    if(x===id) return;
-    const o=document.getElementById(x);
-    o.dataset.open='0'; o.style.display='none';
+
+/* ---- the one filter sheet: open, close, and its sort row ---- */
+function buildSortRow(){
+  const row=document.getElementById('sortRow'); if(!row) return;
+  row.innerHTML='';
+  Object.entries(LIST_SORTS).forEach(([k,label])=>{
+    const b=document.createElement('button');
+    b.textContent=label; b.setAttribute('aria-pressed',String(listSort===k));
+    b.onclick=()=>{ listSort=k; shown=50; render(); };
+    row.appendChild(b);
   });
-  const p=document.getElementById(id), open=p.dataset.open==='1';
-  p.dataset.open=open?'0':'1'; p.style.display=open?'none':'block';
-  /* the button highlights mean "this category has something hidden", not
-     "this panel is open", so recompute rather than toggle */
-  syncTracks(); syncKinds();
-  measureHeader();
 }
-document.getElementById('kindBtn').onclick=()=>togglePanel('kindPanel');
-document.getElementById('tagBtn').onclick=()=>togglePanel('tagPanel');
-document.getElementById('trackBtn').onclick=()=>togglePanel('trackPanel');
+function openFilterSheet(focus){
+  document.getElementById('fTitle').textContent=view==='mine'?'Breaks':'Filters';
+  document.getElementById('filterSheet').classList.add('open');
+  if(focus==='search'){ const q=document.getElementById('q'); if(q&&q.focus) q.focus(); }
+}
+function closeFilterSheet(){
+  document.getElementById('filterSheet').classList.remove('open');
+  render();
+}
+document.getElementById('searchBtn').onclick=()=>openFilterSheet('search');
+document.getElementById('filtersBtn').onclick=()=>openFilterSheet();
+document.getElementById('sortSheetBtn').onclick=()=>openFilterSheet();
+document.getElementById('breaksBtn').onclick=()=>openFilterSheet();
+document.getElementById('fClose').onclick=closeFilterSheet;
+document.querySelector('#filterSheet .scrim').onclick=closeFilterSheet;
+
 function hhmmOf(mins){ const h=Math.floor(mins/60), m=mins%60;
   const ap=h<12?'am':'pm', hh=h%12||12;
   return hh+(m?':'+pad(m):'')+ap; }
-function syncTrip(){
-  const g=id=>document.getElementById(id);
-  g('tOn').checked=trip.on; g('tDctv').checked=trip.dctv;
-  g('tTravel').value=trip.travel; g('tTravelV').textContent=trip.travel+' min';
-  g('tHome').value=trip.home;     g('tHomeV').textContent=trip.home+' min';
-  g('tBuf').value=trip.buffer;    g('tBufV').textContent=trip.buffer+' min';
-  g('tB1').value=trip.meals[0].from; g('tB1V').textContent=hhmmOf(trip.meals[0].from);
-  g('tB2').value=trip.meals[0].to;   g('tB2V').textContent=hhmmOf(trip.meals[0].to);
-  g('tD1').value=trip.meals[1].from; g('tD1V').textContent=hhmmOf(trip.meals[1].from);
-  g('tD2').value=trip.meals[1].to;   g('tD2V').textContent=hhmmOf(trip.meals[1].to);
-  document.querySelectorAll('#tPark button').forEach(b=>
-    b.setAttribute('aria-pressed',String(b.dataset.h===trip.park)));
-  g('tripBtn').classList.toggle('on',trip.on);
-}
-function bindTrip(){
-  const g=id=>document.getElementById(id);
-  const save=()=>{ savePicks(); syncTrip(); if(view==='mine') render(); };
-  g('tOn').onchange=e=>{ trip.on=e.target.checked; save(); };
-  g('tDctv').onchange=e=>{ trip.dctv=e.target.checked; save(); };
-  [['tTravel','travel'],['tHome','home'],['tBuf','buffer']].forEach(([id,k])=>{
-    g(id).oninput=e=>{ trip[k]=+e.target.value; save(); };
-  });
-  [['tB1',0,'from'],['tB2',0,'to'],['tD1',1,'from'],['tD2',1,'to']].forEach(([id,n,k])=>{
-    g(id).oninput=e=>{
-      trip.meals[n][k]=+e.target.value;
-      /* keep each window at least the trip length wide */
-      const need=trip.travel*2+trip.home;
-      if(trip.meals[n].to-trip.meals[n].from<need)
-        trip.meals[n][k==='from'?'to':'from'] = k==='from'
-          ? trip.meals[n].from+need : trip.meals[n].to-need;
-      save();
-    };
-  });
-  const park=g('tPark');
-  HOTEL_ORDER.filter(h=>!['ONLINE','OFF','PARK'].includes(h)).forEach(h=>{
+
+/* ---- Break settings, rebuilt into the sheet each render (dynamic list) ----
+   Slider/label edits update the model and save but do NOT re-render (the sheet
+   covers My Con anyway), so a drag stays smooth; only structural changes
+   (add / remove / type / travel) rebuild the box. */
+function renderBreaks(){
+  const box=document.getElementById('breaksBox');
+  if(!box) return;
+  box.innerHTML='';
+  const master=document.createElement('label');
+  master.className='brkmaster';
+  const mi=document.createElement('input'); mi.type='checkbox'; mi.checked=breakOn;
+  mi.onchange=e=>{ breakOn=e.target.checked; savePicks(); renderBreaks();
+    if(view==='mine') render(); };
+  master.appendChild(mi);
+  const ms=document.createElement('span'); ms.textContent='Plan breaks';
+  master.appendChild(ms);
+  box.appendChild(master);
+
+  const dctv=document.createElement('label');
+  dctv.className='brktravel';
+  const di=document.createElement('input'); di.type='checkbox'; di.checked=hasDctvPass;
+  di.onchange=e=>{ hasDctvPass=e.target.checked; savePicks();
+    if(view==='mine') render(); };
+  dctv.appendChild(di);
+  const ds=document.createElement('span'); ds.textContent='I have a DCTV streaming pass';
+  dctv.appendChild(ds);
+  box.appendChild(dctv);
+
+  const note=document.createElement('div');
+  note.className='brknote';
+  note.textContent='Breaks show up in My Con: clear when they miss nothing, or '+
+    'with what they’d cost and the choice to take it, move it, or skip the day. '+
+    'A travel break adds the walk to and from where you parked.';
+  box.appendChild(note);
+
+  breaks.forEach(br=>box.appendChild(breakCard(br)));
+
+  const add=document.createElement('div');
+  add.className='brkadd';
+  Object.keys(BREAK_TYPES).forEach(type=>{
     const b=document.createElement('button');
-    b.textContent=HOTEL_NAME[h]; b.dataset.h=h;
-    b.onclick=()=>{ trip.park=h; save(); };
-    park.appendChild(b);
+    b.textContent='+ '+BREAK_TYPES[type].icon+' '+BREAK_TYPES[type].label;
+    b.onclick=()=>{ breaks.push(makeBreak(type)); breakOn=true; savePicks();
+      renderBreaks(); };
+    add.appendChild(b);
   });
-  g('tReset').onclick=()=>{
-    const on=trip.on;
-    trip=JSON.parse(JSON.stringify(TRIP_DEFAULTS));
-    trip.on=on; save();
+  box.appendChild(add);
+}
+function breakCard(br){
+  const card=document.createElement('div');
+  card.className='brkcard'+(breakOn?'':' off');
+  const rng=(label,val,min,max,step,fmt,on)=>{
+    const r=document.createElement('label'); r.className='brkrow';
+    const s=document.createElement('span'); s.textContent=label; r.appendChild(s);
+    const inp=document.createElement('input'); inp.type='range';
+    inp.min=min; inp.max=max; inp.step=step; inp.value=val;
+    const b=document.createElement('b'); b.textContent=fmt(val);
+    inp.oninput=e=>{ const v=+e.target.value; b.textContent=fmt(v); on(v); savePicks(); };
+    r.appendChild(inp); r.appendChild(b); return r;
   };
-  g('tripBtn').onclick=()=>togglePanel('tripPanel');
-  syncTrip();
+  /* name */
+  const lab=document.createElement('div'); lab.className='brkrow';
+  const li=document.createElement('input'); li.type='text'; li.value=br.label;
+  li.setAttribute('aria-label','Break name');
+  li.oninput=e=>{ br.label=e.target.value.slice(0,40); savePicks(); };
+  lab.appendChild(li); card.appendChild(lab);
+  /* type */
+  const trow=document.createElement('div'); trow.className='brkrow';
+  const tt=document.createElement('div'); tt.className='brktypes';
+  Object.keys(BREAK_TYPES).forEach(type=>{
+    const b=document.createElement('button');
+    b.textContent=BREAK_TYPES[type].icon+' '+BREAK_TYPES[type].label;
+    b.setAttribute('aria-pressed',String(br.type===type));
+    b.onclick=()=>{ br.type=type; br.travel=BREAK_TYPES[type].travel;
+      savePicks(); renderBreaks(); };
+    tt.appendChild(b);
+  });
+  trow.appendChild(tt); card.appendChild(trow);
+  /* travel toggle */
+  const tv=document.createElement('label'); tv.className='brktravel';
+  const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=br.travel;
+  cb.onchange=e=>{ br.travel=e.target.checked; savePicks(); renderBreaks(); };
+  tv.appendChild(cb);
+  const tvs=document.createElement('span'); tvs.textContent='Leave the con (round trip)';
+  tv.appendChild(tvs); card.appendChild(tv);
+  /* window + duration */
+  card.appendChild(rng('From',br.from,5*60,22*60,15,hhmmOf,
+    v=>{ br.from=v; if(br.to<v+30) br.to=v+30; }));
+  card.appendChild(rng('Until',br.to,6*60,24*60,15,hhmmOf,
+    v=>{ br.to=v; if(br.from>v-30) br.from=v-30; }));
+  card.appendChild(rng(br.travel?'Time there':'Duration',br.duration,15,180,15,
+    v=>v+' min',v=>{ br.duration=v; }));
+  if(br.travel){
+    card.appendChild(rng('Each way',br.each,5,90,5,v=>v+' min',v=>{ br.each=v; }));
+    card.appendChild(rng('Buffer after',br.buffer,0,45,5,v=>v+' min',v=>{ br.buffer=v; }));
+    const pk=document.createElement('div'); pk.className='brkrow';
+    const ps=document.createElement('span'); ps.textContent='Parked at'; pk.appendChild(ps);
+    const pp=document.createElement('div'); pp.className='brkpark';
+    HOTEL_ORDER.filter(h=>!['ONLINE','OFF','PARK'].includes(h)).forEach(h=>{
+      const b=document.createElement('button'); b.textContent=HOTEL_NAME[h];
+      b.setAttribute('aria-pressed',String(br.park===h));
+      b.onclick=()=>{ br.park=h; savePicks(); renderBreaks(); };
+      pp.appendChild(b);
+    });
+    pk.appendChild(pp); card.appendChild(pk);
+  }
+  const del=document.createElement('button'); del.className='brkdel';
+  del.textContent='Remove this break';
+  del.onclick=()=>{ breaks=breaks.filter(x=>x!==br);
+    Object.keys(breakDecisions).forEach(k=>{
+      if(k.slice(0,k.indexOf('|'))===br.id) delete breakDecisions[k]; });
+    savePicks(); renderBreaks(); if(view==='mine') render(); };
+  card.appendChild(del);
+  return card;
 }
 
 document.getElementById('tpAll').onclick=()=>{
@@ -2716,13 +2980,11 @@ function stampBuild(){
   if(b) b.textContent=DATA.built||'unknown';
 }
 /* Hide on the way down, restore on the way up. Never hide near the top, and
-   never while a settings panel is open - that would pull the control you are
-   using off the screen. */
+   never while the filter sheet is open. */
 let lastY=0, ticking=false;
 function onScroll(){
   const y=Math.max(0,window.scrollY||window.pageYOffset||0);
-  const panelOpen=['trackPanel','kindPanel','tripPanel']
-    .some(id=>document.getElementById(id).dataset.open==='1');
+  const panelOpen=document.getElementById('filterSheet').classList.contains('open');
   const down=y>lastY+4, up=y<lastY-4;
   if(!panelOpen && y>140 && down) document.body.classList.add('hdrhid');
   else if(up || y<=140) document.body.classList.remove('hdrhid');
@@ -2783,14 +3045,14 @@ function tick(){
   buildAge();
   buildWatch();
   buildChrome();
-  bindTrip();
+  renderBreaks();
   stampBuild();
   document.getElementById('legendBtn').onclick=openHelp;
   /* one-time gesture hint: the stars cycle, rows expand, chips include/exclude —
      none of which is obvious. Show it once, then remember it's been dismissed. */
   if(!hintSeen){
     const hint=document.getElementById('hint');
-    hint.innerHTML='<span>Tips: tap ☆ for interested (again for 🏆 high priority) · open any event for the full scale, Locked in and Mind ya business · filter chips include ✓ or exclude ✕.</span>'+
+    hint.innerHTML='<span>Tips: tap ☆ for interested (again for 🏆 high priority) · open any event for the full scale, Locked in and Mind ya business · Search · Filters · Sort opens one sheet, where chips include ✓ or exclude ✕.</span>'+
       '<button id="hintKey">How this works</button><button id="hintGot">Got it</button>';
     hint.hidden=false;
     hint.querySelector('#hintKey').onclick=openHelp;

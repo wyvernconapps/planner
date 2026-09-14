@@ -6,7 +6,7 @@ const js=fs.readFileSync(require('path').join(__dirname,'..','..','index.html'),
 const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelOf,'+
   'get EV(){return EV},get picks(){return picks},get watch(){return watch},toggleWatch,'+
   'isWatch,dctvOf,set hidePast(v){hidePast=v},get DATA(){return DATA},roomOf,'+
-  'get trip(){return trip},planTrips};')();
+  'set breakOn(v){breakOn=v},planTrips};')();
 setTimeout(()=>{
   app.hidePast=false;
   const EV=app.EV, T=0,START=1,DUR=2,ID=8;
@@ -41,11 +41,11 @@ setTimeout(()=>{
         console.log('           - '+(t?t.textContent:'?').slice(0,52)); });
   });
 
-  console.log('\n  does it cost a dog trip? (walk to ONLINE should be 0)');
+  console.log('\n  does it cost a break? (walk to ONLINE should be 0)');
   const list=[...app.picks.keys()].map(id=>EV2.findIndex(e=>e[ID]===id)).filter(i=>i>=0)
     .sort((a,b)=>EV2[a][START]-EV2[b][START]);
-  app.trip.on=true;
-  console.log('  trips planned:',app.planTrips(list).filter(t=>!t.impossible).length);
+  app.breakOn=true;
+  console.log('  breaks planned:',app.planTrips(list).filter(t=>!t.impossible).length);
 
   console.log('\nremove it again...');
   app.toggleWatch(EV[carl][ID],air);

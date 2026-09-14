@@ -4,8 +4,9 @@ const {ids}=require('./domshim.js');
 const js=fs.readFileSync(require('path').join(__dirname,'..','..','index.html'),'utf8')
   .match(/<script>([\s\S]*)<\/script>/)[1];
 const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,'+
-  'get trip(){return trip},planTrips,get EV(){return EV},set hidePast(v){hidePast=v},'+
-  'get picks(){return picks},syncTrip,missCost,laterRepeats};')();
+  'set breakOn(v){breakOn=v},get breaks(){return breaks},set breaks(v){breaks=v},'+
+  'makeBreak,renderBreaks,planTrips,get EV(){return EV},set hidePast(v){hidePast=v},'+
+  'get picks(){return picks},missCost,laterRepeats};')();
 setTimeout(()=>{
   app.hidePast=false;
   const EV=app.EV, START=1;
@@ -17,12 +18,13 @@ setTimeout(()=>{
   at(19*60).slice(0,2).forEach(i=>app.setLevel(i,2));
   at(20*60+30).slice(0,1).forEach(i=>app.setLevel(i,1));
 
-  app.trip.on=true; app.syncTrip();
+  app.breakOn=true; app.renderBreaks();
   const list=[...app.picks.keys()].map(id=>EV.findIndex(e=>e[8]===id))
     .filter(i=>i>=0).sort((a,b)=>EV[a][START]-EV[b][START]);
 
-  console.log('SETTINGS: travel',app.trip.travel,'| home',app.trip.home,
-    '| park',app.trip.park,'| dctv',app.trip.dctv);
+  const b0=app.breaks[0]||{};
+  console.log('SETTINGS: break',b0.label,'| travel',b0.travel,'| each',b0.each,
+    '| duration',b0.duration,'| park',b0.park);
   const plan=app.planTrips(list);
   const clock=m=>{const h=Math.floor((m%1440)/60),mm=m%60,ap=h<12?'am':'pm';
     return (h%12||12)+':'+String(mm).padStart(2,'0')+ap;};
@@ -33,11 +35,12 @@ setTimeout(()=>{
       +`  cost ${t.cost.toFixed(2)}  hits ${t.hit.length}`+(t.tight?'  TIGHT:'+t.tight:''));
   });
 
-  console.log('\n--- parade blackout check: force dinner into Sat morning ---');
-  app.trip.meals[1]={name:'Dinner',from:9*60,to:12*60+30};
-  app.planTrips(list).filter(t=>t.meal==='Dinner'&&t.day==='Sat')
-    .forEach(t=>console.log('   Sat Dinner ->',t.impossible?'blocked by the parade (correct)':clock(t.depart)));
-  app.trip.meals[1]={name:'Dinner',from:18*60,to:21*60};
+  console.log('\n--- parade blackout check: a break whose window is Sat morning only ---');
+  const saved=app.breaks;
+  app.breaks=[app.makeBreak('pet',{label:'Dinner',from:9*60,to:12*60+30,duration:60,each:30})];
+  app.planTrips(list).filter(t=>t.day==='Sat')
+    .forEach(t=>console.log('   Sat ->',t.impossible?'blocked by the parade (correct)':clock(t.depart)));
+  app.breaks=saved;
 
   console.log('\n--- rendered My Con ---');
   app.view='mine'; app.render();
