@@ -13,7 +13,8 @@ const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelO
  'setLocked,setPrivate,isRuled,toggleWatch,toggleRuled,dctvOf,laterRepeats,isWatch,shareLink,importFromHash,'+
  'set hidePast(v){hidePast=v},set listSort(v){listSort=v},set day(v){day=v},get day(){return day},'+
  'get hotels(){return hotels},get days(){return days},get offTracks(){return offTracks},set query(v){query=v},'+
- 'get query(){return query},activeFilters,planTrips,roomOf,makeBreak,'+
+ 'get query(){return query},activeFilters,planTrips,roomOf,makeBreak,sortList,'+
+ 'set advSort(v){advSort=v},set sortGroup(v){sortGroup=v},set sortTiers(v){sortTiers=v},'+
  'set breakOn(v){breakOn=v},get breakOn(){return breakOn},get breaks(){return breaks},'+
  'set breaks(v){breaks=v},get breakDecisions(){return breakDecisions},set hasDctvPass(v){hasDctvPass=v},'+
  'get DATA(){return DATA},set picks(v){picks=v}};')();
@@ -81,6 +82,25 @@ setTimeout(()=>{
   app.breaks=[app.makeBreak('meal',{label:'Lunch',from:12*60,to:14*60,duration:45})];
   ok('on-site break plans without travel',
      app.planTrips(list).some(t=>!t.impossible&&t.travel===false));
+
+  console.log('\nADVANCED SORT');
+  app.view='browse'; app.hidePast=false;
+  const pool=EV.map((e,i)=>i).slice(0,500);
+  app.advSort=true; app.sortGroup='none'; app.sortTiers=[{key:'interest',dir:-1}];
+  const sDesc=app.sortList(pool);
+  let descOk=true;
+  for(let j=1;j<sDesc.length;j++) if(app.levelOf(sDesc[j-1])<app.levelOf(sDesc[j])){descOk=false;break;}
+  ok('interest tier, High→Low orders high first', descOk);
+  app.sortTiers=[{key:'interest',dir:1}];
+  const sAsc=app.sortList(pool);
+  let ascOk=true;
+  for(let j=1;j<sAsc.length;j++) if(app.levelOf(sAsc[j-1])>app.levelOf(sAsc[j])){ascOk=false;break;}
+  ok('per-tier direction flips the order', ascOk);
+  app.sortGroup='day'; app.sortTiers=[{key:'interest',dir:-1},{key:'time',dir:1}];
+  try{ app.render(); ok('group + multi-tier renders', ids.main.children.length>0,
+    ids.main.children.length+' nodes'); }
+  catch(e){ ok('group + multi-tier renders', false, e.message); }
+  app.advSort=false; app.sortGroup='none';
 
   console.log('\nSYNC');
   const url=app.shareLink();

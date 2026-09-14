@@ -15,14 +15,19 @@ setTimeout(()=>{
   console.log('Clicking every control in every view:\n');
   for(const v of ['now','browse','grid','mine']){
     app.view=v; go('render '+v,()=>app.render());
-    // header + filter-sheet controls (the sheet holds every filter now)
-    ['searchBtn','filtersBtn','sortSheetBtn','breaksBtn','fClose',
+    // header + filter/sort-sheet controls
+    ['searchBtn','filtersBtn','sortSheetBtn','breaksBtn','fClose','sortClose',
      'clearBtn','pastBtn','toTop','tpAll','tpNone','kpAll','kpNone','gpAll','gpNone'].forEach(id=>{
       const el=ids[id];
       if(el&&el.onclick) go(v+' #'+id,()=>{ el.onclick(); app.render(); });
     });
-    // sort row buttons
+    // sort row buttons (quick sorts)
     ids.sortRow.children.forEach(b=>{ if(b.onclick) go(v+' sort',()=>{ b.onclick(); }); });
+    // advanced sort: turn it on, then fire every control the builder made
+    if(ids.advOn&&ids.advOn.onchange)
+      go(v+' advOn',()=>{ ids.advOn.checked=true; ids.advOn.onchange({target:ids.advOn}); });
+    ids.advBuilder.querySelectorAll('button').forEach((b,n)=>{
+      if(b.onclick) go(v+' adv-btn'+n,()=>{ b.onclick(); }); });
     // every chip
     [...ids.days.children,...ids.hotels.children].forEach((c,n)=>{
       if(c.onclick) go(v+' chip'+n,()=>{ c.onclick(); app.render(); });

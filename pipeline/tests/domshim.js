@@ -117,7 +117,7 @@ const nav=new El('nav'); root.appendChild(nav);
 ['now','browse','grid','mine'].forEach(v=>{
   const b=new El('button'); b.dataset.view=v; nav.appendChild(b);
 });
-['sheet','filterSheet'].forEach(id=>{
+['sheet','filterSheet','sortSheet'].forEach(id=>{
   if(ids[id]){ const scrim=new El('div'); scrim.className='scrim'; ids[id].appendChild(scrim); }
 });
 

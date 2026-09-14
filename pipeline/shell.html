@@ -443,13 +443,23 @@ nav button[aria-current="page"]{color:var(--gold)}
 .fbtn.on{border-color:var(--gold);color:var(--gold)}
 .fdot{color:var(--faint);font-size:12px}
 
-/* ---- filter sheet: one bottom sheet holding every filter + Break settings ---- */
-#filterSheet{position:fixed;inset:0;z-index:55;display:none}
-#filterSheet.open{display:block}
-#filterSheet .scrim{position:absolute;inset:0;background:rgba(6,10,16,.66)}
-#filterSheet .fcard{position:absolute;left:0;right:0;bottom:0;max-height:86vh;overflow-y:auto;
-  background:var(--surface);border-top:1px solid var(--line);
+/* ---- bottom sheets: the filter sheet, and the compact sort popup ---- */
+#filterSheet,#sortSheet{position:fixed;inset:0;z-index:55;display:none}
+#filterSheet.open,#sortSheet.open{display:block}
+#filterSheet .scrim,#sortSheet .scrim{position:absolute;inset:0;background:rgba(6,10,16,.66)}
+#filterSheet .fcard,#sortSheet .fcard{position:absolute;left:0;right:0;bottom:0;max-height:86vh;
+  overflow-y:auto;background:var(--surface);border-top:1px solid var(--line);
   border-radius:16px 16px 0 0;padding:14px 16px calc(20px + env(safe-area-inset-bottom))}
+/* advanced-sort tier rows */
+.tierrow{display:flex;align-items:center;gap:8px;padding:7px 0}
+.tierrow .tiername{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+.tierrow button{font-size:12.5px;font-weight:600;padding:6px 10px;border-radius:7px;
+  background:var(--surface2);border:1px solid var(--line);color:var(--dim)}
+.tierrow .tierdir{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 40%,var(--line))}
+.tierrow .tiermove{flex:0 0 auto;min-width:34px}
+.tierrow .tierdel{flex:0 0 auto;color:var(--red);border-color:#5E2E2A}
+.tierrow button:disabled{opacity:.35}
+#secAdv .fseclabel{margin-top:12px}
 .fhead{display:flex;align-items:center;gap:10px;position:sticky;top:-14px;z-index:2;
   background:var(--surface);margin:-14px -16px 6px;padding:14px 16px 10px;
   border-bottom:1px solid var(--line)}
@@ -556,10 +566,6 @@ nav button[aria-current="page"]{color:var(--gold)}
     <div class="chiprow" id="hotels"></div>
     <div class="herehint" id="hereHint"></div>
   </div>
-  <div class="fsec" id="secSort">
-    <div class="fseclabel">Sort</div>
-    <div class="sortrow" id="sortRow"></div>
-  </div>
   <div class="fsec" id="secFeat">
     <div class="fseclabel">Featuring <span>who is on the panel</span></div>
     <div class="tp-head">
@@ -593,6 +599,22 @@ nav button[aria-current="page"]{color:var(--gold)}
   <div class="fsec" id="secBreaks">
     <div class="fseclabel">Breaks <span>go home, grab a meal, take a rest</span></div>
     <div id="breaksBox"></div>
+  </div>
+</div></div>
+
+<!-- a compact sort-only popup, opened by the Sort button (not the filter sheet):
+     the four quick sorts, plus an advanced group-then-tiers builder -->
+<div id="sortSheet"><div class="scrim"></div><div class="fcard" id="sortCard">
+  <div class="fhead"><b>Sort</b><button id="sortClose">Done</button></div>
+  <div class="fsec">
+    <div class="fseclabel">Quick sort</div>
+    <div class="sortrow" id="sortRow"></div>
+  </div>
+  <div class="fsec" id="secAdv">
+    <label class="brkmaster"><input type="checkbox" id="advOn"><span>Advanced sort</span></label>
+    <div class="brknote">Group into sections, then order within each by one or more
+      keys &mdash; each with its own direction.</div>
+    <div id="advBuilder"></div>
   </div>
 </div></div>
 
@@ -981,6 +1003,9 @@ async function loadPicks(){
         if(!breaks.length) breaks=DEFAULT_BREAKS();
         breakDecisions={};
       }
+      if(o.advSort!==undefined) advSort=!!o.advSort;
+      if(o.sortGroup) sortGroup=o.sortGroup;
+      if(Array.isArray(o.sortTiers)&&o.sortTiers.length) sortTiers=o.sortTiers;
       here=o.here||null;
       showStarted=!!o.showStarted;
       hintSeen=!!o.hintSeen;
@@ -1012,7 +1037,10 @@ async function savePicks(){
     breaks,
     breakOn,
     breakDecisions,
-    hasDctvPass
+    hasDctvPass,
+    advSort,
+    sortGroup,
+    sortTiers
   });
   try{ if(window.storage?.set){ await window.storage.set(KEY,v); return; } }catch(e){}
   try{ localStorage.setItem(KEY,v); }catch(e){}
@@ -1477,24 +1505,28 @@ function renderList(idxs,{showTime=false}={}){
   const main=document.getElementById('main');
   let last=null;
   const frag=document.createDocumentFragment();
-  const byTime=listSort==='time';
+  const byTime=!advSort&&listSort==='time';
+  const advNear=advSort&&sortTiers.some(t=>t.key==='near');
+  const noFloor=advSort ? sortGroup==='place' : (listSort==='place'||listSort==='near');
   let group=null;
   idxs.slice(0,shown).forEach(i=>{
-    const k=bandOf(i)+'|'+bandSub(i);
+    const bo=bandOf(i), bs=bandSub(i);
+    const k=bo+'|'+bs;
     if(k!==last){
       last=k;
-      const h=document.createElement('div');
-      h.className='timehead';
-      h.innerHTML='<div>'+esc(bandOf(i))+'</div>'+
-        (bandSub(i)?'<span>'+esc(bandSub(i))+'</span>':'');
-      frag.appendChild(h);
+      if(bo){   /* no header when there is no band (advanced sort, no grouping) */
+        const h=document.createElement('div');
+        h.className='timehead';
+        h.innerHTML='<div>'+esc(bo)+'</div>'+(bs?'<span>'+esc(bs)+'</span>':'');
+        frag.appendChild(h);
+      }
       group=document.createElement('div');
       group.className='grouped';
       frag.appendChild(group);
     }
     (group||frag).appendChild(evNode(i,{showTime:showTime||!byTime,showEnd:true,
-      showFloor:listSort!=='place'&&listSort!=='near',
-      showAway:listSort==='near'}));
+      showFloor:!noFloor,
+      showAway:advSort?advNear:listSort==='near'}));
   });
   main.appendChild(frag);
   if(idxs.length>shown){
@@ -1524,6 +1556,63 @@ const cmpTime=(a,b)=>EV[a][START]-EV[b][START]||EV[a][T].localeCompare(EV[b][T])
 
 const LIST_SORTS={time:'Time',interest:'Interest',place:'Place',near:'Distance'};
 
+/* ---- advanced sort: group by one axis, then order within each group by a
+   stack of tiers, each with its own direction. Off by default; the four quick
+   sorts above are left exactly as they were. Browse and Now only. ---- */
+let advSort=false;
+let sortGroup='none';                 /* none | day | place | interest | track */
+let sortTiers=[{key:'interest',dir:-1},{key:'time',dir:1}];
+const GROUP_NAMES={none:'None',day:'Day',place:'Location',interest:'Interest',track:'Track'};
+/* direction as words, so the small popup reads plainly, not as a bare arrow */
+const DIR_WORDS={
+  time:{'1':'Early→Late','-1':'Late→Early'},
+  interest:{'1':'Low→High','-1':'High→Low'},
+  place:{'1':'Walk order','-1':'Reverse'},
+  near:{'1':'Near→Far','-1':'Far→Near'}
+};
+/* ascending comparator per key; the tier's dir (+1/-1) multiplies it */
+function cmpKeyAsc(key,a,b){
+  if(key==='interest') return (levelOf(a)-levelOf(b))||cmpTime(a,b);
+  if(key==='place') return cmpPlace(a,b);
+  if(key==='near'){ const w=awayRank(a)-awayRank(b); if(w) return w;
+    const fa=roomOf(a).floor===null?1e6:roomOf(a).floor,
+          fb=roomOf(b).floor===null?1e6:roomOf(b).floor; return fa-fb; }
+  return cmpTime(a,b);                 /* 'time' and the fallback */
+}
+/* a sortable rank so the groups themselves appear in a sensible order
+   (may be a number for day/place/interest, or a string for track) */
+function groupRank(i){
+  if(sortGroup==='day')      return dayList.indexOf(dayOf(EV[i][START]));
+  if(sortGroup==='place')    return placeKey(i)[0]*100000+placeKey(i)[1];
+  if(sortGroup==='interest') return -levelOf(i);          /* high first */
+  if(sortGroup==='track')    return DATA.tracks[EV[i][TRK]]||'';
+  return 0;
+}
+function groupLabel(i){
+  if(sortGroup==='day')      return DAYFULL[dayOf(EV[i][START])];
+  if(sortGroup==='place'){ const r=roomOf(i);
+    return HOTEL_NAME[DATA.hotels[EV[i][HOT]]]+(r.label?' · '+r.label:''); }
+  if(sortGroup==='interest') return LEVEL_NAME[levelOf(i)];
+  if(sortGroup==='track')    return DATA.tracks[EV[i][TRK]];
+  return '';
+}
+function advCompare(a,b){
+  if(sortGroup!=='none'){
+    const ga=groupRank(a), gb=groupRank(b);
+    if(ga<gb) return -1;
+    if(ga>gb) return 1;
+  }
+  for(const t of sortTiers){ if(!t||!t.key) continue;
+    const c=t.dir*cmpKeyAsc(t.key,a,b); if(c) return c; }
+  return cmpTime(a,b);
+}
+/* concise summary for the header button, e.g. "Day › Interest, Time" */
+function sortSummary(){
+  if(!advSort) return LIST_SORTS[listSort];
+  const g=sortGroup==='none'?'':GROUP_NAMES[sortGroup]+' › ';
+  return g+(sortTiers.map(t=>LIST_SORTS[t.key]).join(', ')||'Time');
+}
+
 /* Where you are. No GPS: indoors in Peachtree Center it would be unreliable
    and could not tell which floor you were on, which is most of the walk.
    Your running pick is a better signal, and you can override it. */
@@ -1551,6 +1640,7 @@ const minsAway=i=>{
 const isRemote=i=>['ONLINE','OFF'].includes(DATA.hotels[EV[i][HOT]]);
 const awayRank=i=>isRemote(i)?9999:(minsAway(i)??9998);
 function sortList(idxs){
+  if(advSort) return [...idxs].sort(advCompare);
   const c=listSort==='interest'?((a,b)=>cmpLevel(a,b)||cmpPlace(a,b)||cmpTime(a,b))
         :listSort==='place'   ?((a,b)=>cmpPlace(a,b)||cmpTime(a,b))
         :listSort==='near'    ?((a,b)=>{
@@ -1566,6 +1656,7 @@ function sortList(idxs){
 }
 /* the heading a row sits under, which has to follow whatever we sorted by */
 function bandOf(i){
+  if(advSort) return sortGroup==='none' ? '' : groupLabel(i);
   if(listSort==='near'){
     if(isRemote(i)) return DATA.hotels[EV[i][HOT]]==='ONLINE'
       ? 'Streaming \u00b7 watch from anywhere' : 'Offsite';
@@ -1582,6 +1673,7 @@ function bandOf(i){
   return hhmm(EV[i][START]);
 }
 function bandSub(i){
+  if(advSort) return '';
   if(listSort==='time') return DAYFULL[dayOf(EV[i][START])];
   return '';
 }
@@ -1678,7 +1770,7 @@ function openHelp(){
   /* section bodies carry safe, constant HTML (bold), so they are not escaped */
   const sections=[
     ['Getting around','<b>Now</b> — what’s on and near you. <b>Browse</b> — the whole schedule, search and filter. <b>Grid</b> — rooms down the side, time across the top. <b>My Con</b> — your plan, with clashes grouped and breaks worked in.'],
-    ['Search, Filters & Sort','One button row above the list opens a single sheet: <b>Search</b> titles, guests and rooms; <b>Filters</b> for days, locations, who’s featured, other tags and tracks (the number is how many are active); and <b>Sort</b> by time, interest, place or distance. Tap <b>Done</b> to close it.'],
+    ['Search, Filters & Sort','A button row above the list: <b>Search</b> and <b>Filters</b> (days, locations, who’s featured, tags, tracks — the number is how many are active) open one sheet; <b>Sort</b> opens its own popup. Quick-sort by time, interest, place or distance, or turn on <b>Advanced sort</b> to group into sections (by day, location, interest or track) and stack several sort keys, each with its own direction.'],
     ['Marking events','Tap the star for interested, again for high priority, again to clear. Open any event for the full scale — Not ever, Not now, Unrated, Interested, High priority — plus <b>Locked in</b> (a firm plan the clash and trip math respect) and <b>Mind ya business</b> (kept off any link you share).'],
     ['Sharing','On My Con, <b>Send these picks</b> copies a link — no account. Paste it on another device to carry your picks over, or send it to a friend: their picks appear beside yours, tagged with their name. Private picks are never in the link.'],
     ['Breaks','On My Con, <b>Breaks</b> plans time out — a meal, a pet run, a rest, an errand. Each has a window and a duration, and a travel toggle for whether you leave the con. The app suggests the cheapest slot; <b>Take it here</b> locks it in, <b>Try another time</b> moves it, <b>Skip today</b> drops it for the day.'],
@@ -2576,7 +2668,7 @@ function render(){
      used by Browse and Grid; My Con sees only Breaks. */
   const seen={
     secSearch:view!=='mine', secDays:(view==='browse'||view==='grid'),
-    secLoc:view!=='mine', secSort:(view==='now'||view==='browse'),
+    secLoc:view!=='mine',
     secFeat:view!=='mine', secTags:view!=='mine', secTracks:view!=='mine',
     secPast:view!=='now', secBreaks:view==='mine'
   };
@@ -2596,8 +2688,8 @@ function render(){
   fb.classList.toggle('on',nf>0);
   const ssb=document.getElementById('sortSheetBtn');
   ssb.hidden=!(view==='now'||view==='browse');
-  ssb.textContent='Sort: '+LIST_SORTS[listSort];
-  ssb.classList.toggle('on',listSort!=='time');
+  ssb.textContent='Sort: '+sortSummary();
+  ssb.classList.toggle('on',advSort||listSort!=='time');
   document.getElementById('breaksBtn').hidden=(view!=='mine');
   document.getElementById('breaksBtn').classList.toggle('on',breakOn);
 
@@ -2609,6 +2701,7 @@ function render(){
   cb.textContent=nf?('Clear '+nf+' filter'+(nf===1?'':'s')):'No filters set';
   cb.setAttribute('aria-pressed','true');
   buildSortRow();
+  renderAdvSort();
   renderBreaks();
 
   /* the grid needs a day and at least one hotel to draw */
@@ -2812,16 +2905,73 @@ document.getElementById('gpNone').onclick=()=>{
   groupKeys('#ggrid').forEach(k=>offKinds.add(k));
   savePicks(); syncKinds(); shown=50; render(); };
 
-/* ---- the one filter sheet: open, close, and its sort row ---- */
+/* ---- the filter sheet (Search + filters) and the sort popup ---- */
+/* the four quick single-tap sorts; tapping one drops advanced mode */
 function buildSortRow(){
   const row=document.getElementById('sortRow'); if(!row) return;
   row.innerHTML='';
   Object.entries(LIST_SORTS).forEach(([k,label])=>{
     const b=document.createElement('button');
-    b.textContent=label; b.setAttribute('aria-pressed',String(listSort===k));
-    b.onclick=()=>{ listSort=k; shown=50; render(); };
+    b.textContent=label;
+    b.setAttribute('aria-pressed',String(!advSort&&listSort===k));
+    b.onclick=()=>{ advSort=false; listSort=k; savePicks(); shown=50; render(); };
     row.appendChild(b);
   });
+}
+/* the advanced builder: a group-by picker, then an ordered stack of tiers,
+   each with its own direction. Rebuilt on every change (cheap). */
+function renderAdvSort(){
+  const on=document.getElementById('advOn'); if(!on) return;
+  on.checked=advSort;
+  on.onchange=e=>{ advSort=e.target.checked; savePicks(); shown=50; render(); };
+  const box=document.getElementById('advBuilder');
+  box.hidden=!advSort;
+  box.innerHTML='';
+  if(!advSort) return;
+  const gl=document.createElement('div'); gl.className='fseclabel'; gl.textContent='Group by';
+  box.appendChild(gl);
+  const grow=document.createElement('div'); grow.className='sortrow';
+  Object.entries(GROUP_NAMES).forEach(([k,label])=>{
+    const b=document.createElement('button'); b.textContent=label;
+    b.setAttribute('aria-pressed',String(sortGroup===k));
+    b.onclick=()=>{ sortGroup=k; savePicks(); shown=50; render(); };
+    grow.appendChild(b);
+  });
+  box.appendChild(grow);
+  const tl=document.createElement('div'); tl.className='fseclabel';
+  tl.textContent='Then sort by';
+  box.appendChild(tl);
+  sortTiers.forEach((t,idx)=>{
+    const row=document.createElement('div'); row.className='tierrow';
+    const up=document.createElement('button'); up.className='tiermove';
+    up.textContent='↑'; up.setAttribute('aria-label','Move up'); up.disabled=idx===0;
+    /* look the tier up by identity at click time, so a re-render can't leave a
+       handler pointing at a stale index */
+    up.onclick=()=>{ const i=sortTiers.indexOf(t); if(i>0){
+      [sortTiers[i-1],sortTiers[i]]=[sortTiers[i],sortTiers[i-1]];
+      savePicks(); shown=50; render(); } };
+    const name=document.createElement('span'); name.className='tiername';
+    name.textContent=(idx+1)+'. '+LIST_SORTS[t.key];
+    const dir=document.createElement('button'); dir.className='tierdir';
+    dir.textContent=DIR_WORDS[t.key][String(t.dir)];
+    dir.onclick=()=>{ t.dir=-t.dir; savePicks(); shown=50; render(); };
+    const del=document.createElement('button'); del.className='tierdel';
+    del.textContent='✕'; del.setAttribute('aria-label','Remove'); del.disabled=sortTiers.length<=1;
+    del.onclick=()=>{ const i=sortTiers.indexOf(t);
+      if(i>=0&&sortTiers.length>1){ sortTiers.splice(i,1); savePicks(); shown=50; render(); } };
+    row.appendChild(up); row.appendChild(name); row.appendChild(dir); row.appendChild(del);
+    box.appendChild(row);
+  });
+  const rem=Object.keys(LIST_SORTS).filter(k=>!sortTiers.some(t=>t.key===k));
+  if(rem.length){
+    const add=document.createElement('div'); add.className='brkadd';
+    rem.forEach(k=>{ const b=document.createElement('button');
+      b.textContent='+ '+LIST_SORTS[k];
+      b.onclick=()=>{ if(!sortTiers.some(t=>t.key===k)) sortTiers.push({key:k,dir:k==='interest'?-1:1});
+        savePicks(); shown=50; render(); };
+      add.appendChild(b); });
+    box.appendChild(add);
+  }
 }
 function openFilterSheet(focus){
   document.getElementById('fTitle').textContent=view==='mine'?'Breaks':'Filters';
@@ -2832,12 +2982,19 @@ function closeFilterSheet(){
   document.getElementById('filterSheet').classList.remove('open');
   render();
 }
+function openSortSheet(){ document.getElementById('sortSheet').classList.add('open'); }
+function closeSortSheet(){
+  document.getElementById('sortSheet').classList.remove('open');
+  render();
+}
 document.getElementById('searchBtn').onclick=()=>openFilterSheet('search');
 document.getElementById('filtersBtn').onclick=()=>openFilterSheet();
-document.getElementById('sortSheetBtn').onclick=()=>openFilterSheet();
+document.getElementById('sortSheetBtn').onclick=()=>openSortSheet();
 document.getElementById('breaksBtn').onclick=()=>openFilterSheet();
 document.getElementById('fClose').onclick=closeFilterSheet;
+document.getElementById('sortClose').onclick=closeSortSheet;
 document.querySelector('#filterSheet .scrim').onclick=closeFilterSheet;
+document.querySelector('#sortSheet .scrim').onclick=closeSortSheet;
 
 function hhmmOf(mins){ const h=Math.floor(mins/60), m=mins%60;
   const ap=h<12?'am':'pm', hh=h%12||12;
@@ -2984,7 +3141,8 @@ function stampBuild(){
 let lastY=0, ticking=false;
 function onScroll(){
   const y=Math.max(0,window.scrollY||window.pageYOffset||0);
-  const panelOpen=document.getElementById('filterSheet').classList.contains('open');
+  const panelOpen=document.getElementById('filterSheet').classList.contains('open')
+    ||document.getElementById('sortSheet').classList.contains('open');
   const down=y>lastY+4, up=y<lastY-4;
   if(!panelOpen && y>140 && down) document.body.classList.add('hdrhid');
   else if(up || y<=140) document.body.classList.remove('hdrhid');
@@ -3052,7 +3210,7 @@ function tick(){
      none of which is obvious. Show it once, then remember it's been dismissed. */
   if(!hintSeen){
     const hint=document.getElementById('hint');
-    hint.innerHTML='<span>Tips: tap ☆ for interested (again for 🏆 high priority) · open any event for the full scale, Locked in and Mind ya business · Search · Filters · Sort opens one sheet, where chips include ✓ or exclude ✕.</span>'+
+    hint.innerHTML='<span>Tips: tap ☆ for interested (again for 🏆 high priority) · open any event for the full scale, Locked in and Mind ya business · Search and Filters open one sheet (chips include ✓ or exclude ✕); Sort has its own popup, with an advanced group-and-sort mode.</span>'+
       '<button id="hintKey">How this works</button><button id="hintGot">Got it</button>';
     hint.hidden=false;
     hint.querySelector('#hintKey').onclick=openHelp;

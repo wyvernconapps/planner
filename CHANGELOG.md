@@ -11,6 +11,26 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.18 — sort popup + advanced group-and-sort
+
+Sort splits back out of the filter sheet into its own compact popup, and gains
+a power mode.
+
+- **Sort is its own popup again.** Tapping **Sort** in the header opens a small
+  sheet with just the sort options — the four quick sorts (Time, Interest,
+  Place, Distance) — not the whole filter menu. Search and Filters still open
+  the filter sheet; Sort no longer does.
+- **Advanced sort.** A toggle in the sort popup opens a builder: **group by**
+  None / Day / Location / Interest / Track (the group becomes the section
+  headers), then an ordered stack of **sort tiers** drawn from the same four
+  fields, each with its **own direction** (e.g. Interest High→Low, then Time
+  Early→Late). Reorder or remove tiers, add more. Group by *None* gives a plain
+  flat multi-tier sort. The header button summarizes the active sort, e.g.
+  "Sort: Day › Interest, Time". Browse and Now only — Grid keeps its room sort
+  and My Con stays chronological. The four quick sorts are unchanged.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.17 — Breaks, one filter sheet, bigger type
 
 The first item of the v2 build plan: the trip planner generalized to typed
