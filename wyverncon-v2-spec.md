@@ -38,6 +38,34 @@ live two-way calendar sync, and stored/short-code sharing — stay in v3.
 
 ---
 
+## External review — 2026-09-14
+
+A second ChatGPT review pass, run against this spec. Most of it confirmed
+decisions already made here; a few items changed the plan, listed below with
+what Lauren decided. Everything not listed was either already covered or
+adopted as-is (folded into the sections below rather than called out
+separately).
+
+**Kept, against the review's own "doubtful" verdict — the network diagram.**
+The review flagged the friends-network diagram (v3 premise, item 2) as the
+riskiest, lowest-certainty-of-use feature in the whole v3 chapter. Lauren's
+call: keep it as a firm goal, not something gated on demand. Her reason —
+it earns its keep at a specific moment the review didn't weigh: when you're
+meeting up with a group of friends all at once and don't know who's friends
+with whom, or you want to invite just one sub-group to a meal. That's a
+real, recurring con moment (see **The v3 premise** and **v3 build order**
+below for where this lands).
+
+**Changed — friend presence is both, not either/or.** The review asked
+whether "a map showing people's locations" (Idea inbox) should become a
+lightweight status post ("at the pool bar," "heading to panel X") instead of
+a live map, as the cheaper and more private v2-friendly option. Lauren's
+answer: build both — status posts first, since they're simple and need no
+backend, and a live map later as a further-out stretch goal. See the split
+in **Idea inbox** below.
+
+---
+
 ## Idea inbox
 
 Raw notes, captured as said. Nothing here is designed yet.
@@ -45,8 +73,11 @@ Raw notes, captured as said. Nothing here is designed yet.
 - App users can mark a panel as full, so people know not to meet them there.
 - Mind ya business mode: privately bookmark things you're interested in or want
   to attend, without sharing them.
-- A map showing people's locations, and a map of the locations of the events
-  you're interested in.
+- **Build this first:** lightweight friend status posts — "at the pool bar,"
+  "heading to panel X" — a cheap, no-backend way to say roughly where you are
+  without a live map.
+- **Further out:** an actual live map showing friends' locations, and a map of
+  the locations of the events you're interested in. Bigger lift, comes later.
 - A five-point interest slider, neutral in the middle:
 
   | Value | Means |
@@ -123,12 +154,34 @@ Raw notes, captured as said. Nothing here is designed yet.
 
 ---
 
+## Deciding what's worth building
+
+Not every idea above is worth building just because it's on the list. A
+simple test, added after the 2026-09-14 review: **would this feature earn
+its keep at a specific, recurring moment during the con — not just sound
+useful in the abstract?** If yes, it's worth designing. If the only answer
+is "it'd be neat," it waits.
+
+Applying that test to the ideas most likely to be second-guessed:
+
+| Idea | Verdict | Why |
+| --- | --- | --- |
+| Network diagram of friends | **Keep** | Earns its keep at a real moment — meeting several friend groups at once and not knowing who knows whom, or inviting one sub-group to a meal. See **External review — 2026-09-14**. |
+| Friend location — status posts | **Build first** | Cheap, no backend, answers "roughly where is everyone" without the cost of a live map. |
+| Friend location — live map | **Build later** | Real value, but bigger lift; not worth gating the status-post version on it. |
+| Cosplay coordination (build days, material requests) | **Keep, scope held** | Coordination only — scheduling and "does anyone have X" — never build tracking, budgets, or a materials database. The dedicated cosplay apps already do that. |
+| Room-full / queue reports | **Keep, friends-first** | Needs the abuse/staleness/bias mitigations worked out (see **The structural finding**) — ship friends-only before ever considering a public feed. |
+
+---
+
 ## Post-con additions
 
 Queued post-con; decisions locked by Lauren. #2 and #3 shipped in **1.13**; #1 (Breaks)
 is designed and is the **next build** — a full refactor of the trip subsystem (the
 settings panel is hard-wired to two windows today, so it needs a dynamic rebuild,
-plus per-break travel and the confirm/skip card states).
+plus per-break travel and the confirm/skip card states). *Update 2026-09-14: Breaks
+is now combined with the filter-sheet refactor into one build session — see item 1
+in the **v2 build plan** below.*
 
 **1. Trips generalized to "Breaks." — _next build._** The dog/pet trip planner becomes a general
 "Breaks" planner. A break has a **type** (🍽️ meal, 🐾 pet, 😴 rest, errand), a
@@ -185,24 +238,43 @@ Store locally as `{interest:−2..+2, locked:bool, private:bool}`; migrate old
 
 **Then, on that foundation:**
 
-1. **Breaks** (queued #1), keyed to **Locked** status: locked = hard constraints,
-   High Priority = strong preference, Interested = soft, Unrated/Not-Now ignored.
+1. **Breaks + filter-sheet refactor, combined into one build.** — _shipped
+   1.17._ *Update 2026-09-14: these two were separate queue items; combining
+   them is the more efficient build order, since both touch the same
+   settings/filter surface area.* The three-axis state model this builds on was
+   already shipped in 1.15, so this build was Breaks + filter sheet +
+   accessibility on that foundation.
+   - **Breaks** (queued #1), keyed to **Locked** status: locked = hard
+     constraints, High Priority = strong preference, Interested = soft,
+     Unrated/Not-Now ignored.
+   - **The filter sheet, exact shape:** a header row reading **Search ·
+     Filters (N) · Sort** — the `(N)` is a live count of active filters —
+     opening one bottom sheet that holds Days, Locations, Featuring, Tags,
+     Tracks, Sort, and the new Break settings, replacing today's scattered
+     filter controls.
+   - **The three accessibility fixes**, bundled in here rather than shipped
+     separately: WCAG-AA contrast on any remaining secondary text, larger
+     minimum type size, and a badge legend for the new Break-state badges —
+     the same treatment already applied to the rest of the app in 1.14.
 2. **Conflict Compare view** — a per-slot evidence table (rating · locked ·
    friends · repeats · DCTV · travel after · queue) + "useful things to know" +
    *Keep both / Rule one out / Move to repeat*. Organizes the evidence; never
    recommends.
 3. **Now / My Con ranking:** Locked → High Priority → Interested, factoring time,
-   location, travel, friends, repeats, queue.
+   location, travel, friends, repeats, queue. **Shows its reasoning** — the
+   ranking is never a black box; each item's position should be explainable
+   from the same evidence the Compare view surfaces.
 4. **Friend visibility per event** ("Eric 🔒 Going") — expand the share-link
    payload to carry each pick's level + locked; render from imported links
    (snapshot, re-share to update).
-5. **Filter bar → one bottom sheet** (from the UI/UX review).
-6. **Calendar export** — a "Add to calendar" that generates an `.ics` file (or
+5. **Calendar export** — a "Add to calendar" that generates an `.ics` file (or
    per-event calendar links) from your picks, so your *own* Google/Apple
    calendar holds them and fires the reminders. One-way, client-side, no server.
    *(Straddler moved into v2 on 2026-09-13; live two-way calendar sync is v3.)*
-7. **Share a specific event** — a link that carries a single event rather than
-   your whole list, for "look at this one panel". Just a smaller share link.
+6. **Share a specific event** — a link that carries a single event rather than
+   your whole list, for "look at this one panel". Just a smaller share link,
+   given a **prominent spot in Event Detail** so it's easy to find in the
+   moment, not buried in a menu.
    *(Straddler moved into v2 on 2026-09-13; stored/short-code sharing is v3.)*
 
 Plus the **Q'd post-1.15 tweaks** (repeat tags, "not ever", scale direction,
@@ -218,7 +290,10 @@ are the no-backend version); push reminders/notifications before starred events
 
 _Credit: the Compare view, breaks-keyed-to-locked, the one-way / no-count privacy
 rule, and lock-recalculates-but-doesn't-block came from a ChatGPT review; the
-three-axis model and −2…+2 scale were already in the idea inbox above._
+three-axis model and −2…+2 scale were already in the idea inbox above. A second
+ChatGPT review on 2026-09-14 prompted the Breaks + filter-sheet merge, the
+ranking-shows-its-reasoning detail, and the Event Detail placement for
+share-a-specific-event — see **External review — 2026-09-14**._
 
 ### Queued tweaks — post-1.15 (Q'd 2026-09-12) → **all shipped in 1.16 (2026-09-13)**
 
@@ -343,13 +418,25 @@ Open questions (room capacity, carried-over)._
 Four requested features:
 
 1. **QR codes** for fast friend-adding and social sharing
-2. **A network diagram** of who is friends with whom
+2. **A network diagram** of who is friends with whom — kept as a firm goal
+   despite being the most speculative of the four (see **External review —
+   2026-09-14**): it earns its keep at a specific moment, meeting several
+   friend groups at once and not knowing who knows whom, or wanting to invite
+   just one sub-group to a meal.
 3. **Cosplay photos** attached to a planned wearing schedule
 4. **Crowdsourced "this room is full"** reports, so people know not to try
 
 Three of the four cannot be done without a backend, and together they change
 what kind of data this app holds. The fourth changes something else again —
 see below.
+
+**A caution, added 2026-09-14:** these four features (and the cosplay-platform
+and social-coordination ideas elsewhere in this spec) point at three different
+products — the Dragon Con schedule app, a friend-coordination tool, and a
+lightweight cosplay-planning tool. Being buildable on the same backend doesn't
+mean all three should automatically ship as default, always-on features. Each
+addition should still pass the test in **Deciding what's worth building**
+above, not just "we have the infrastructure now."
 
 ---
 
@@ -535,6 +622,14 @@ That last category ships with the app the same way the panel schedule does,
 which means the off-season mode has real content before any user adds
 anything.
 
+**Start narrow.** *Added 2026-09-14.* The off-season MVP is just two of the
+items above: **published deadlines** (badge tiers, room block release,
+transfer/refund dates — the facts the con announces, not user-entered ones)
+and **crew build days** (a shared calendar the group schedules together).
+Material order lead times, costume-contest registration, and travel/PTO
+tracking are real but wait for a later pass — they add per-user data entry
+that the narrow version doesn't need to prove Workshop is worth opening.
+
 ### Two things to get right
 
 **The mode switch must be automatic but always overridable.** People plan next
@@ -599,10 +694,28 @@ useful on its own, so the project can stop at any point.
 **1. Privacy model.** Written down and agreed before any code. Output is a
 short document, not a feature.
 
-**2. Backend.** Supabase — free tier, Postgres, realtime built in, and already
-the noted choice for Upkeep's cloud sync, so it is one pattern across two
-projects rather than two things to learn. v1's storage already sits behind a
-swappable adapter, which is the shape this wants.
+**2. Backend — a staged path, not a rewrite.** *Updated 2026-09-14, per the
+second ChatGPT review.* Rather than jumping straight to a full framework
+rebuild, move in stages, each one shippable on its own:
+
+1. **Modularize** the existing single-file app into separate, organized
+   script files — no framework yet, just cleaner structure to build on.
+2. **Vite** as a build tool, so the modular files bundle back into a fast,
+   deployable app. This step does **not** require adopting React or any UI
+   framework.
+3. **Offline/PWA storage** — move local data into a proper offline-capable
+   store, so the app keeps working with no signal, the same guarantee v1 has
+   always made.
+4. **A Supabase sync adapter** — Supabase (free tier, Postgres, realtime
+   built in, and already the noted choice for Upkeep's cloud sync, so it's
+   one pattern across two projects) plugs in behind the same swappable
+   storage adapter v1 already uses, rather than replacing it outright.
+5. **React only where it actually helps** — introduced selectively, for
+   genuinely complex interactive views, not as a wholesale rewrite of
+   screens that work fine as they are.
+
+This keeps the app deployable and testable at every stage, instead of a long
+stretch with nothing shippable.
 
 **3. Short-code QR.** A person gets a short handle. The QR carries the handle,
 not the schedule. Scanning sends a friend request. Small enough to scan off a
@@ -618,19 +731,33 @@ mitigation, and no minimum report count, because you know who is telling you.
 Only widen it to a public feed if the friends-only version proves useful.
 
 **6. Network diagram.** Last, because it needs everything above working and
-is the most privacy-sensitive to get right.
+is the most privacy-sensitive to get right. *Kept as a firm goal, not gated
+on demand — see **The v3 premise** and **External review — 2026-09-14** for
+Lauren's reasoning (meeting multiple friend groups at once; inviting a
+sub-group to a meal).*
 
 ---
 
 ## Open questions
 
-- **Does the schedule still work offline?** v1's strongest property is that it
-  needs no network. A backend must not break that — sync should be additive,
-  with the local copy remaining authoritative for your own picks.
+- **Does the schedule still work offline?** *Resolved 2026-09-14, into
+  concrete acceptance tests* — the schedule must still work with no network
+  in every one of these cases: (1) the full panel schedule loads and browses
+  with the phone in airplane mode; (2) your own picks, ratings, and locked
+  items are readable and editable offline; (3) conflict math and the Now/My
+  Con ranking compute locally, with no round trip; (4) a break/trip you've
+  planned survives a phone restart with no signal; (5) any sync to the
+  backend queues while offline and reconciles once signal returns, rather
+  than failing silently; (6) nothing that worked in v1 offline stops working
+  once the backend ships. See the **Offline/PWA storage** stage below.
 - **Do friends need accounts?** Requiring a login before someone can see your
   schedule is a real barrier in a hallway.
-- **Is this still one HTML file?** Photos and a backend probably end that. If
-  so, v2 is a React/Vite build on Netlify rather than a single artifact.
+- **Is this still one HTML file?** *Resolved 2026-09-14* — no, but not all at
+  once. The staged path in **v3 build order, step 2** answers this: modularize
+  first, add Vite as a bundler (still no framework requirement), then
+  offline/PWA storage, then a Supabase adapter, with React introduced only
+  where it earns its place. The single-file model ends gradually, each stage
+  shippable on its own, rather than in one framework-rewrite jump.
 - **Does it stay Dragon Con specific?** A generic con planner is a much bigger
   product with a much bigger content problem.
 - **What happens to the guest data?** The Program Book parse is per-year work.
