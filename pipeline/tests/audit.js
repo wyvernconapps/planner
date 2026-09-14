@@ -17,7 +17,7 @@ setTimeout(()=>{
     app.view=v; go('render '+v,()=>app.render());
     // header + filter/sort-sheet controls
     ['searchBtn','filtersBtn','sortSheetBtn','breaksBtn','fClose','sortClose',
-     'clearBtn','pastBtn','toTop','tpAll','tpNone','kpAll','kpNone','gpAll','gpNone'].forEach(id=>{
+     'clearBtn','pastBtn','toTop','tpAll','tpNone','kpAll','kpNone','gpAll','gpNone','fpAll','fpNone'].forEach(id=>{
       const el=ids[id];
       if(el&&el.onclick) go(v+' #'+id,()=>{ el.onclick(); app.render(); });
     });
@@ -35,7 +35,8 @@ setTimeout(()=>{
     ids.hotels.querySelectorAll('.pin').forEach(p=>{
       go(v+' pin',()=>{ p.onclick({stopPropagation(){}}); app.render(); });
     });
-    [...ids.tgrid.children.slice(0,3),...ids.kgrid.children,...ids.ggrid.children].forEach(c=>{
+    [...ids.tgrid.children.slice(0,3),...ids.kgrid.children,...ids.ggrid.children,
+     ...ids.fgrid.children].forEach(c=>{
       if(c.onclick) go(v+' filterchip',()=>{ c.onclick(); app.render(); });
     });
     // break settings: fire every control the dynamic box built

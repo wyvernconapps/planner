@@ -11,6 +11,32 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.19 — event format tags
+
+Every event now carries one primary **format** tag — what you'd actually be
+doing — from the WyvernCon Event Type Tagging Spec: **PANEL** (listening),
+**WORKSHOP** (hands-on), **PERFORMANCE** (watching a show), **PARTY**
+(socialising), **ACTIVITY** (you do the thing), **OPERATIONAL** (check-in,
+setup, a signing). It's a separate axis from the presenter-role badges.
+
+- **How it's classified.** The pipeline has no LLM, so the tag is derived at
+  load from each event's title and description, following the spec's decision
+  order (operational → workshop → activity → performance → party → panel) and
+  keyword-reliability tiers: strong signals are read from the title, the
+  description only confirms (a workshop that says "registration required" is
+  still a workshop; a concert by a filk band is still a performance). A
+  gold-standard override table pins the spec's hard cases. It's a heuristic, so
+  a few will be off — add overrides rather than bending the rules. 2026 spread:
+  ~85% panel, then activity, performance, workshop, operational, party.
+- **Where it shows.** A compact format badge leads each event card and appears
+  in the detail sheet, and a new **Format** section in the Filters sheet lets
+  you show or hide by format.
+- **Retired the old keyword PARTY tag** under Other tags; the format
+  (PARTY / PERFORMANCE / ACTIVITY) carries that meaning now. Roles, Extra fee,
+  and Age-restricted are unchanged.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.18 — sort popup + advanced group-and-sort
 
 Sort splits back out of the filter sheet into its own compact popup, and gains

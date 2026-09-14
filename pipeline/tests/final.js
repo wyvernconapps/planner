@@ -14,6 +14,8 @@ const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelO
  'set hidePast(v){hidePast=v},set listSort(v){listSort=v},set day(v){day=v},get day(){return day},'+
  'get hotels(){return hotels},get days(){return days},get offTracks(){return offTracks},set query(v){query=v},'+
  'get query(){return query},activeFilters,planTrips,roomOf,makeBreak,sortList,'+
+ 'classifyFormat,formatOf,fmtKey,get eventFormats(){return eventFormats},'+
+ 'get FORMAT_OVERRIDES(){return FORMAT_OVERRIDES},get offFormats(){return offFormats},'+
  'set advSort(v){advSort=v},set sortGroup(v){sortGroup=v},set sortTiers(v){sortTiers=v},'+
  'set breakOn(v){breakOn=v},get breakOn(){return breakOn},get breaks(){return breaks},'+
  'set breaks(v){breaks=v},get breakDecisions(){return breakDecisions},set hasDctvPass(v){hasDctvPass=v},'+
@@ -82,6 +84,30 @@ setTimeout(()=>{
   app.breaks=[app.makeBreak('meal',{label:'Lunch',from:12*60,to:14*60,duration:45})];
   ok('on-site break plans without travel',
      app.planTrips(list).some(t=>!t.impossible&&t.travel===false));
+
+  console.log('\nEVENT FORMAT');
+  const VALID=new Set(['PANEL','WORKSHOP','PERFORMANCE','PARTY','ACTIVITY','OPERATIONAL']);
+  const real=EV.filter(e=>String(e[ID])[0]!=='w');
+  ok('every event has a valid format', real.every(e=>VALID.has(app.classifyFormat(e))));
+  let gMiss=0,gPresent=0;
+  Object.entries(app.FORMAT_OVERRIDES).forEach(([k,want])=>{
+    const e=EV.find(e=>app.fmtKey(e[T])===k);
+    if(e){ gPresent++; if(app.classifyFormat(e)!==want) gMiss++; } });
+  ok('gold-standard overrides all land', gMiss===0, gPresent+' present, '+gMiss+' wrong');
+  const bySig=t=>EV.findIndex(e=>e[T]===t);
+  /* most concerts read as PERFORMANCE (a few filk-band concerts lean ACTIVITY) */
+  const concerts=EV.filter(e=>/^Concert /.test(e[T]));
+  const perfShare=concerts.filter(e=>app.classifyFormat(e)==='PERFORMANCE').length;
+  ok('concerts are mostly PERFORMANCE', perfShare>concerts.length/2, perfShare+'/'+concerts.length);
+  const kick=EV.find(e=>/Track Kick-?Off/i.test(e[T])&&!/celebration/i.test(e[T]));
+  if(kick) ok('a track kick-off is not PARTY', app.classifyFormat(kick)!=='PARTY', kick[T].slice(0,30));
+  /* the format filter really excludes: hiding every format empties the list */
+  app.view='browse'; app.hidePast=false;
+  app.offFormats.clear(); app.render(); const before=ids.main.querySelectorAll('.ev').length;
+  ['PANEL','WORKSHOP','PERFORMANCE','PARTY','ACTIVITY','OPERATIONAL'].forEach(f=>app.offFormats.add(f));
+  app.render(); const after=ids.main.querySelectorAll('.ev').length;
+  ok('hiding every format empties the list', before>0&&after===0, before+' -> '+after+' rows');
+  app.offFormats.clear();
 
   console.log('\nADVANCED SORT');
   app.view='browse'; app.hidePast=false;
