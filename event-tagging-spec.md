@@ -1,7 +1,7 @@
 # WyvernCon Event Type Tagging Specification
 
-**Version:** 1.0  
-**Status:** Validated through three human-labeling rounds using real Dragon Con 2026 schedule events  
+**Version:** 1.1  
+**Status:** Validated through three human-labeling rounds using real Dragon Con 2026 schedule events. 1.1 adds the **signal-location rule** (§11) after implementation surfaced two false-positive classes — see the change note there.  
 **Purpose:** Shared instructions for classifying WyvernCon events by primary attendee experience.
 
 ---
@@ -132,6 +132,8 @@ Gold-standard examples:
 Counterexample: **Workshop – Recording on a Budget** was classified as `PANEL` because the description primarily described topics the presenter would cover rather than active participant practice.
 
 Supporting but non-defining evidence: extra fee, advanced registration, limited seats/materials, supplies provided, take-home object.
+
+> A workshop that *requires* registration is still a `WORKSHOP`. Only an event that *is* a registration process is `OPERATIONAL` — see the signal-location rule in §11.
 
 ---
 
@@ -287,6 +289,8 @@ Is participation the entertainment/content, or is the attendee completing a func
 - content-producing participation → `ACTIVITY`
 - registration, access, service, amenity, signing, setup, logistics → `OPERATIONAL`
 
+> Weight the deciding signal by **where it appears**: a function named in the title makes the event `OPERATIONAL`; the same word in the description is only context. See the signal-location rule in §11.
+
 ---
 
 ## 11. Title-keyword policy
@@ -301,6 +305,36 @@ music -> PERFORMANCE
 demo -> PERFORMANCE
 meetup -> PARTY
 ```
+
+### Signal location: title vs description
+
+Where a signal appears decides how much weight it carries.
+
+- A strong category signal is **decisive when it is in the title** — the event
+  *is* that thing. “Costume Contest Registration,” “Robot Battles – Check-in,”
+  “Setup – Room Closed”: the title names the function, so the event is
+  `OPERATIONAL`.
+- The **same word in the description is supporting/subject context only.** It
+  can confirm a title signal, but it never sets the format on its own:
+  - A `WORKSHOP` whose description says “registration required” is still a
+    `WORKSHOP` — registration is a prerequisite, not the event.
+  - A `PERFORMANCE` by a band the description calls “filk” is still a
+    `PERFORMANCE` — “filk” names the genre, not what the audience does.
+
+This resolves the apparent conflict between the high-reliability operational
+signals below and the “advanced registration is supporting, non-defining
+evidence” note in §5: a registration *event* is `OPERATIONAL`; an event that
+merely *requires* registration is not. The same reasoning applies to any
+low-reliability subject word (music, filk, trivia, contest, dance) appearing in
+a description — it describes the topic, not the attendee's role.
+
+> **Change note (v1.1):** added after the classifier shipped. Two false-positive
+> classes appeared when strong/low-reliability signals were matched in the
+> description as well as the title — hands-on workshops that mention
+> “registration required” were tagged `OPERATIONAL`, and concerts by filk bands
+> were tagged `ACTIVITY`. Reading strong signals from the title (description
+> confirms only) fixes both. This is a rule that improves a class of events
+> rather than a per-title override, per §16.
 
 ### High-reliability operational signals
 Strong evidence, especially when confirmed by the description:
