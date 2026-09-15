@@ -354,10 +354,19 @@ main{padding:0 12px}
 .fmt-party{background:rgba(231,127,196,.22);color:var(--AMART)}
 .fmt-activity{background:rgba(240,168,48,.20);color:var(--gold)}
 .fmt-operational{background:rgba(148,165,184,.12);color:var(--faint)}
+/* broad presenter categories on the card. Official status leads (Guest of
+   Honor is a solid, high-priority badge); PRO/MODERATOR appear only if pinned. */
+.r-goh{background:var(--gold);color:#1A1206;font-weight:800}
+.r-feat{background:rgba(240,168,48,.22);color:var(--gold);font-weight:800}
+.r-pro{background:rgba(79,179,217,.20);color:var(--HYA);font-weight:800}
+.r-mod{background:rgba(155,140,255,.20);color:var(--WES);font-weight:800}
 .whobox{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px;
   line-height:1.7;background:var(--surface2);border:1px solid var(--line);color:var(--dim)}
 .whobox b{color:var(--text)}
 .whobox span{color:var(--faint);font-size:11px}
+.whobox .pstatus{color:var(--dim);font-weight:600;font-size:11.5px}
+.whobox .pstatus.goh{color:var(--gold);font-weight:800}
+.whobox .psig{color:var(--HYA);font-weight:700;font-size:11px}
 .mate{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;
   font-size:11px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
   background:rgba(155,140,255,.18);color:var(--WES)}
@@ -482,6 +491,7 @@ nav button[aria-current="page"]{color:var(--gold)}
   color:var(--gold);margin-bottom:9px}
 .fseclabel span{font-weight:500;letter-spacing:0;text-transform:none;color:var(--faint);
   font-size:11.5px;margin-left:7px}
+.fsublabel{font-size:11.5px;font-weight:600;color:var(--dim);margin:10px 0 6px}
 #filterSheet .chiprow{margin-top:0}
 .sortrow{display:flex;flex-wrap:wrap;gap:6px}
 .sortrow button{padding:8px 14px;border-radius:999px;font-size:13.5px;font-weight:600;
@@ -590,9 +600,13 @@ nav button[aria-current="page"]{color:var(--gold)}
       <button id="kpAll">Show all</button>
       <button id="kpNone">Hide all</button>
     </div>
+    <div class="fsublabel">By type</div>
+    <div class="tgrid" id="cgrid"></div>
+    <div class="fsublabel">By role</div>
     <div class="tgrid" id="kgrid"></div>
-    <div class="brknote">Roles come from each guest's own bio in the 2026 Program
-      Book. A panel with nobody billed is a fan panel.</div>
+    <div class="brknote">Type is the broad category shown on the card; role is the
+      specific occupation, from each guest's own bio in the 2026 Program Book.
+      A panel with nobody billed is a fan panel.</div>
   </div>
   <div class="fsec" id="secTags">
     <div class="fseclabel">Other tags <span>everything not about who is on it</span></div>
@@ -912,6 +926,83 @@ function kindBadges(i){
                             : (KIND_NAME[k]||k.toUpperCase());
     return '<span class="kind '+(ROLE_CLASS[k]||'r-h')+'">'+esc(label)+'</span>';
   }).join('');
+}
+
+
+/* ---- presenters: two layers (WyvernCon Presenter Tagging Spec) ----
+   1) an event-level SIGNAL for why a person matters here (official status;
+      PRO / MODERATOR need per-event judgement the offline data can't give, so
+      they are omitted and left to the override table below), and
+   2) a per-person PROFILE - the broad CREATOR / PERFORMER category, with the
+      specific role/occupation preserved underneath.
+   The card carries the broad, highest-priority signal; the detail carries the
+   specifics. */
+const PROFILE_OF={actor:'PERFORMER',musician:'PERFORMER',performer:'PERFORMER',
+  author:'CREATOR',artist:'CREATOR',costumer:'CREATOR',creator:'CREATOR',writer:'CREATOR'};
+/* scientist and expert are specific occupations, not a broad creative category */
+const catOf=r=>PROFILE_OF[r]||(r==='expert'?'EXPERT':'');
+const CAT_NAME={goh:'GUEST OF HONOR',featured:'FEATURED GUEST',
+  CREATOR:'CREATOR',PERFORMER:'PERFORMER',EXPERT:'EXPERT',pro:'PRO',mod:'MODERATOR'};
+const CAT_CLASS={goh:'r-goh',featured:'r-feat',CREATOR:'r-f',PERFORMER:'r-e',
+  EXPERT:'r-g',pro:'r-pro',mod:'r-mod'};
+const catBadge=c=>'<span class="kind '+CAT_CLASS[c]+'">'+CAT_NAME[c]+'</span>';
+
+/* PRO and MODERATOR are event-contextual and not in the offline schedule data;
+   the spec forbids inferring them from the track, title, or neighbours, so they
+   are left blank. Fill this table to pin them for known events - keyed by event
+   id -> { personKey: 'PRO' | 'MODERATOR' | 'PRO/MODERATOR' }. */
+const PRESENTER_OVERRIDES={};
+const pKey=n=>String(n).toLowerCase().replace(/[^a-z0-9]/g,'');
+
+/* official status from the billing string build_slim attached to each person */
+function personStatus(billing){
+  if(/guest of honor/i.test(billing||'')) return 'goh';
+  if(billing==='Featured Guest') return 'featured';
+  if(billing==='Spotlight Guest') return 'spotlight';
+  return 'pro';   /* Attending Professional and anything else */
+}
+/* the two-layer read for an event. Attending Professionals (most panellists)
+   carry no card badge, matching the original design; they still appear by name
+   in the detail. */
+function presenterInfo(i){
+  const info={roles:new Set(),cats:new Set(),goh:false,featured:false,notable:0};
+  peopleOn(i).forEach(([n,r,b])=>{
+    if(personStatus(b)==='pro') return;
+    info.notable++;
+    const st=personStatus(b);
+    if(st==='goh') info.goh=true; else if(st==='featured') info.featured=true;
+    if(r){ info.roles.add(r); const c=catOf(r); if(c) info.cats.add(c); }
+  });
+  if((DATA.kinds[EV[i][ID]]||[]).includes('expert')) info.cats.add('EXPERT');
+  return info;
+}
+/* broad presenter facets, for the "type" filter dimension */
+function catFacets(i){
+  const info=presenterInfo(i), set=new Set(info.cats);
+  if(info.goh) set.add('goh');
+  if(info.featured) set.add('featured');
+  if(!info.notable) set.add('fan');
+  return set.size?set:new Set(['fan']);
+}
+/* the broad presenter badges on the card: one status badge (highest priority),
+   then broad profile categories, then any PRO / MODERATOR override */
+function presenterBadges(i){
+  const info=presenterInfo(i);
+  let out='';
+  if(info.goh) out+=catBadge('goh');
+  else if(info.featured) out+=catBadge('featured');
+  ['CREATOR','PERFORMER','EXPERT'].forEach(c=>{ if(info.cats.has(c)) out+=catBadge(c); });
+  const sig=Object.values(PRESENTER_OVERRIDES[EV[i][ID]]||{}).join(' ');
+  if(/PRO/.test(sig)) out+=catBadge('pro');
+  if(/MODERATOR/.test(sig)) out+=catBadge('mod');
+  return out;
+}
+/* the two traits that stay on the card (a separate axis from presenters) */
+function traitBadges(i){
+  let out='';
+  if((DATA.kinds[EV[i][ID]]||[]).includes('paid')) out+='<span class="kind r-f2">EXTRA FEE</span>';
+  if(ageLabels.has(EV[i][ID])) out+='<span class="kind r-age">'+esc(ageLabels.get(EV[i][ID]))+'</span>';
+  return out;
 }
 
 /* other times the same panel runs. The point of showing it: a clash you can
@@ -1495,7 +1586,8 @@ let friends=[];        /* [{name, picks:{id:level}}] - imported, never merged */
 let onlyShared=false;  /* filter: show only what a friend also starred */
 let showStarted=false; /* collapsed pile of things already underway */
 const GRACE=15;        /* minutes after which something counts as underway */
-let offKinds=new Set(); /* kinds hidden from the lists */
+let offKinds=new Set(); /* specific presenter roles + traits hidden from the lists */
+let offCats=new Set();  /* broad presenter categories (CREATOR/PERFORMER/EXPERT/goh/featured/fan) hidden */
 let offFormats=new Set(); /* event formats hidden from the lists (session only, like offKinds) */
 let gridSort='loc';   /* 'loc' by floor, 'size' by room tier */
 let hidePast=null;    /* set on first render: on during the con, off outside it */
@@ -1530,6 +1622,12 @@ function matches(i){
     const label=k.length?k:['fan'];
     if(label.every(x=>offKinds.has(x))) return false;
   }
+  /* broad presenter categories are a second, independent dimension: hide the
+     event only if every one of its broad facets is turned off */
+  if(offCats.size){
+    const c=[...catFacets(i)];
+    if(c.every(x=>offCats.has(x))) return false;
+  }
   if(hotels.size && !hotels.has(DATA.hotels[e[HOT]])) return false;
   if(query){
     const hay=(e[T]+' '+e[PRES]+' '+DATA.locs[e[LOC]]+' '+DATA.tracks[e[TRK]]).toLowerCase();
@@ -1556,7 +1654,7 @@ function evNode(i,opts={}){
       (opts.showFloor&&roomOf(i).label?'<span class="flr"> \u00b7 '+esc(roomOf(i).label)+'</span>':'')+
       (opts.showAway&&!isRemote(i)&&minsAway(i)!==null
         ?'<span class="away"> \u00b7 ~'+minsAway(i)+' min walk</span>':'')+
-      formatBadge(i)+kindBadges(i)+
+      formatBadge(i)+presenterBadges(i)+traitBadges(i)+
       (roomOf(i).tier===1?'<span class="big">BIG ROOM</span>':'')+dctvBadge(i)+repeatBadge(i)+
       (lockedOf(i)?'<span class="locktag">LOCKED IN</span>':'')+
       (privateOf(i)?'<span class="privtag">PRIVATE</span>':'')+
@@ -1876,14 +1974,27 @@ function openSheet(i){
     esc(roomOf(i).name)+' \u00b7 '+esc(TIER_NAME[roomOf(i).tier].toLowerCase())+
     '<br>'+esc(DATA.tracks[e[TRK]])+
     (e[PRES]?'<br>'+esc(e[PRES]):'')+
-    '<br>'+formatBadge(i)+kindBadges(i);
+    '<br>'+formatBadge(i)+presenterBadges(i)+traitBadges(i);
   c.querySelector('.sdesc').textContent=e[DESC]||'No description in the schedule.';
   const who2=peopleOn(i).filter(p=>p[2]!=='Attending Professional');
   if(who2.length){
+    /* the presenter profile, in full: official status (Guest of Honor
+       emphasised), the broad Creator / Performer category, and the specific
+       role - plus any PRO / MODERATOR override pinned for this person. */
+    const catWord={CREATOR:'Creator',PERFORMER:'Performer',EXPERT:'Expert'};
+    const ovs=PRESENTER_OVERRIDES[EV[i][ID]]||{};
     const w=document.createElement('div');
     w.className='whobox';
-    w.innerHTML=who2.map(p=>'<b>'+esc(p[0])+'</b>'+(p[1]?' \u2014 '+esc(p[1]):'')+
-      ' <span>'+esc(p[2])+'</span>').join('<br>');
+    w.innerHTML=who2.map(p=>{
+      const role=p[1], billing=p[2], st=personStatus(billing), cat=catOf(role);
+      const bits=[];
+      if(billing) bits.push('<span class="pstatus'+(st==='goh'?' goh':'')+'">'+esc(billing)+'</span>');
+      const sig=ovs[pKey(p[0])];
+      if(sig) bits.push('<span class="psig">'+esc(sig)+'</span>');
+      if(cat) bits.push(catWord[cat]);
+      if(role) bits.push('<span>'+esc(role)+'</span>');
+      return '<b>'+esc(p[0])+'</b>'+(bits.length?' \u2014 '+bits.join(' \u00b7 '):'');
+    }).join('<br>');
     c.querySelector('.sdesc').after(w);
   }
   const rp=repeatsOf(i);
@@ -1943,14 +2054,13 @@ function closeSheet(){ document.getElementById('sheet').classList.remove('open')
    key is folded in as the last section, so this is the one place for help. */
 function openHelp(){
   const c=document.getElementById('sheetCard');
-  const roleChips=['actor','author','artist','musician','costumer','creator','scientist','performer']
-    .map(k=>'<span class="kind '+ROLE_CLASS[k]+'">'+KIND_NAME[k]+'</span>').join(' ');
   /* section bodies carry safe, constant HTML (bold), so they are not escaped */
   const sections=[
     ['Getting around','<b>Now</b> — what’s on and near you. <b>Browse</b> — the whole schedule, search and filter. <b>Grid</b> — rooms down the side, time across the top. <b>My Con</b> — your plan, with clashes grouped and breaks worked in.'],
     ['Search, Filters & Sort','A button row above the list: <b>Search</b> and <b>Filters</b> (days, locations, who’s featured, tags, tracks — the number is how many are active) open one sheet; <b>Sort</b> opens its own popup. Quick-sort by time, interest, place or distance, or turn on <b>Advanced sort</b> to group into sections (by day, location, interest or track) and stack several sort keys, each with its own direction.'],
     ['Marking events','Tap the star for interested, again for high priority, again to clear. Open any event for the full scale — Not ever, Not now, Unrated, Interested, High priority — plus <b>Locked in</b> (a firm plan the clash and trip math respect) and <b>Mind ya business</b> (kept off any link you share).'],
     ['Event format','Every event carries one <b>format</b> tag for what you’d actually be doing — <b>Panel</b> (listening), <b>Workshop</b> (hands-on), <b>Performance</b> (watching a show), <b>Party</b> (socialising), <b>Activity</b> (you do the thing), <b>Operational</b> (check-in, setup, a signing). Filter by it in the <b>Format</b> section of Filters. It’s read from each event’s own text, so a few will be off.'],
+    ['Who’s on it','The card shows the <b>broadest</b> presenter signal — official status first (<b>Guest of Honor</b>, then <b>Featured guest</b>), then broad <b>Creator</b> / <b>Performer</b> / <b>Expert</b>. Open any event to see each guest’s full profile: their status, their category, and their specific role (author, actor, illustrator…). Filter by broad type or specific role under <b>Featuring</b>.'],
     ['Sharing','On My Con, <b>Send these picks</b> copies a link — no account. Paste it on another device to carry your picks over, or send it to a friend: their picks appear beside yours, tagged with their name. Private picks are never in the link.'],
     ['Breaks','On My Con, <b>Breaks</b> plans time out — a meal, a pet run, a rest, an errand. Each has a window and a duration, and a travel toggle for whether you leave the con. The app suggests the cheapest slot; <b>Take it here</b> locks it in, <b>Try another time</b> moves it, <b>Skip today</b> drops it for the day.'],
     ['Offline','It loads once, then needs no signal — the whole thing is one file about 470KB. Your picks live on this device (and in any link you make); nothing is sent anywhere.']
@@ -1961,8 +2071,8 @@ function openHelp(){
     ['<span class="locktag">LOCKED IN</span>','Your plan, not just your wishlist. Locked-in events drive the conflict math; a clash becomes something to sort out, never a block.'],
     ['<span class="privtag">PRIVATE</span>','Mind ya business: this pick is left off any link you share, so friends never see it.'],
     ...FORMAT_ORDER.map(f=>['<span class="fmt '+FORMAT_CLASS[f]+'">'+FORMAT_NAME[f]+'</span>',FORMAT_HELP[f]]),
-    [roleChips,'Who is on the panel, taken from the Program Book bios.'],
-    ['<span class="kind '+ROLE_CLASS.expert+'">EXPERT</span>','Credentials on the panel — a doctor, NASA, a science or skeptics track.'],
+    [catBadge('goh')+' '+catBadge('featured'),'Official Dragon Con billing, shown first — Guest of Honor outranks everything else on the card.'],
+    [catBadge('CREATOR')+' '+catBadge('PERFORMER')+' '+catBadge('EXPERT'),'The billed guests’ broad category: creators make things, performers perform, experts bring credentials. The specific role is in the event detail.'],
     ['<span class="kind '+ROLE_CLASS.paid+'">EXTRA FEE</span>','Costs extra on top of your badge.'],
     ['<span class="kind '+ROLE_CLASS.age+'">18+</span> <span class="kind '+ROLE_CLASS.age+'">21+</span>','Age-restricted — the panel states a minimum age. Read from the schedule text, so a few may be missed.'],
     ['<span class="big">BIG ROOM</span>','A headline ballroom. The line can start forming up to an hour before.'],
@@ -2977,11 +3087,25 @@ function buildChrome(){
       shown=50; render(); };
     hh.appendChild(b);
   });
+  /* broad presenter "type" chips (the category shown on the card) */
+  const cg=document.getElementById('cgrid');
+  const CATS=[['CREATOR','Creator'],['PERFORMER','Performer'],['EXPERT','Expert-led'],
+   ['goh','Guest of Honor'],['featured','Featured guest'],['fan','Nobody billed']];
+  CATS.forEach(([k,l])=>{
+    const b=document.createElement('button');
+    b.className='tchip'; b.textContent=l; b.dataset.cat=k;
+    b.onclick=()=>{ offCats.has(k)?offCats.delete(k):offCats.add(k);
+      syncCats(); shown=50; render(); };
+    cg.appendChild(b);
+  });
+  syncCats();
+  /* specific "by role" chips - the detailed occupation. 'creator' the role
+     (director/producer/showrunner) is relabelled so it doesn't read as the
+     broad Creator category above. */
   const kg=document.getElementById('kgrid');
   const FEATURING=[['actor','Actors'],['author','Authors'],['artist','Artists'],
-   ['creator','Creators'],['musician','Musicians'],['costumer','Costumers'],
-   ['scientist','Scientists'],['performer','Performers'],['writer','Writers'],
-   ['expert','Expert-led'],['fan','Nobody billed']];
+   ['creator','Directors & producers'],['musician','Musicians'],['costumer','Costumers'],
+   ['scientist','Scientists'],['performer','Hosts & live acts'],['writer','Writers']];
   /* 'party' retired - the event-format tag carries it now */
   const OTHERTAGS=[['paid','Extra fee'],['age','Age-restricted']];
   const gg=document.getElementById('ggrid');
@@ -3023,6 +3147,13 @@ function syncKinds(){
   document.querySelectorAll('#kgrid .tchip, #ggrid .tchip').forEach(b=>{
     const off=offKinds.has(b.dataset.kind);
     b.dataset.state = off?'hidden':'neutral';   /* same states as the tracks */
+    b.setAttribute('aria-pressed',String(!off));
+  });
+}
+function syncCats(){
+  document.querySelectorAll('#cgrid .tchip').forEach(b=>{
+    const off=offCats.has(b.dataset.cat);
+    b.dataset.state = off?'hidden':'neutral';
     b.setAttribute('aria-pressed',String(!off));
   });
 }
@@ -3084,19 +3215,22 @@ function activeFilters(){
   return n;
 }
 document.getElementById('clearBtn').onclick=()=>{
-  days.clear(); hotels.clear(); offTracks.clear(); offKinds.clear(); offFormats.clear(); query='';
+  days.clear(); hotels.clear(); offTracks.clear(); offKinds.clear(); offCats.clear();
+  offFormats.clear(); query='';
   document.getElementById('q').value='';
   if(view==='grid') hotels.add(HOTEL_ORDER[0]);
-  savePicks(); syncTracks(); syncKinds(); syncFormats(); shown=50; render();
+  savePicks(); syncTracks(); syncKinds(); syncCats(); syncFormats(); shown=50; render();
 };
+/* Featuring "Show all / Hide all" spans both groups: broad types and roles */
 document.getElementById('kpAll').onclick=()=>{
-  [...document.querySelectorAll('#kgrid .tchip')]
-    .forEach(b=>offKinds.delete(b.dataset.kind));
-  savePicks(); syncKinds(); shown=50; render(); };
+  [...document.querySelectorAll('#kgrid .tchip')].forEach(b=>offKinds.delete(b.dataset.kind));
+  [...document.querySelectorAll('#cgrid .tchip')].forEach(b=>offCats.delete(b.dataset.cat));
+  savePicks(); syncKinds(); syncCats(); shown=50; render(); };
 const groupKeys=sel=>[...document.querySelectorAll(sel+' .tchip')].map(b=>b.dataset.kind);
 document.getElementById('kpNone').onclick=()=>{
   groupKeys('#kgrid').forEach(k=>offKinds.add(k));
-  savePicks(); syncKinds(); shown=50; render(); };
+  [...document.querySelectorAll('#cgrid .tchip')].forEach(b=>offCats.add(b.dataset.cat));
+  savePicks(); syncKinds(); syncCats(); shown=50; render(); };
 document.getElementById('gpAll').onclick=()=>{
   groupKeys('#ggrid').forEach(k=>offKinds.delete(k));
   savePicks(); syncKinds(); shown=50; render(); };

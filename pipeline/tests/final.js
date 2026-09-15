@@ -16,6 +16,7 @@ const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelO
  'get query(){return query},activeFilters,planTrips,roomOf,makeBreak,sortList,'+
  'classifyFormat,formatOf,fmtKey,get eventFormats(){return eventFormats},'+
  'get FORMAT_OVERRIDES(){return FORMAT_OVERRIDES},get offFormats(){return offFormats},'+
+ 'presenterInfo,presenterBadges,catFacets,catOf,get offCats(){return offCats},peopleOn,'+
  'set advSort(v){advSort=v},set sortGroup(v){sortGroup=v},set sortTiers(v){sortTiers=v},'+
  'set breakOn(v){breakOn=v},get breakOn(){return breakOn},get breaks(){return breaks},'+
  'set breaks(v){breaks=v},get breakDecisions(){return breakDecisions},set hasDctvPass(v){hasDctvPass=v},'+
@@ -108,6 +109,26 @@ setTimeout(()=>{
   app.render(); const after=ids.main.querySelectorAll('.ev').length;
   ok('hiding every format empties the list', before>0&&after===0, before+' -> '+after+' rows');
   app.offFormats.clear();
+
+  console.log('\nPRESENTERS');
+  /* CREATOR/PERFORMER derive from the specific role */
+  ok('author -> CREATOR', app.catOf('author')==='CREATOR');
+  ok('actor -> PERFORMER', app.catOf('actor')==='PERFORMER');
+  ok('scientist stays specific (no broad cat)', app.catOf('scientist')==='');
+  /* a Guest of Honor is detected and leads the card badges */
+  const gi=EV.findIndex((e,i)=>String(e[ID])[0]!=='w'&&app.presenterInfo(i).goh);
+  ok('at least one Guest of Honor event', gi>=0);
+  if(gi>=0){
+    ok('GoH leads the card badges', /GUEST OF HONOR/.test(app.presenterBadges(gi)));
+    ok('specific role kept off the card', !/AUTHOR|ARTIST|ACTOR/.test(app.presenterBadges(gi)));
+  }
+  /* the broad presenter filter really excludes */
+  app.view='browse'; app.hidePast=false;
+  app.offCats.clear(); app.render(); const preC=ids.main.querySelectorAll('.ev').length;
+  ['CREATOR','PERFORMER','EXPERT','goh','featured','fan'].forEach(c=>app.offCats.add(c));
+  app.render(); const postC=ids.main.querySelectorAll('.ev').length;
+  ok('hiding every presenter type empties the list', preC>0&&postC===0, preC+' -> '+postC);
+  app.offCats.clear();
 
   console.log('\nADVANCED SORT');
   app.view='browse'; app.hidePast=false;

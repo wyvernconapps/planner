@@ -36,7 +36,7 @@ setTimeout(()=>{
       go(v+' pin',()=>{ p.onclick({stopPropagation(){}}); app.render(); });
     });
     [...ids.tgrid.children.slice(0,3),...ids.kgrid.children,...ids.ggrid.children,
-     ...ids.fgrid.children].forEach(c=>{
+     ...ids.cgrid.children,...ids.fgrid.children].forEach(c=>{
       if(c.onclick) go(v+' filterchip',()=>{ c.onclick(); app.render(); });
     });
     // break settings: fire every control the dynamic box built

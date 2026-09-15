@@ -11,6 +11,30 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.20 — presenter tagging: broad on the card, detail underneath
+
+Presenters follow the WyvernCon Presenter Tagging Spec's two layers.
+
+- **Card = the broadest, highest-priority signal.** Official status leads —
+  **GUEST OF HONOR** (a solid gold badge that outranks everything), then
+  **FEATURED GUEST** — followed by the broad profile category, **CREATOR /
+  PERFORMER / EXPERT**. The specific role badges (ACTOR, AUTHOR, ARTIST…) leave
+  the card.
+- **Detail = the full profile.** Open any event and each billed guest shows
+  their official status (Guest of Honor emphasised), their broad category, and
+  their specific role — nothing lost.
+- **Filter by both.** The Featuring section now has a **By type** group
+  (Creator / Performer / Expert-led / Guest of Honor / Featured guest / Nobody
+  billed) as its own filter dimension, alongside the existing **By role** chips
+  (Actors, Authors, Directors & producers, Hosts & live acts…).
+- **PRO / MODERATOR are omitted.** They're event-contextual and the offline
+  schedule can't establish them, and the spec forbids inferring them from the
+  track, title, or neighbours — so no guess. An empty `PRESENTER_OVERRIDES`
+  table in `shell.html` can pin them for known events; when set, they show in
+  the detail.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.19 — event format tags
 
 Every event now carries one primary **format** tag — what you'd actually be
