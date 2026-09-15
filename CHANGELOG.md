@@ -11,6 +11,18 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.23 — calendar export (.ics)
+
+My Con gets **Add my plan to calendar (.ics)** — it builds an `.ics` of your
+picks and locked-in events and hands it to your phone, so your own Google /
+Apple calendar holds them and fires the reminders. One-way, client-side, no
+server. Times are written as floating local time, so a 4pm panel reads as 4pm
+wherever it's imported (which is what you want at a con); descriptions carry the
+track and presenters, locations the hotel and room. Downloads via a blob, with a
+`data:` URI fallback.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.22 — Conflict Compare
 
 When two picks share a time, My Con marks the slot; a **Compare N** button now

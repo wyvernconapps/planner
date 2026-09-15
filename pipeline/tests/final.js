@@ -18,6 +18,7 @@ const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelO
  'get FORMAT_OVERRIDES(){return FORMAT_OVERRIDES},get offFormats(){return offFormats},'+
  'presenterInfo,presenterBadges,catFacets,catOf,get offCats(){return offCats},peopleOn,'+
  'setIsolate,clearIsolate,get isolate(){return isolate},isolateMatch,openCompare,'+
+ 'buildICS,planIdx,'+
  'get presenterIndex(){return presenterIndex},fmtKey,pKey,'+
  'set advSort(v){advSort=v},set sortGroup(v){sortGroup=v},set sortTiers(v){sortTiers=v},'+
  'set breakOn(v){breakOn=v},get breakOn(){return breakOn},get breaks(){return breaks},'+
@@ -187,6 +188,16 @@ setTimeout(()=>{
     ids.main.children.length+' nodes'); }
   catch(e){ ok('group + multi-tier renders', false, e.message); }
   app.advSort=false; app.sortGroup='none';
+
+  console.log('\nCALENDAR');
+  app.setLevel(carl,2);                 /* make sure the plan has at least one event */
+  const ics=app.buildICS();
+  ok('ics has the calendar wrapper',
+     ics.startsWith('BEGIN:VCALENDAR') && /END:VCALENDAR\r\n$/.test(ics));
+  ok('ics has a timed VEVENT',
+     /BEGIN:VEVENT/.test(ics) && /DTSTART:\d{8}T\d{6}/.test(ics) && /DTEND:\d{8}T\d{6}/.test(ics));
+  ok('one VEVENT per planned event',
+     (ics.match(/BEGIN:VEVENT/g)||[]).length===app.planIdx().length, app.planIdx().length+' events');
 
   console.log('\nSYNC');
   const url=app.shareLink();

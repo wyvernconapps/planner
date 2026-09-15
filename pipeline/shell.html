@@ -264,6 +264,7 @@ main{padding:0 12px}
 .syncrow{margin:12px 0 4px}
 .syncrow button{width:100%;padding:11px;border-radius:9px;font-size:13px;font-weight:600;
   background:var(--surface);border:1px solid var(--line);color:var(--dim)}
+.syncrow .calbtn{margin-top:8px;color:var(--HYA);border-color:#24485C}
 .syncurl{margin-top:8px;font-size:11px;color:var(--faint);word-break:break-all;line-height:1.5}
 .imported{margin:12px 0 4px;padding:11px 13px;border-radius:9px;font-size:12.5px;
   line-height:1.5;background:#142A1E;border:1px solid #2E5A3E;color:#9FD8B4}
@@ -1565,6 +1566,65 @@ function shareLink(){
   const base=location.origin+location.pathname;
   return base+'#p='+p+(t?'&t='+t:'')+
     (myName?'&n='+encodeURIComponent(myName.slice(0,18)):'');
+}
+
+/* ---- calendar export: an .ics of your plan, one-way, client-side ----
+   Times are written as floating local time (no timezone), so "4pm" reads as
+   4pm at the con on whatever device imports it - which is what you want for a
+   convention schedule. */
+const icsIndexOf=()=>{ const m=new Map(); EV.forEach((e,i)=>m.set(e[ID],i)); return m; };
+function icsDate(m){ const d=dt(m), p=n=>String(n).padStart(2,'0');
+  return ''+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'T'+
+    p(d.getHours())+p(d.getMinutes())+'00'; }
+const icsEsc=s=>String(s).replace(/[\\;,]/g,x=>'\\'+x).replace(/\r?\n/g,'\\n');
+/* RFC 5545 line folding at 75 chars, continuation lines start with a space */
+function icsFold(line){
+  if(line.length<=75) return line;
+  let out=line.slice(0,75), rest=line.slice(75);
+  while(rest.length){ out+='\r\n '+rest.slice(0,74); rest=rest.slice(74); }
+  return out;
+}
+function planIdx(){
+  const byId=icsIndexOf();
+  return [...new Set([...picks.keys(),...locked])].map(id=>byId.get(id))
+    .filter(i=>i!==undefined && !isWatch(i))
+    .sort((a,b)=>EV[a][START]-EV[b][START]);
+}
+function buildICS(){
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//WyvernCon//Schedule//EN',
+    'CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  const stamp=icsDate(inCon()?nowMin():EV[0][START]);
+  planIdx().forEach(i=>{
+    const e=EV[i], h=DATA.hotels[e[HOT]];
+    const loc=(HOTEL_NAME[h]||h)+' — '+roomOf(i).name;
+    const desc=[DATA.tracks[e[TRK]], e[PRES]].filter(Boolean).join(' · ');
+    L.push('BEGIN:VEVENT','UID:'+e[ID]+'@wyvernconapps.github.io',
+      'DTSTAMP:'+stamp,'DTSTART:'+icsDate(e[START]),'DTEND:'+icsDate(e[START]+e[DUR]),
+      icsFold('SUMMARY:'+icsEsc(e[T])),
+      icsFold('LOCATION:'+icsEsc(loc)),
+      icsFold('DESCRIPTION:'+icsEsc(desc)),
+      'END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  return L.join('\r\n')+'\r\n';
+}
+function exportICS(btn){
+  const restore=btn.textContent;
+  const flash=t=>{ btn.textContent=t; setTimeout(()=>{ btn.textContent=restore; },2800); };
+  const n=planIdx().length;
+  if(!n){ flash('No picks to add yet'); return; }
+  const ics=buildICS();
+  try{
+    const url=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+    const a=document.createElement('a');
+    a.href=url; a.download='wyverncon.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+    flash('✓ '+n+' events — open the file to add them');
+  }catch(err){
+    try{ location.href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics); }
+    catch(e){ flash('Could not export'); }
+  }
 }
 function importFromHash(){
   const h=location.hash.slice(1);
@@ -2935,6 +2995,13 @@ function viewMine(){
   };
   const su=document.createElement('div'); su.className='syncurl';
   sync.appendChild(sb); sync.appendChild(su);
+  /* one-way calendar export: build an .ics of your plan so your own phone's
+     calendar holds the events and fires the reminders. No server. */
+  const cal=document.createElement('button');
+  cal.className='calbtn';
+  cal.textContent='📅 Add my plan to calendar (.ics)';
+  cal.onclick=()=>exportICS(cal);
+  sync.appendChild(cal);
   main.appendChild(sync);
 
   if(onlyShared&&friends.length) all=all.filter(i=>alsoStarred(i).length);
