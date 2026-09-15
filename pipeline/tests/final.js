@@ -17,7 +17,7 @@ const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelO
  'classifyFormat,formatOf,fmtKey,get eventFormats(){return eventFormats},'+
  'get FORMAT_OVERRIDES(){return FORMAT_OVERRIDES},get offFormats(){return offFormats},'+
  'presenterInfo,presenterBadges,catFacets,catOf,get offCats(){return offCats},peopleOn,'+
- 'setIsolate,clearIsolate,get isolate(){return isolate},isolateMatch,'+
+ 'setIsolate,clearIsolate,get isolate(){return isolate},isolateMatch,openCompare,'+
  'get presenterIndex(){return presenterIndex},fmtKey,pKey,'+
  'set advSort(v){advSort=v},set sortGroup(v){sortGroup=v},set sortTiers(v){sortTiers=v},'+
  'set breakOn(v){breakOn=v},get breakOn(){return breakOn},get breaks(){return breaks},'+
@@ -154,6 +154,20 @@ setTimeout(()=>{
   const zahn=app.presenterIndex.get(app.pKey('Timothy Zahn'));
   ok('presenter index finds a guest with their events', !!zahn && zahn.events.length>=1,
      zahn&&zahn.events.length+' events');
+
+  console.log('\nCONFLICT COMPARE');
+  const byStart={};
+  EV.forEach((e,i)=>{ if(String(e[ID])[0]!=='w'){ (byStart[e[START]]=byStart[e[START]]||[]).push(i); } });
+  const clash=Object.values(byStart).find(g=>g.length>=2);
+  if(clash){
+    app.setLevel(clash[0],2); app.setLevel(clash[1],2);
+    app.openCompare([clash[0],clash[1]]);
+    ok('compare builds an evidence table', ids.sheetCard.querySelectorAll('.cmptab td').length>0,
+       ids.sheetCard.querySelectorAll('.cmptab tr').length+' rows');
+    ok('compare offers rule-out / move actions',
+       ids.sheetCard.querySelectorAll('.cmpruleout').length>0);
+    app.setLevel(clash[0],0); app.setLevel(clash[1],0);
+  } else ok('compare (no same-start pair in data to test)', true);
 
   console.log('\nADVANCED SORT');
   app.view='browse'; app.hidePast=false;

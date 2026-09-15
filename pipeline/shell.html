@@ -391,6 +391,35 @@ main{padding:0 12px}
 .prow b{color:var(--gold);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .prow .pt{color:var(--text);font-size:14px;font-weight:600;line-height:1.3}
 .prow .pr{color:var(--faint);font-size:11.5px}
+/* Conflict Compare */
+.cmpbtn{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--gold);
+  border:1px solid #5A4A22;border-radius:7px;padding:4px 10px;background:#2A2418}
+.cmpwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0 4px;
+  border:1px solid var(--line);border-radius:10px}
+.cmptab{border-collapse:collapse;width:100%;font-size:12.5px}
+.cmptab th,.cmptab td{border-bottom:1px solid var(--line);padding:8px 10px;
+  text-align:left;vertical-align:top;line-height:1.35}
+.cmptab tr:last-child th,.cmptab tr:last-child td{border-bottom:none}
+.cmptab th{color:var(--text);font-weight:700;font-size:13px;min-width:120px;
+  background:var(--surface2);position:sticky;top:0}
+.cmptab td.lbl,.cmptab th:first-child{color:var(--faint);font-weight:600;font-size:11.5px;
+  min-width:78px;position:sticky;left:0;background:var(--surface);white-space:nowrap}
+.cmptab td{color:var(--dim)}
+.cmptab .cdim{color:var(--faint);opacity:.6}
+.cmptab .cqueue{display:inline-block;margin-left:4px;padding:0 5px;border-radius:4px;
+  font-size:10.5px;font-weight:700;background:rgba(255,111,94,.16);color:var(--red)}
+.cmpnote{margin:12px 0 4px;padding:11px 13px;border-radius:9px;background:var(--surface2);
+  border:1px solid var(--line);font-size:12.5px;line-height:1.6;color:var(--dim)}
+.cmpnote b{display:block;color:var(--gold);font-size:11px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.cmpacts{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.cmpactrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;
+  border-radius:9px;background:var(--surface2);border:1px solid var(--line)}
+.cmpactt{flex:1 1 100%;font-size:13px;font-weight:600;color:var(--text)}
+.cmpruleout{font-size:12px;font-weight:600;color:var(--red);border:1px solid #5E2E2A;
+  border-radius:7px;padding:6px 11px;background:transparent}
+.cmpmove{font-size:12px;font-weight:600;color:var(--PARK);border:1px solid #3E5426;
+  border-radius:7px;padding:6px 11px;background:#1B2416}
 .mate{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;
   font-size:11px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
   background:rgba(155,140,255,.18);color:var(--WES)}
@@ -1137,6 +1166,82 @@ function openPresenter(name){
       esc(roomOf(idx).name)+'</span>';
     row.onclick=()=>openSheet(idx);
     list.appendChild(row);
+  });
+  c.querySelector('#sClose').onclick=closeSheet;
+  document.getElementById('sheet').classList.add('open');
+}
+
+/* ---- Conflict Compare: a per-slot evidence table for competing picks ----
+   It lays out the facts side by side and offers Keep both / Rule one out /
+   Move to a repeat. It organises the evidence; it never recommends. */
+function openCompare(idxs){
+  const c=document.getElementById('sheetCard');
+  const start=EV[idxs[0]][START];
+  /* your next commitment after this slot, for the "walk to next" row */
+  const later=EV.map((e,i)=>i).filter(i=>committed(i)&&EV[i][START]>start)
+    .sort((a,b)=>EV[a][START]-EV[b][START]);
+  const nextC=later[0];
+  const dash='<span class="cdim">—</span>';
+  const cell=fn=>idxs.map(i=>'<td>'+fn(i)+'</td>').join('');
+  const rows=[
+    ['Ends', i=>esc(hhmm(EV[i][START]+EV[i][DUR]))],
+    ['Your rating', i=>{ const v=levelOf(i);
+      return v?LEVEL_MARK[v]+' '+esc(LEVEL_NAME[v]):dash; }],
+    ['Locked in', i=>lockedOf(i)?'🔒':dash],
+    ['Format', i=>formatBadge(i)],
+    ['Featuring', i=>presenterBadges(i)||dash],
+    ['Friends', i=>{ const f=alsoStarred(i);
+      return f.length?f.map(x=>esc(x.name)+(x.lv===MUST?' 🏆':' ★')).join('<br>'):dash; }],
+    ['Runs again', i=>{ const l=laterRepeats(i);
+      return l.length?esc(shortWhen(l[0]))+(l.length>1?' +'+(l.length-1):''):dash; }],
+    ['DCTV', i=>{ const t=dctvOf(i); return t?(t.live?'Live':'Replay'):dash; }],
+    ['Room', i=>esc(roomOf(i).name)+(roomOf(i).tier===1?' <span class="cqueue">queue</span>':'')]
+  ];
+  if(nextC!==undefined) rows.push(['Walk to next',
+    i=>'~'+walk(DATA.hotels[EV[i][HOT]],DATA.hotels[EV[nextC][HOT]])+' min']);
+  let html='<h2>Compare this slot</h2>'+
+    '<div class="smeta">'+esc(DAYFULL[dayOf(start)])+' '+esc(hhmm(start))+
+      ' · '+idxs.length+' options</div>'+
+    '<div class="cmpwrap"><table class="cmptab"><tr><th></th>'+
+      idxs.map(i=>'<th>'+esc(EV[i][T])+'</th>').join('')+'</tr>'+
+      rows.map(r=>'<tr><td class="lbl">'+r[0]+'</td>'+cell(r[1])+'</tr>').join('')+
+    '</table></div>';
+  /* useful things to know - factual, no recommendation */
+  const notes=[];
+  const rc=idxs.filter(i=>laterRepeats(i).length).length;
+  if(rc) notes.push(rc+' of these run again later — you can catch '+
+    (rc===1?'that one':'those')+' another time.');
+  const tv=idxs.filter(i=>dctvOf(i)).length;
+  if(tv) notes.push(tv+' of these air on DCTV.');
+  const balls=idxs.filter(i=>roomOf(i).tier===1);
+  if(balls.length) notes.push(balls.map(i=>'“'+EV[i][T].slice(0,22)+'”').join(', ')+
+    (balls.length===1?' is':' are')+' in a headline room — lines can form an hour early.');
+  const fr=idxs.filter(i=>alsoStarred(i).length);
+  if(fr.length) notes.push('Friends starred '+
+    fr.map(i=>'“'+EV[i][T].slice(0,22)+'”').join(', ')+'.');
+  if(nextC!==undefined) notes.push('Your next commitment is “'+
+    esc(EV[nextC][T].slice(0,28))+'” at '+hhmm(EV[nextC][START])+'.');
+  if(notes.length) html+='<div class="cmpnote"><b>Useful things to know</b>'+
+    notes.map(n=>'<div>'+n+'</div>').join('')+'</div>';
+  html+='<div class="cmpacts"></div>'+
+    '<div class="sbtns"><button id="sClose">Keep both · close</button></div>';
+  c.innerHTML=html;
+  const acts=c.querySelector('.cmpacts');
+  idxs.forEach(i=>{
+    const row=document.createElement('div'); row.className='cmpactrow';
+    const t=document.createElement('span'); t.className='cmpactt'; t.textContent=EV[i][T];
+    row.appendChild(t);
+    if(!isRuled(i)){
+      const ro=document.createElement('button'); ro.className='cmpruleout';
+      ro.textContent='Rule out'; ro.onclick=()=>{ toggleRuled(i); closeSheet(); };
+      row.appendChild(ro);
+    }
+    const rep=laterRepeats(i);
+    if(rep.length){ const mv=document.createElement('button'); mv.className='cmpmove';
+      mv.textContent='Move to '+shortWhen(rep[0]);
+      mv.onclick=()=>{ moveToRepeat(i,rep[0]); closeSheet(); };
+      row.appendChild(mv); }
+    acts.appendChild(row);
   });
   c.querySelector('#sClose').onclick=closeSheet;
   document.getElementById('sheet').classList.add('open');
@@ -2187,6 +2292,7 @@ function openHelp(){
     ['Marking events','Tap the star for interested, again for high priority, again to clear. Open any event for the full scale — Not ever, Not now, Unrated, Interested, High priority — plus <b>Locked in</b> (a firm plan the clash and trip math respect) and <b>Mind ya business</b> (kept off any link you share).'],
     ['Event format','Every event carries one <b>format</b> tag for what you’d actually be doing — <b>Panel</b> (listening), <b>Workshop</b> (hands-on), <b>Performance</b> (watching a show), <b>Party</b> (socialising), <b>Activity</b> (you do the thing), <b>Operational</b> (check-in, setup, a signing). Filter by it in the <b>Format</b> section of Filters. It’s read from each event’s own text, so a few will be off.'],
     ['Who’s on it','The card shows the <b>broadest</b> presenter signal — official status first (<b>Guest of Honor</b>, then <b>Featured guest</b>), then broad <b>Creator</b> / <b>Performer</b> / <b>Expert</b>. Open any event to see each guest’s full profile: their status, their category, and their specific role (author, actor, illustrator…). Filter by broad type or specific role under <b>Featuring</b>.'],
+    ['Sorting out a clash','When two picks share a time, My Con marks the slot. Tap <b>Compare</b> to lay the options side by side — rating, format, who’s on it, repeats, DCTV, room and the walk to your next thing — then <b>Rule one out</b>, or <b>Move</b> the one that runs again. It shows the facts; the call is yours.'],
     ['Sharing','On My Con, <b>Send these picks</b> copies a link — no account. Paste it on another device to carry your picks over, or send it to a friend: their picks appear beside yours, tagged with their name. Private picks are never in the link.'],
     ['Breaks','On My Con, <b>Breaks</b> plans time out — a meal, a pet run, a rest, an errand. Each has a window and a duration, and a travel toggle for whether you leave the con. The app suggests the cheapest slot; <b>Take it here</b> locks it in, <b>Try another time</b> moves it, <b>Skip today</b> drops it for the day.'],
     ['Offline','It loads once, then needs no signal — the whole thing is one file about 470KB. Your picks live on this device (and in any link you make); nothing is sent anywhere.']
@@ -3027,6 +3133,13 @@ function viewMine(){
       +(nOut?' \u00b7 '+nOut+' not now':'');
     else status=live_.length+' options'+(nOut?' \u00b7 '+nOut+' not now':'');
     hd.innerHTML='<b>'+esc(hhmm(k))+'</b>'+(status?'<span>'+esc(status)+'</span>':'');
+    /* a slot with more than one live option can be compared side by side */
+    if(live_.length>1){
+      const cmp=document.createElement('button');
+      cmp.className='cmpbtn'; cmp.textContent='⚖ Compare '+live_.length;
+      cmp.onclick=()=>openCompare(live_);
+      hd.appendChild(cmp);
+    }
     main.appendChild(hd);
 
     const wrap=document.createElement('div');

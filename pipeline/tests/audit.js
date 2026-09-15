@@ -61,6 +61,8 @@ setTimeout(()=>{
       r.querySelectorAll('.watchbtn').forEach(b=>
         go(v+' watch',()=>b.onclick({stopPropagation(){}})));
     });
+    ids.main.querySelectorAll('.cmpbtn').forEach(b=>{
+      if(b.onclick) go(v+' compare',()=>{ b.onclick(); }); });
     go(v+' rerender',()=>app.render());
   }
   // the sheet, for several event kinds

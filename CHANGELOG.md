@@ -11,6 +11,19 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.22 — Conflict Compare
+
+When two picks share a time, My Con marks the slot; a **Compare N** button now
+opens a side-by-side **evidence table** for the competing options: Ends · your
+rating · Locked in · Format · Featuring (Guest of Honor / category) · Friends ·
+Runs again · DCTV · Room (with a queue flag) · Walk to your next commitment.
+Below it, a factual **"Useful things to know"** (which run again, which air on
+DCTV, which are in a headline room, what your next commitment is), then per-event
+actions — **Rule out** or **Move** the one that repeats — and **Keep both** to
+close. It organises the evidence; it never recommends.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.21 — tap to explore: presenter profiles + isolate a tag
 
 Two ways to drill into what you're looking at, instead of only filtering it out.
