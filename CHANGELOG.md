@@ -11,6 +11,26 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.24 — ranked Now, friend status, share one event
+
+The last three v2 build-plan items.
+
+- **Now ranks its picks, and shows why.** "Your next picks" is now ordered
+  **Locked in → High priority → Interested → soonest**, and each row carries a
+  one-line reason drawn from the same evidence Compare uses — the commitment
+  level, whether it starts soon, friends going, a catchable repeat, a ballroom
+  queue, the walk. The ranking is never a black box.
+- **Friend status per event.** The share link now carries whether each pick is
+  **locked in**, not just its level (digits 3/4 alongside the old 1/2, so older
+  links still read correctly). A friend who locked something in shows as
+  **going** (🔒) on the card and in Compare, rather than a plain star.
+- **Share a single event.** Every event detail (the expanded row and the sheet)
+  gets a **🔗 Share this panel** button — a small `#e=` link that carries just
+  that one event. Opening it pops that panel's detail with a "shared with you"
+  note, for "look at this one thing" without sending your whole list.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.23 — calendar export (.ics)
 
 My Con gets **Add my plan to calendar (.ics)** — it builds an `.ics` of your

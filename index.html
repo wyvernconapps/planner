@@ -195,6 +195,7 @@ main{padding:0 12px}
 .evmeta{margin-top:4px;font-size:12.5px;color:var(--dim);line-height:1.4}
 .hb{font-weight:700;font-size:11px;letter-spacing:.04em}
 .evtrack{color:var(--faint)}
+.rankwhy{margin-top:5px;font-size:12px;line-height:1.4;color:var(--gold)}
 .flr{color:var(--faint)}
 .away{color:var(--PARK);font-weight:600}
 .remain{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
@@ -424,6 +425,15 @@ main{padding:0 12px}
 .mate{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;
   font-size:11px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
   background:rgba(155,140,255,.18);color:var(--WES)}
+.mate.going{background:rgba(95,207,138,.2);color:var(--green)}   /* a friend locked in */
+/* single-event share button (in the expanded detail and the sheet) */
+.shareone{font-size:12.5px;font-weight:600;color:var(--HYA);border:1px solid #24485C;
+  border-radius:8px;padding:8px 12px;background:#132430}
+.shareinline{display:none;margin-top:10px}
+.ev.open .shareinline{display:inline-block}
+.shareone-wrap{margin:10px 0 2px}
+.sharednote{margin:-2px 0 10px;padding:8px 11px;border-radius:8px;font-size:12.5px;
+  background:#142A1E;border:1px solid #2E5A3E;color:#9FD8B4}
 .ruledtag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
   font-size:11px;font-weight:700;letter-spacing:.04em;vertical-align:1px;
   background:rgba(255,111,94,.14);color:var(--red)}
@@ -1192,7 +1202,7 @@ function openCompare(idxs){
     ['Format', i=>formatBadge(i)],
     ['Featuring', i=>presenterBadges(i)||dash],
     ['Friends', i=>{ const f=alsoStarred(i);
-      return f.length?f.map(x=>esc(x.name)+(x.lv===MUST?' 🏆':' ★')).join('<br>'):dash; }],
+      return f.length?f.map(x=>esc(x.name)+' '+mateMark(x)).join('<br>'):dash; }],
     ['Runs again', i=>{ const l=laterRepeats(i);
       return l.length?esc(shortWhen(l[0]))+(l.length>1?' +'+(l.length-1):''):dash; }],
     ['DCTV', i=>{ const t=dctvOf(i); return t?(t.live?'Live':'Replay'):dash; }],
@@ -1472,6 +1482,7 @@ let watch=[];               /* [{src:eventId, at:minute}] - airings you plan to 
 let legacyDropped=false;
 let imported=0;
 let importedFriend='';
+let sharedEvent=null;   /* an event index opened from a #e= single-event link */
 let hintSeen=false;         /* first-run gesture hint dismissed */
 
 async function readKey(k){
@@ -1558,14 +1569,36 @@ async function savePicks(){
 /* Picks live in this browser only, so moving between laptop and phone needs
    a carrier. Each pick is its 8-char id plus a level digit; followed tracks
    ride along as indices. Short enough to paste into a text message. */
+/* a single event, for "look at this one panel" - a much smaller link */
+function shareEventLink(i){
+  return location.origin+location.pathname+'#e='+EV[i][ID];
+}
 function shareLink(){
   /* Mind Ya Business: a private pick is simply left off the link, so a friend
      never sees it - one-way, no server, no placeholder or mystery count. */
-  const p=[...picks.entries()].filter(([id])=>!priv.has(id)).map(([id,lv])=>id+lv).join('');
+  /* each pick is its id + a digit: 1/2 interested/high, +2 when locked in
+     (3/4), so a friend's link can say "Eric locked this in". Digits 1/2 from
+     older links still read correctly. */
+  const p=[...picks.entries()].filter(([id])=>!priv.has(id))
+    .map(([id,lv])=>id+(lv+(locked.has(id)?2:0))).join('');
   const t=[...offTracks].join('.');
   const base=location.origin+location.pathname;
   return base+'#p='+p+(t?'&t='+t:'')+
     (myName?'&n='+encodeURIComponent(myName.slice(0,18)):'');
+}
+/* copy a single-event link, with a clipboard fallback */
+function copyEventLink(i,btn){
+  const url=shareEventLink(i), restore=btn.textContent;
+  const done=t=>{ btn.textContent=t; setTimeout(()=>{ btn.textContent=restore; },2400); };
+  if(navigator.clipboard?.writeText)
+    navigator.clipboard.writeText(url).then(()=>done('✓ Link copied'),()=>{ prompt('Copy this link',url); });
+  else prompt('Copy this link',url);
+}
+function shareEventBtn(i){
+  const b=document.createElement('button');
+  b.className='shareone'; b.textContent='🔗 Share this panel';
+  b.onclick=ev=>{ ev.stopPropagation(); copyEventLink(i,b); };
+  return b;
 }
 
 /* ---- calendar export: an .ics of your plan, one-way, client-side ----
@@ -1628,7 +1661,17 @@ function exportICS(btn){
 }
 function importFromHash(){
   const h=location.hash.slice(1);
+  /* a shared single event: open its detail so the recipient can look at it */
+  if(h.startsWith('e=')){
+    const id=h.slice(2);
+    history.replaceState(null,'',location.pathname);
+    const idx=EV.findIndex(e=>e[ID]===id);
+    if(idx>=0) sharedEvent=idx;
+    return 0;
+  }
   if(!h.startsWith('p=')) return 0;
+  /* decode a pick digit: 1/2 = interested/high, 3/4 = the same but locked in */
+  const decode=d=>({lv:d>2?d-2:d, locked:d>2});
   const parts=Object.fromEntries(h.split('&').map(x=>{
     const i=x.indexOf('='); return [x.slice(0,i),x.slice(i+1)]; }));
   const blob=parts.p||'';
@@ -1643,8 +1686,8 @@ function importFromHash(){
   if(who && nameKey(who)!==nameKey(myName)){
     const theirs={};
     for(let i=0;i+9<=blob.length;i+=9){
-      const lv=+blob[i+8];
-      if(lv===1||lv===2) theirs[blob.slice(i,i+8)]=lv;
+      const d=+blob[i+8];
+      if(d>=1&&d<=4) theirs[blob.slice(i,i+8)]=decode(d);   /* {lv, locked} */
     }
     const k=friends.findIndex(f=>nameKey(f.name)===nameKey(who));
     if(k>=0) friends[k]={name:who,picks:theirs}; else friends.push({name:who,picks:theirs});
@@ -1655,10 +1698,11 @@ function importFromHash(){
   }
   let added=0;
   for(let i=0;i+9<=blob.length;i+=9){
-    const id=blob.slice(i,i+8), lv=+blob[i+8];
+    const id=blob.slice(i,i+8), d=+blob[i+8];
     /* your own link, merged in: go through setInterest so it clears any
        Not-now / Not-interested you had on the same event */
-    if(lv===1||lv===2){ if((picks.get(id)||0)!==lv) added++; setInterest(id,lv); }
+    if(d>=1&&d<=4){ const {lv,locked:lk}=decode(d);
+      if((picks.get(id)||0)!==lv) added++; setInterest(id,lv); if(lk) locked.add(id); }
   }
   if(parts.t) offTracks=new Set(parts.t.split('.').filter(Boolean).map(Number));
   if(added||parts.t) savePicks();
@@ -1666,11 +1710,18 @@ function importFromHash(){
   return added;
 }
 
-/* who else starred this, and how keenly */
+/* who else starred this, how keenly, and whether they locked it in */
 function alsoStarred(i){
   const id=EV[i][ID];
-  return friends.filter(f=>f.picks[id]).map(f=>({name:f.name,lv:f.picks[id]}));
+  return friends.filter(f=>f.picks[id]).map(f=>{
+    const p=f.picks[id];
+    /* pre-1.24 saves stored just a level number; new ones store {lv, locked} */
+    return typeof p==='object' ? {name:f.name,lv:p.lv,locked:!!p.locked}
+                               : {name:f.name,lv:p,locked:false};
+  });
 }
+/* a friend's mark: a lock reads as "going", else their star / trophy */
+const mateMark=f=>f.locked?'🔒':(f.lv===MUST?'🏆':'★');
 const sharedCount=()=>{
   let n=0;
   picks.forEach((lv,id)=>{ if(friends.some(f=>f.picks[id])) n++; });
@@ -1965,8 +2016,8 @@ function evNode(i,opts={}){
       (lockedOf(i)?'<span class="locktag">LOCKED IN</span>':'')+
       (privateOf(i)?'<span class="privtag">PRIVATE</span>':'')+
       (isRuled(i)?'<span class="ruledtag">NOT NOW</span>':'')+
-      alsoStarred(i).map(f=>'<span class="mate">'+esc(f.name)+
-        (f.lv===MUST?' \uD83C\uDFC6':' \u2605')+'</span>').join('')+
+      alsoStarred(i).map(f=>'<span class="mate'+(f.locked?' going':'')+'">'+esc(f.name)+
+        ' '+mateMark(f)+'</span>').join('')+
       '<br><span class="evtrack"></span>'+
     '</div><div class="evdesc"></div></div>'+
     (opts.segmented
@@ -2033,6 +2084,8 @@ function evNode(i,opts={}){
   /* the full interest scale + lock + private live in the expanded detail, so
      the card face stays a quick tap and this is never a menu you scrub through */
   if(!isWatch(i)) el.querySelector('.evbody').appendChild(buildAxes(i));
+  if(!isWatch(i)){ const sh=shareEventBtn(i); sh.classList.add('shareinline');
+    el.querySelector('.evbody').appendChild(sh); }
   /* every facet badge on the card taps to "show only this" */
   wireBadges(el);
   return el;
@@ -2266,15 +2319,18 @@ const dropPast=idxs=>hidePast?idxs.filter(i=>!isPast(i)):idxs;
 /* ============================================================
    DETAIL SHEET
    ============================================================ */
-function openSheet(i){
+function openSheet(i,opts={}){
   const e=EV[i], h=DATA.hotels[e[HOT]];
   const on=inMyCon(i)||lockedOf(i)||privateOf(i);
   const c=document.getElementById('sheetCard');
-  c.innerHTML='<h2></h2><div class="smeta"></div><div class="sdesc"></div>'+
+  c.innerHTML=(opts.shared?'<div class="sharednote">Someone shared this panel with you.</div>':'')+
+    '<h2></h2><div class="smeta"></div><div class="shareone-wrap"></div>'+
+    '<div class="sdesc"></div>'+
     '<div class="slevel"></div>'+
     '<div class="sbtns">'+
       (on?'<button id="sDrop">Remove from My Con</button>':'')+
       '<button id="sClose">Close</button></div>';
+  c.querySelector('.shareone-wrap').appendChild(shareEventBtn(i));
   c.querySelector('h2').textContent=e[T];
   c.querySelector('.smeta').innerHTML=
     '<b>'+esc(DAYFULL[dayOf(e[START])])+' '+esc(hhmm(e[START]))+'&ndash;'+
@@ -2561,6 +2617,25 @@ function planTrips(list){
   return out.sort((a,b)=>(a.depart||a.dayOffset)-(b.depart||b.dayOffset));
 }
 
+/* Why a pick sits where it does in the ranked "next picks": the commitment
+   level first, then the same evidence Compare surfaces - friends, a catchable
+   repeat, a ballroom queue, the walk. Ranking is never a black box. */
+function rankReason(i){
+  const bits=[];
+  if(lockedOf(i)) bits.push('🔒 Locked in');
+  else if(levelOf(i)===MUST) bits.push('🏆 High priority');
+  else if(levelOf(i)>0) bits.push('★ Interested');
+  const start=EV[i][START], mins=start-nowMin();
+  if(mins<=15 && mins> -GRACE) bits.push(mins<=0?'on now':'starts in '+mins+' min');
+  const fr=alsoStarred(i);
+  if(fr.length) bits.push(fr.length+' friend'+(fr.length>1?'s':'')+' going');
+  if(laterRepeats(i).length) bits.push('runs again — catchable');
+  if(roomOf(i).tier===1) bits.push('ballroom — line forms early');
+  const w=isRemote(i)?null:minsAway(i);
+  if(w!=null && w>0) bits.push('~'+w+' min walk');
+  return bits.join(' · ');
+}
+
 /* ============================================================
    VIEW - NOW
    ============================================================ */
@@ -2572,15 +2647,25 @@ function viewNow(){
   /* your plan (wanted or locked) obeys the same filter and sort as everything else */
   const myAll=[...new Set([...picks.keys(),...locked])].map(id=>byId.get(id))
     .filter(i=>i!==undefined&&live(i));
-  const mine=sortList(myAll.filter(matches));
+  /* ranked by what matters most next: Locked in, then High priority, then
+     Interested, then soonest. Each row shows why it sits there (rankReason). */
+  const rankTier=i=>lockedOf(i)?3:levelOf(i)===MUST?2:1;
+  const mine=myAll.filter(matches).sort((a,b)=>
+    (rankTier(b)-rankTier(a))||(EV[a][START]-EV[b][START]));
   const hiddenPicks=myAll.length-mine.length;
   if(mine.length){
     const h=document.createElement('div');
     h.className='timehead';
-    h.innerHTML='<div>YOUR NEXT PICKS</div><span>'+mine.length+' coming up'+
+    h.innerHTML='<div>YOUR NEXT PICKS</div><span>ranked by priority'+
       (hiddenPicks?' \u00b7 '+hiddenPicks+' hidden by filters':'')+'</span>';
     main.appendChild(h);
-    mine.forEach(i=>main.appendChild(evNode(i,{showTime:true,showFloor:true})));
+    mine.forEach(i=>{
+      const node=evNode(i,{showTime:true,showFloor:true});
+      const why=rankReason(i);
+      if(why){ const w=document.createElement('div'); w.className='rankwhy';
+        w.textContent=why; node.querySelector('.evmeta').after(w); }
+      main.appendChild(node);
+    });
   }
   const soon=[];
   for(let i=0;i<EV.length;i++) if(!onPlan(i)&&live(i)&&matches(i)) soon.push(i);
@@ -3875,6 +3960,8 @@ function tick(){
   tick(); setInterval(tick,30000);
   setInterval(()=>{ if(view==='now') render(); },120000);
   render();
+  /* a single-event link was opened: show that panel's detail */
+  if(sharedEvent!=null){ openSheet(sharedEvent,{shared:true}); sharedEvent=null; }
 })();
 </script>
 </body>

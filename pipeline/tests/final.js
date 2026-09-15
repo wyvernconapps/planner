@@ -18,7 +18,8 @@ const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelO
  'get FORMAT_OVERRIDES(){return FORMAT_OVERRIDES},get offFormats(){return offFormats},'+
  'presenterInfo,presenterBadges,catFacets,catOf,get offCats(){return offCats},peopleOn,'+
  'setIsolate,clearIsolate,get isolate(){return isolate},isolateMatch,openCompare,'+
- 'buildICS,planIdx,'+
+ 'buildICS,planIdx,shareEventLink,alsoStarred,get friends(){return friends},'+
+ 'set friends(v){friends=v},set myName(v){myName=v},get sharedEvent(){return sharedEvent},'+
  'get presenterIndex(){return presenterIndex},fmtKey,pKey,'+
  'set advSort(v){advSort=v},set sortGroup(v){sortGroup=v},set sortTiers(v){sortTiers=v},'+
  'set breakOn(v){breakOn=v},get breakOn(){return breakOn},get breaks(){return breaks},'+
@@ -206,6 +207,25 @@ setTimeout(()=>{
   globalThis.location.hash=url.slice(url.indexOf('#'));
   const n=app.importFromHash();
   ok('picks survive the link', n===saved.size&&app.picks.size===saved.size);
+
+  console.log('\nSHARE (locked + single event)');
+  app.setLevel(carl,2); app.setLocked(carl,true);
+  ok('a locked high-priority pick encodes as digit 4', app.shareLink().includes(EV[carl][ID]+'4'));
+  app.setLocked(carl,false);
+  ok('an unlocked high pick encodes as digit 2', app.shareLink().includes(EV[carl][ID]+'2'));
+  ok('single-event link carries just the id', app.shareEventLink(carl).endsWith('#e='+EV[carl][ID]));
+  globalThis.location.hash='#e='+EV[carl][ID];
+  app.importFromHash();
+  ok('a #e= link flags the shared event', app.sharedEvent===carl);
+  /* a friend link that marks a pick locked shows up as "going" */
+  app.friends=[]; app.myName='Me';
+  globalThis.location.hash='#p='+EV[carl][ID]+'4&n=Eric';
+  app.importFromHash();
+  const fp=app.friends[0]&&app.friends[0].picks[EV[carl][ID]];
+  ok('a friend link carries locked', !!fp && fp.locked===true && fp.lv===2);
+  const also=app.alsoStarred(carl).find(x=>x.name==='Eric');
+  ok('alsoStarred reports the friend as locked', !!also && also.locked===true);
+  app.friends=[]; globalThis.location.hash='';
 
   console.log('\nNEW MODEL (three axes)');
   app.setLevel(carl,2);
