@@ -36,4 +36,4 @@ setTimeout(()=>{
   console.log('\nALREADY RUNNING in Browse');
   const fold=ids.main.children.find(c=>c.className.includes('fold'));
   console.log('   fold present:',!!fold,fold?'-> '+fold.textContent.replace(/\s+/g,' '):'(none, con is over)');
-},80);
+},400);

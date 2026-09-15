@@ -11,6 +11,26 @@ footer build stamp is the ground truth for which build a file actually is.
 
 ---
 
+## 1.21 — tap to explore: presenter profiles + isolate a tag
+
+Two ways to drill into what you're looking at, instead of only filtering it out.
+
+- **Presenter profiles.** Every guest's name is now tappable — in the expanded
+  row and the event detail — and opens a **profile sheet**: their name, official
+  status (Guest of Honor emphasised), broad category and role, and **every event
+  they're on** (day · time · room), each tappable to open. Answers "this person
+  is great, what else are they doing?"
+- **Tap a badge to "show only this."** Tapping a badge on a card — Format,
+  Guest of Honor / Featured, Creator / Performer / Expert, Extra fee,
+  Age-restricted, DCTV, Big room — narrows the list to just those, with a
+  dismissable **"Showing only X"** banner. It's the opposite gesture to the
+  filter sheet's hide-these, and it fills the gap for the sparse tags (Extra
+  fee, Age) that a "hide all others" pass couldn't isolate, and for DCTV / Big
+  room, which had no filter at all. The isolate counts toward the active-filter
+  number, and Clear (or the banner ✕) drops it.
+
+Full test suite passes; build byte-reproducible.
+
 ## 1.20 — presenter tagging: broad on the card, detail underneath
 
 Presenters follow the WyvernCon Presenter Tagging Spec's two layers.

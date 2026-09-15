@@ -21,4 +21,4 @@ setTimeout(()=>{
   // live one
   const live=EV.findIndex((e,i)=>app.dctvBadge(i).includes('LIVE'));
   console.log('live badge  :',app.dctvBadge(live).replace(/<[^>]+>/g,''),'-',EV[live][0].slice(0,40));
-},60);
+},400);

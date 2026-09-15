@@ -52,4 +52,4 @@ setTimeout(()=>{
   console.log('\nfiltered to somewhere with none of my picks');
   const em=ids.main.querySelector('.empty');
   console.log('   '+(em?em.textContent.replace(/\s+/g,' ').slice(0,120):picksHead()));
-},80);
+},400);

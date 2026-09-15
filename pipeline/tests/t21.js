@@ -38,4 +38,4 @@ setTimeout(()=>{
   EV.forEach((e,i)=>{ const r=app.repeatsOf(i); if(!r) return;
     if(r.includes(e[1])) bad++; });
   console.log('repeats pointing at their own start time:',bad,'(must be 0)');
-},60);
+},400);

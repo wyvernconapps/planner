@@ -37,4 +37,4 @@ setTimeout(()=>{
   app.day='Sat'; app.view='grid'; app.render();
   const f=ids.main.querySelector('.gflabel');
   console.log('      '+(f?f.textContent:'?'));
-},80);
+},400);

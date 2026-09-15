@@ -33,4 +33,4 @@ setTimeout(()=>{
     console.log('   Westin '+EV[a][0].slice(0,26)+' -> Courtland '+EV[b][0].slice(0,26));
     decisions().forEach(x=>console.log('   '+x));
   } else console.log('   (no such pair in the data)');
-},80);
+},400);

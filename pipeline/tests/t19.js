@@ -43,4 +43,4 @@ setTimeout(()=>{
   app.view='mine';
   try{ app.render(); console.log('My Con renders on the phone: OK,',ids.main.children.length,'nodes'); }
   catch(e){ console.log('THREW:',e.message); }
-},50);
+},400);

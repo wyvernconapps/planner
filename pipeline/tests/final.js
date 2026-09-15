@@ -17,6 +17,8 @@ const app=new Function(js+'\n;return {set view(v){view=v},render,setLevel,levelO
  'classifyFormat,formatOf,fmtKey,get eventFormats(){return eventFormats},'+
  'get FORMAT_OVERRIDES(){return FORMAT_OVERRIDES},get offFormats(){return offFormats},'+
  'presenterInfo,presenterBadges,catFacets,catOf,get offCats(){return offCats},peopleOn,'+
+ 'setIsolate,clearIsolate,get isolate(){return isolate},isolateMatch,'+
+ 'get presenterIndex(){return presenterIndex},fmtKey,pKey,'+
  'set advSort(v){advSort=v},set sortGroup(v){sortGroup=v},set sortTiers(v){sortTiers=v},'+
  'set breakOn(v){breakOn=v},get breakOn(){return breakOn},get breaks(){return breaks},'+
  'set breaks(v){breaks=v},get breakDecisions(){return breakDecisions},set hasDctvPass(v){hasDctvPass=v},'+
@@ -130,6 +132,29 @@ setTimeout(()=>{
   ok('hiding every presenter type empties the list', preC>0&&postC===0, preC+' -> '+postC);
   app.offCats.clear();
 
+  console.log('\nTAP TO EXPLORE');
+  /* isolate: "show only this facet" narrows the list to matching events */
+  app.view='browse'; app.hidePast=false;
+  app.setIsolate('trait','paid'); app.render();
+  const isoRows=ids.main.querySelectorAll('.ev').length;
+  ok('isolate to Extra fee shows only extra-fee events',
+     isoRows>0 && [...ids.main.querySelectorAll('.ev')].length===isoRows,
+     app.isolate&&app.isolate.label);
+  ok('isolate matcher agrees with the label', app.isolate.label==='Extra fee');
+  /* every visible row genuinely has the facet */
+  const paidIdx=EV.map((e,i)=>i).filter(i=>String(EV[i][ID])[0]!=='w'&&app.isolateMatch(i));
+  ok('every isolated event has the trait', paidIdx.length>0 &&
+     paidIdx.every(i=>(app.DATA.kinds[EV[i][ID]]||[]).includes('paid')));
+  app.setIsolate('cat','goh');
+  ok('isolate to Guests of Honor', EV.some((e,i)=>String(e[ID])[0]!=='w'&&app.isolateMatch(i)) &&
+     !app.isolateMatch(EV.findIndex((e,i)=>!app.presenterInfo(i).goh)));
+  app.clearIsolate();
+  ok('clear isolate restores everything', app.isolate===null);
+  /* presenter index: a headliner is on more than one event */
+  const zahn=app.presenterIndex.get(app.pKey('Timothy Zahn'));
+  ok('presenter index finds a guest with their events', !!zahn && zahn.events.length>=1,
+     zahn&&zahn.events.length+' events');
+
   console.log('\nADVANCED SORT');
   app.view='browse'; app.hidePast=false;
   const pool=EV.map((e,i)=>i).slice(0,500);
@@ -178,4 +203,4 @@ setTimeout(()=>{
   ok('disclaimer present', html.includes('Unofficial fan project'));
   ok('noindex present', html.includes('noindex, nofollow'));
   console.log(fail?'\n'+fail+' FAILURE(S)':'\nAll checks passed.');
-},80);
+},400);

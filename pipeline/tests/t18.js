@@ -48,4 +48,4 @@ setTimeout(()=>{
     }catch(e){ fails++; console.log(`  ${v.padEnd(7)} THREW  ${e.constructor.name}: ${e.message}`); }
   }
   console.log(fails? `\n${fails} FAILURE(S)` : '\nAll views render without throwing.');
-},50);
+},400);

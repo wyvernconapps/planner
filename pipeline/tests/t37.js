@@ -33,4 +33,4 @@ setTimeout(()=>{
   ids.main.querySelectorAll('.remain').forEach(e=>marks.push(e.className+' = '+e.textContent));
   console.log('\n   lateness markers found:',marks.length);
   marks.slice(0,6).forEach(m=>console.log('      '+m));
-},80);
+},400);

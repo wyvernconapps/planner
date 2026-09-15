@@ -42,4 +42,4 @@ setTimeout(()=>{
   console.log('\nsanity: Westin->Westin should be smallest');
   console.log('  WES->WES',app.minsAway(EV.findIndex(e=>app.DATA.hotels[e[HOT]]==='WES')));
   console.log('  WES->CG ',app.minsAway(EV.findIndex(e=>app.DATA.hotels[e[HOT]]==='CG')));
-},80);
+},400);

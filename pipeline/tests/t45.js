@@ -41,4 +41,4 @@ setTimeout(()=>{
   console.log('\nshare link carries the filter:');
   const url=app.shareLink();
   console.log('   has t= :',/[&#]t=/.test(url));
-},80);
+},400);

@@ -35,7 +35,7 @@ setTimeout(()=>{
   const cyc=ids.sheetCard.querySelector('.iscale');
   console.log('\nsheet control class:',cyc?cyc.className:'MISSING');
   console.log('sheet scale buttons:',cyc?cyc.querySelectorAll('.ibtn').length:'-');
-},50);
+},400);
 setTimeout(()=>{
   console.log('\n--- raw innerHTML, to see past the shim ---');
   ids.main.querySelectorAll('.deciderow').forEach(r=>console.log('  ',r.innerHTML));

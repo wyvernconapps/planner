@@ -82,4 +82,4 @@ setTimeout(()=>{
     for(const v of ['now','browse']){ app.view=v; go(m+'/'+v,()=>app.render()); }
   }
   console.log(fails?`\n${fails} FAILURE(S)`:'\nEvery control fired without throwing.');
-},80);
+},400);

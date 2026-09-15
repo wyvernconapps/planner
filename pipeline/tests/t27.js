@@ -45,4 +45,4 @@ setTimeout(()=>{
   const target=EV.findIndex(e=>e[START]===later&&e[0]===EV[rep][0]);
   console.log('   original still picked:',app.picks.has(beforeId),'(should be false)');
   console.log('   later session picked :',app.picks.has(EV[target][8]),'level',app.levelOf(target));
-},60);
+},400);

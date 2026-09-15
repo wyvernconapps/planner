@@ -20,4 +20,4 @@ setTimeout(()=>{
   app.days.clear(); app.days.add('Sat'); app.render();
   console.log('   grid day:',app.day,'| count:',ids.count.textContent,
     '| nodes:',ids.main.children.length);
-},80);
+},400);

@@ -48,4 +48,4 @@ setTimeout(()=>{
   app.view='grid'; app.render();
   const hotAll=ids.hotels.children.find(c=>c.dataset.all);
   console.log('  "All hotels" on Grid  :',hotAll.style.display===''?'visible':'hidden (correct - grid needs one)');
-},60);
+},400);

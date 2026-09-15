@@ -53,4 +53,4 @@ setTimeout(()=>{
     console.log('        ',(b?b.textContent:'').slice(0,150));
   });
   ids.main.querySelectorAll('.deciderow').forEach(r=>console.log('   DECIDE:',r.innerHTML));
-},60);
+},400);

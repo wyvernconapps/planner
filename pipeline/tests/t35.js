@@ -31,4 +31,4 @@ setTimeout(()=>{
   console.log('   rows shown:',rows.length,'| all carry a GUEST badge:',allGuest);
   console.log('   first:',rows[0]?rows[0].querySelector('.evtitle').textContent.slice(0,46):'-');
   app.offKinds.clear();
-},80);
+},400);

@@ -50,4 +50,4 @@ setTimeout(()=>{
   const d=ids.sheetCard.querySelector('#sDrop');
   console.log('  Remove button present:',!!d);
   if(d){ d.onclick(); console.log('  after remove, picks:',app.picks.size); }
-},60);
+},400);

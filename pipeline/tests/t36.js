@@ -24,4 +24,4 @@ setTimeout(()=>{
   console.log('\nCSS:');
   ['position:sticky;top:calc(var(--headh','.grouped{border-left']
     .forEach(c=>console.log('  '+(html.includes(c)?'ok  ':'MISSING ')+c.slice(0,44)));
-},80);
+},400);

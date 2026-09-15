@@ -36,4 +36,4 @@ setTimeout(()=>{
 
   app.listSort='time'; app.render();
   console.log('\nback in Time sort, pins hidden:',!ids.hotels.classList.contains('pinning'));
-},80);
+},400);

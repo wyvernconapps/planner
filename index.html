@@ -367,6 +367,30 @@ main{padding:0 12px}
 .whobox .pstatus{color:var(--dim);font-weight:600;font-size:11.5px}
 .whobox .pstatus.goh{color:var(--gold);font-weight:800}
 .whobox .psig{color:var(--HYA);font-weight:700;font-size:11px}
+.whoperson{padding:3px 0}
+.pname{color:var(--HYA);font-weight:700;font-size:13px;text-decoration:underline;
+  text-underline-offset:2px;text-align:left}
+.pmeta{color:var(--faint);font-size:11px}
+.ev .whoinline{display:none}
+.ev.open .whoinline{display:block}
+/* a badge you can tap to "show only this" */
+.taggable{cursor:pointer}
+/* the "show only X" banner */
+.isobar{display:flex;align-items:center;gap:10px;margin:14px 0 4px;padding:9px 12px;
+  border-radius:9px;background:rgba(240,168,48,.12);border:1px solid #5A4A22;font-size:13px;color:var(--gold)}
+.isobar span{flex:1}
+.isobar b{color:var(--text)}
+.isobar button{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--gold);
+  border:1px solid #5A4A22;border-radius:7px;padding:5px 11px;background:var(--surface)}
+/* presenter profile sheet: their events */
+.psheeth{margin:14px 0 4px;font-size:12px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--gold)}
+.plist{display:flex;flex-direction:column;gap:6px}
+.prow{display:flex;flex-direction:column;gap:2px;text-align:left;padding:10px 12px;
+  border-radius:9px;background:var(--surface2);border:1px solid var(--line)}
+.prow b{color:var(--gold);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.prow .pt{color:var(--text);font-size:14px;font-weight:600;line-height:1.3}
+.prow .pr{color:var(--faint);font-size:11.5px}
 .mate{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;
   font-size:11px;font-weight:700;letter-spacing:.03em;vertical-align:1px;
   background:rgba(155,140,255,.18);color:var(--WES)}
@@ -911,7 +935,7 @@ function buildFormats(){
 const formatOf=i=>eventFormats.get(EV[i][ID])||(EV[i][ID][0]==='w'?'PERFORMANCE':'PANEL');
 function formatBadge(i){
   const f=formatOf(i);
-  return '<span class="fmt '+FORMAT_CLASS[f]+'">'+FORMAT_NAME[f]+'</span>';
+  return '<span class="fmt '+FORMAT_CLASS[f]+'" data-isot="fmt" data-isov="'+f+'">'+FORMAT_NAME[f]+'</span>';
 }
 
 function kindsOf(i){
@@ -945,7 +969,7 @@ const CAT_NAME={goh:'GUEST OF HONOR',featured:'FEATURED GUEST',
   CREATOR:'CREATOR',PERFORMER:'PERFORMER',EXPERT:'EXPERT',pro:'PRO',mod:'MODERATOR'};
 const CAT_CLASS={goh:'r-goh',featured:'r-feat',CREATOR:'r-f',PERFORMER:'r-e',
   EXPERT:'r-g',pro:'r-pro',mod:'r-mod'};
-const catBadge=c=>'<span class="kind '+CAT_CLASS[c]+'">'+CAT_NAME[c]+'</span>';
+const catBadge=c=>'<span class="kind '+CAT_CLASS[c]+'" data-isot="cat" data-isov="'+c+'">'+CAT_NAME[c]+'</span>';
 
 /* PRO and MODERATOR are event-contextual and not in the offline schedule data;
    the spec forbids inferring them from the track, title, or neighbours, so they
@@ -1000,9 +1024,122 @@ function presenterBadges(i){
 /* the two traits that stay on the card (a separate axis from presenters) */
 function traitBadges(i){
   let out='';
-  if((DATA.kinds[EV[i][ID]]||[]).includes('paid')) out+='<span class="kind r-f2">EXTRA FEE</span>';
-  if(ageLabels.has(EV[i][ID])) out+='<span class="kind r-age">'+esc(ageLabels.get(EV[i][ID]))+'</span>';
+  if((DATA.kinds[EV[i][ID]]||[]).includes('paid'))
+    out+='<span class="kind r-f2" data-isot="trait" data-isov="paid">EXTRA FEE</span>';
+  if(ageLabels.has(EV[i][ID]))
+    out+='<span class="kind r-age" data-isot="trait" data-isov="age">'+esc(ageLabels.get(EV[i][ID]))+'</span>';
   return out;
+}
+
+/* ---- tap a badge to isolate ("show only this"), and tap a presenter to open
+   their profile. The opposite gesture to the filter sheet's hide-these. ---- */
+const ISO_LABEL={
+  fmt:v=>FORMAT_NAME[v].charAt(0)+FORMAT_NAME[v].slice(1).toLowerCase(),
+  cat:v=>({goh:'Guests of Honor',featured:'Featured guests',CREATOR:'Creators',
+    PERFORMER:'Performers',EXPERT:'Expert-led'}[v]||v),
+  trait:v=>({paid:'Extra fee',age:'Age-restricted'}[v]||v),
+  dctv:()=>'DCTV broadcasts',big:()=>'Headline rooms',presenter:v=>v
+};
+function isoLabel(type,value){ return (ISO_LABEL[type]||(x=>x))(value); }
+function setIsolate(type,value){
+  isolate={type,value,label:isoLabel(type,value)};
+  shown=50; window.scrollTo(0,0); render();
+}
+function clearIsolate(){ isolate=null; shown=50; render(); }
+function isolateMatch(i){
+  if(!isolate) return true;
+  const {type,value}=isolate, id=EV[i][ID];
+  if(type==='fmt') return formatOf(i)===value;
+  if(type==='trait') return value==='age' ? ageLabels.has(id)
+                                          : (DATA.kinds[id]||[]).includes(value);
+  if(type==='dctv') return !!dctvOf(i);
+  if(type==='big') return roomOf(i).tier===1;
+  if(type==='cat'){ const info=presenterInfo(i);
+    return value==='goh'?info.goh:value==='featured'?info.featured:info.cats.has(value); }
+  if(type==='presenter') return peopleOn(i).some(p=>pKey(p[0])===value);
+  return true;
+}
+/* wire every tappable badge inside a rendered node to isolate on click */
+function wireBadges(el){
+  el.querySelectorAll('[data-isot]').forEach(b=>{
+    b.classList.add('taggable');
+    b.onclick=ev=>{ ev.stopPropagation(); setIsolate(b.dataset.isot,b.dataset.isov); };
+  });
+}
+
+/* name -> every event they are on, built once at load */
+let presenterIndex=new Map();
+function buildPresenterIndex(){
+  presenterIndex=new Map();
+  DATA.events.forEach((e,idx)=>{
+    (DATA.people[e[ID]]||[]).forEach(p=>{
+      const k=pKey(p[0]);
+      if(!presenterIndex.has(k)) presenterIndex.set(k,{name:p[0],events:[]});
+      presenterIndex.get(k).events.push(idx);
+    });
+  });
+}
+/* the shared "who's on it" block: each name is a button into their profile,
+   with official status (Guest of Honor emphasised), broad category, and role */
+const CAT_WORD={CREATOR:'Creator',PERFORMER:'Performer',EXPERT:'Expert'};
+function buildWho(i){
+  const who=peopleOn(i).filter(p=>p[2]!=='Attending Professional');
+  if(!who.length) return null;
+  const ovs=PRESENTER_OVERRIDES[EV[i][ID]]||{};
+  const box=document.createElement('div');
+  box.className='whobox';
+  who.forEach(p=>{
+    const row=document.createElement('div'); row.className='whoperson';
+    const nm=document.createElement('button'); nm.className='pname'; nm.textContent=p[0];
+    nm.onclick=ev=>{ ev.stopPropagation(); openPresenter(p[0]); };
+    row.appendChild(nm);
+    const role=p[1], billing=p[2], st=personStatus(billing), cat=catOf(role);
+    const bits=[];
+    if(billing) bits.push('<span class="pstatus'+(st==='goh'?' goh':'')+'">'+esc(billing)+'</span>');
+    const sig=ovs[pKey(p[0])]; if(sig) bits.push('<span class="psig">'+esc(sig)+'</span>');
+    if(cat) bits.push(CAT_WORD[cat]);
+    if(role) bits.push('<span>'+esc(role)+'</span>');
+    const meta=document.createElement('span'); meta.className='pmeta';
+    meta.innerHTML=bits.length?' — '+bits.join(' · '):'';
+    row.appendChild(meta);
+    box.appendChild(row);
+  });
+  return box;
+}
+/* a presenter's profile: their status, and every event they are on */
+function openPresenter(name){
+  const rec=presenterIndex.get(pKey(name));
+  const c=document.getElementById('sheetCard');
+  if(!rec){ c.innerHTML='<h2>'+esc(name)+'</h2><div class="smeta">No listed events.</div>'+
+    '<div class="sbtns"><button id="sClose">Close</button></div>';
+    c.querySelector('#sClose').onclick=closeSheet;
+    document.getElementById('sheet').classList.add('open'); return; }
+  /* their billing/role/category, taken from any of their events */
+  let billing='',role='';
+  for(const idx of rec.events){ const p=(DATA.people[EV[idx][ID]]||[]).find(x=>pKey(x[0])===pKey(name));
+    if(p){ if(!billing) billing=p[2]; if(!role&&p[1]) role=p[1]; } }
+  const cat=catOf(role);
+  const meta=[billing&&'<span class="pstatus'+(personStatus(billing)==='goh'?' goh':'')+'">'+esc(billing)+'</span>',
+    cat&&CAT_WORD[cat], role&&esc(role)].filter(Boolean).join(' · ');
+  const evs=[...rec.events].sort((a,b)=>EV[a][START]-EV[b][START]);
+  c.innerHTML='<h2>'+esc(rec.name)+'</h2>'+
+    (meta?'<div class="smeta">'+meta+'</div>':'')+
+    '<div class="psheeth">'+evs.length+' event'+(evs.length===1?'':'s')+' at the con</div>'+
+    '<div class="plist"></div>'+
+    '<div class="sbtns"><button id="sClose">Close</button></div>';
+  const list=c.querySelector('.plist');
+  evs.forEach(idx=>{
+    const e=EV[idx], h=DATA.hotels[e[HOT]];
+    const row=document.createElement('button'); row.className='prow';
+    row.innerHTML='<b>'+esc(DAYFULL[dayOf(e[START])].slice(0,3))+' '+esc(hhmm(e[START]))+'</b>'+
+      '<span class="pt">'+esc(e[T])+'</span>'+
+      '<span class="pr"><span style="color:var(--'+h+')">'+esc(HOTEL_NAME[h]||h)+'</span> · '+
+      esc(roomOf(idx).name)+'</span>';
+    row.onclick=()=>openSheet(idx);
+    list.appendChild(row);
+  });
+  c.querySelector('#sClose').onclick=closeSheet;
+  document.getElementById('sheet').classList.add('open');
 }
 
 /* other times the same panel runs. The point of showing it: a clash you can
@@ -1034,8 +1171,8 @@ function shortWhen(m){
 }
 function dctvBadge(i){
   const t=dctvOf(i); if(!t) return '';
-  if(t.live) return '<span class="dctv live">DCTV LIVE</span>';
-  return '<span class="dctv">DCTV '+esc(shortWhen(t.airs[0]))+'</span>';
+  if(t.live) return '<span class="dctv live" data-isot="dctv" data-isov="1">DCTV LIVE</span>';
+  return '<span class="dctv" data-isot="dctv" data-isov="1">DCTV '+esc(shortWhen(t.airs[0]))+'</span>';
 }
 
 /* Anything over 4 hours is a drop-in: an open game room, a repair table,
@@ -1589,6 +1726,9 @@ const GRACE=15;        /* minutes after which something counts as underway */
 let offKinds=new Set(); /* specific presenter roles + traits hidden from the lists */
 let offCats=new Set();  /* broad presenter categories (CREATOR/PERFORMER/EXPERT/goh/featured/fan) hidden */
 let offFormats=new Set(); /* event formats hidden from the lists (session only, like offKinds) */
+/* "show only this facet", set by tapping a badge (a quicker, opposite gesture to
+   the filter sheet's hide-these). {type, value, label} or null. */
+let isolate=null;
 let gridSort='loc';   /* 'loc' by floor, 'size' by room tier */
 let hidePast=null;    /* set on first render: on during the con, off outside it */
 /* Panels only from the first paint - vendors, photo ops, signings and
@@ -1615,6 +1755,7 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>
 function matches(i){
   const e=EV[i];
   if(hiddenTitles.has(e[T])) return false;   /* -2 Not interested hides the title */
+  if(isolate && !isolateMatch(i)) return false;   /* "show only this facet" */
   if(offTracks.has(e[TRK])) return false;
   if(offFormats.size && offFormats.has(formatOf(i))) return false;
   if(offKinds.size){
@@ -1655,7 +1796,7 @@ function evNode(i,opts={}){
       (opts.showAway&&!isRemote(i)&&minsAway(i)!==null
         ?'<span class="away"> \u00b7 ~'+minsAway(i)+' min walk</span>':'')+
       formatBadge(i)+presenterBadges(i)+traitBadges(i)+
-      (roomOf(i).tier===1?'<span class="big">BIG ROOM</span>':'')+dctvBadge(i)+repeatBadge(i)+
+      (roomOf(i).tier===1?'<span class="big" data-isot="big" data-isov="1">BIG ROOM</span>':'')+dctvBadge(i)+repeatBadge(i)+
       (lockedOf(i)?'<span class="locktag">LOCKED IN</span>':'')+
       (privateOf(i)?'<span class="privtag">PRIVATE</span>':'')+
       (isRuled(i)?'<span class="ruledtag">NOT NOW</span>':'')+
@@ -1681,9 +1822,7 @@ function evNode(i,opts={}){
       tv.airs.map(m=>dayName(m)+' '+hhmm(m)).join(', ')+'.');
     extra.push('DCTV needs a streaming pass ($10).');
   }
-  const who=peopleOn(i).filter(p=>p[2]!=='Attending Professional');
-  if(who.length) extra.push('On this panel: '+
-    who.map(p=>p[0]+' \u2014 '+(p[1]?p[1]+', ':'')+p[2]).join('; ')+'.');
+  /* "who's on it" is now a tappable list (buildWho), appended below, not text */
   const rp=repeatsOf(i);
   if(rp) extra.push('The panel itself also runs '+
     rp.map(m=>dayName(m)+' '+hhmm(m)).join(', ')+'.');
@@ -1723,9 +1862,14 @@ function evNode(i,opts={}){
     });
     el.querySelector('.evbody').appendChild(box);
   }
+  /* tappable "who's on it" list, shown when the row is expanded */
+  if(!isWatch(i)){ const w=buildWho(i);
+    if(w){ w.classList.add('whoinline'); el.querySelector('.evbody').appendChild(w); } }
   /* the full interest scale + lock + private live in the expanded detail, so
      the card face stays a quick tap and this is never a menu you scrub through */
   if(!isWatch(i)) el.querySelector('.evbody').appendChild(buildAxes(i));
+  /* every facet badge on the card taps to "show only this" */
+  wireBadges(el);
   return el;
 }
 /* the shared interest / lock / privacy control, used in the expanded row and
@@ -1975,28 +2119,10 @@ function openSheet(i){
     '<br>'+esc(DATA.tracks[e[TRK]])+
     (e[PRES]?'<br>'+esc(e[PRES]):'')+
     '<br>'+formatBadge(i)+presenterBadges(i)+traitBadges(i);
+  wireBadges(c.querySelector('.smeta'));   /* the meta badges tap to isolate too */
   c.querySelector('.sdesc').textContent=e[DESC]||'No description in the schedule.';
-  const who2=peopleOn(i).filter(p=>p[2]!=='Attending Professional');
-  if(who2.length){
-    /* the presenter profile, in full: official status (Guest of Honor
-       emphasised), the broad Creator / Performer category, and the specific
-       role - plus any PRO / MODERATOR override pinned for this person. */
-    const catWord={CREATOR:'Creator',PERFORMER:'Performer',EXPERT:'Expert'};
-    const ovs=PRESENTER_OVERRIDES[EV[i][ID]]||{};
-    const w=document.createElement('div');
-    w.className='whobox';
-    w.innerHTML=who2.map(p=>{
-      const role=p[1], billing=p[2], st=personStatus(billing), cat=catOf(role);
-      const bits=[];
-      if(billing) bits.push('<span class="pstatus'+(st==='goh'?' goh':'')+'">'+esc(billing)+'</span>');
-      const sig=ovs[pKey(p[0])];
-      if(sig) bits.push('<span class="psig">'+esc(sig)+'</span>');
-      if(cat) bits.push(catWord[cat]);
-      if(role) bits.push('<span>'+esc(role)+'</span>');
-      return '<b>'+esc(p[0])+'</b>'+(bits.length?' \u2014 '+bits.join(' \u00b7 '):'');
-    }).join('<br>');
-    c.querySelector('.sdesc').after(w);
-  }
+  const w=buildWho(i);
+  if(w) c.querySelector('.sdesc').after(w);
   const rp=repeatsOf(i);
   if(rp){
     const r=document.createElement('div');
@@ -2437,6 +2563,7 @@ function viewGrid(){
   for(let i=0;i<EV.length;i++){
     if(dayOf(EV[i][START])!==d) continue;
     if(hiddenTitles.has(EV[i][T])) continue;
+    if(isolate && !isolateMatch(i)) continue;
     if(!hotels.has(DATA.hotels[EV[i][HOT]])) continue;
     if(offTracks.has(EV[i][TRK])) continue;
     if(query){
@@ -3009,6 +3136,15 @@ function render(){
   const b=document.getElementById('mineCount');
   const conN=new Set([...picks.keys(),...ruled,...locked]).size;
   b.hidden=conN===0; b.textContent=conN;
+  /* the "show only X" banner, when a badge was tapped to isolate */
+  if(isolate && view!=='mine'){
+    const w=document.createElement('div');
+    w.className='isobar';
+    w.innerHTML='<span>Showing only <b>'+esc(isolate.label)+'</b></span>';
+    const x=document.createElement('button'); x.textContent='✕ Clear';
+    x.onclick=clearIsolate; w.appendChild(x);
+    main.prepend(w);
+  }
   if(importedFriend){
     const w=document.createElement('div');
     w.className='imported';
@@ -3211,12 +3347,13 @@ function activeFilters(){
   if(hotels.size) n++;
   if(offTracks.size) n++;
   if(offFormats.size) n++;
+  if(isolate) n++;
   if(query) n++;
   return n;
 }
 document.getElementById('clearBtn').onclick=()=>{
   days.clear(); hotels.clear(); offTracks.clear(); offKinds.clear(); offCats.clear();
-  offFormats.clear(); query='';
+  offFormats.clear(); isolate=null; query='';
   document.getElementById('q').value='';
   if(view==='grid') hotels.add(HOTEL_ORDER[0]);
   savePicks(); syncTracks(); syncKinds(); syncCats(); syncFormats(); shown=50; render();
@@ -3539,6 +3676,7 @@ function tick(){
   buildRooms();
   buildAge();
   buildFormats();
+  buildPresenterIndex();
   buildWatch();
   buildChrome();
   renderBreaks();

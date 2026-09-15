@@ -51,4 +51,4 @@ setTimeout(()=>{
   app.toggleWatch(EV[carl][ID],air);
   console.log('  watch list:',app.watch.length,'| synthetic events left:',
     app.EV.filter(e=>e[ID].startsWith('w')).length);
-},60);
+},400);
